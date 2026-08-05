@@ -1,0 +1,8 @@
+{
+  "asctime": "2024-02-20 12:00:00",
+  "levelname": "INFO",
+  "name": "app.routes.items",
+  "message": "Item fetched",
+  "request_id": "a1b2c3d4",
+  "user_id": "user123"
+}
