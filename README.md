@@ -8,7 +8,7 @@ Here’s a **production-ready README.md** template for a FastAPI project, follow
 A production-grade FastAPI service with async SQLAlchemy, JWT auth, and observability.
 
 [![CI](https://github.com/your-org/your-repo/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/your-repo/actions/workflows/ci.yml)
-[![Docker](https://img.shields.io/docker/pulls/your-org/your-repo)](https://hub.docker.com/r/your-org/your-repo)
+[![Docker](https://img.shields.io/docker/pulls/your-org/your-repo)](https://hub.docker.com/r/ZyntroAI/fastapi-python-boilerplate)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ---
@@ -24,7 +24,7 @@ A production-grade FastAPI service with async SQLAlchemy, JWT auth, and observab
 ### Local Setup
 ```bash
 # Clone and cd into project
-git clone https://github.com/your-org/your-repo.git
+git clone https://github.com/ZyntroAI/fastapi-python-boilerplate.git
 cd your-repo
 
 # Create virtualenv
