@@ -1,13 +1,63 @@
-.vercel
-*.log
-*.pyc
-__pycache__
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+pip-wheel-metadata/
 
-# Environments 
-.env 
-.venv 
-env/ 
-venv/ 
-ENV/ 
-env.bak/ 
-venv.bak/ 
+# Virtual env
+.venv/
+venv/
+ENV/
+env/
+
+# Unit test / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.cache/
+nosetests.xml
+coverage/
+
+# FastAPI / runtime
+instance/
+*.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Docker
+Dockerfile.*
+docker-compose*.yml
+*.pid
+*.sock
+
+# Alembic / migrations
+migrations/versions/*.pyc
+migrations/versions/__pycache__/
+
+# PyCharm / VSCode
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# MyPy / typing
+.mypy_cache/
+.dmypy.json
+.pyre/
+
+# Ruff / formatting (optional)
+.ruff_cache/
+
+# OS
+.DS_Store
+Thumbs.db
