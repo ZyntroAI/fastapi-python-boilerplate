@@ -7,8 +7,8 @@ Here’s a **production-ready README.md** template for a FastAPI project, follow
 
 A production-grade FastAPI service with async SQLAlchemy, JWT auth, and observability.
 
-[![CI](https://github.com/your-org/your-repo/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/your-repo/actions/workflows/ci.yml)
-[![Docker](https://img.shields.io/docker/pulls/your-org/your-repo)](https://hub.docker.com/r/ZyntroAI/fastapi-python-boilerplate)
+[![CI](https://github.com/ZyntroAI/fastapi-python-boilerplate/actions/workflows/ci.yml/badge.svg)](https://github.com/ZyntroAI/fastapi-python-boilerplate/actions/workflows/ci.yml)
+[![Docker](https://img.shields.io/docker/pulls/ZyntroAI/fastapi-python-boilerplate)](https://hub.docker.com/r/ZyntroAI/fastapi-python-boilerplate)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ---
@@ -183,13 +183,13 @@ jobs:
 ---
 
 ## 📜 License
-MIT © [Your Name](https://github.com/your-org)
+MIT © [Your Name](https://github.com/ZyntroAI)
 ```
 
 ---
 
 ### **How to Use This Template**
-1. Replace placeholders (`your-org/your-repo`, `your-secret-key-here`, etc.).
+1. Replace placeholders (`ZyntroAI/fastapi-python-boilerplate`, `your-secret-key-here`, etc.).
 2. Customize `routes/`, `schemas/`, and `services/` for your domain.
 3. Add your own `docker-compose.yml` and Kubernetes manifests.
 4. Update badges (CI, Docker, License) with your repo links.
