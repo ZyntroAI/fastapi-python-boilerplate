@@ -4,9 +4,31 @@
   "private": true,
   "scripts": {
     "dev": "vercel dev",
-    "deploy": "vercel --prod"
+    "deploy": "vercel --prod",
+    "lint": "eslint . --ext .js,.ts",
+    "format": "prettier --write .",
+    "test": "jest",
+    "prepare": "husky install",
+    "release": "semantic-release"
   },
   "dependencies": {
     "vercel": "^33.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "prettier": "^3.2.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
+    "jest": "^29.7.0",
+    "semantic-release": "^23.0.0",
+    "@semantic-release/changelog": "^6.0.0",
+    "@semantic-release/git": "^10.0.0"
+  },
+  "lint-staged": {
+    "*.{js,ts,json,md}": [
+      "prettier --write",
+      "eslint --fix"
+    ]
   }
 }
