@@ -154,7 +154,7 @@ spec:
     spec:
       containers:
       - name: app
-        image: your-org/your-repo:latest
+        image: ZyntroAI/fastapi-python-boilerplate:latest
         ports:
         - containerPort: 8000
         envFrom:
