@@ -1,14 +1,71 @@
-# .github/workflows/ci.yml
 name: CI
-on: [push, pull_request]
+
+# กำหนด Concurrency: หากมีการ push ซ้ำ ให้หยุด job เก่าและรันใหม่ทันที
+# เพื่อประหยัดเวลาและทรัพยากร
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: [ main, develop ] # ระบุ branch ที่ต้องการรัน
+  pull_request:
+    branches: [ main, develop ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    
+    # 1. Security: กำหนดสิทธิ์ของ GITHUB_TOKEN ให้แคบที่สุดเท่าที่จำเป็น
+    permissions:
+      contents: read
+      # packages: write  # ปลดคอมเมนต์หากต้องการ push ไปยัง GitHub Packages
+      # id-token: write  # ปลดคอมเมนต์หากต้องการใช้ OIDC สำหรับ cloud authentication
+    
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      # 2. Security: Checkout code โดย Pin เป็น SHA แทน Tag
+      - name: Checkout code
+        uses: actions/checkout@v4
+        # แนะนำ: แลกเปลี่ยน SHA ด้านล่างด้วย SHA ล่าสุดของ actions/checkout@v4
+        # ค้นหา SHA ล่าสุดได้ที่: https://github.com/actions/checkout/releases
+        # ตัวอย่าง SHA: a824008085750b8e136effc585c3cd6082bd575f
+        # ระบุ SHA โดยตรง: uses: actions/checkout@a824008085750b8e136effc585c3cd6082bd575f
+
+      # 3. Efficiency: Cache dependencies เพื่อลดเวลาโหลด
+      - name: Cache dependencies
+        uses: actions/cache@v4
         with:
-          python-version: "3.11"
-      - run: pip install -r requirements.txt
-      - run: pytest
+          path: |
+            ~/.npm
+            ~/.cache/pip
+            ~/.m2
+            node_modules
+          key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json', '**/pom.xml', '**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Setup environment (Customize this based on your project)
+        # ตัวอย่าง: Setup Node.js หรือ Python
+        # uses: actions/setup-node@v4
+        # with:
+        #   node-version: '20'
+        
+      - name: Install dependencies
+        run: |
+          echo "Installing dependencies..."
+          # คำสั่งติดตั้งจริงของโปรเจคคุณ (เช่น npm ci, pip install -r requirements.txt)
+          # npm ci
+          # pip install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          echo "Running tests..."
+          # คำสั่งรัน test จริง (เช่น npm test, pytest)
+          # npm test
+          # pytest
+
+      - name: Build (Optional)
+        run: |
+          echo "Building project..."
+          # คำสั่ง build จริง
