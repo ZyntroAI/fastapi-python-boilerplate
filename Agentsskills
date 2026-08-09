@@ -1,3 +1,4 @@
+<div>
 AI agent skills for watermark removal are reusable prompt tools for platforms like Claude Code or Cursor that automatically erase logos, text stamps, or AI watermarks from digital files locally. [1, 2, 3]
 Available Agent Skills
 
@@ -135,5 +136,5 @@ python generate_image.py "A cute futuristic robot reading a book in a cozy libra
 
 คุณต้องการให้ผมปรับแต่งโค้ดนี้เพิ่มเติม เช่น เปลี่ยนไปใช้โมเดลฟรีของ Hugging Face หรือเพิ่มระบบรับคำสั่งสร้างภาพแบบทีละหลายๆ รูป (Batch Processing) จากไฟล์ CSV ไหมครับ?
 
-
+</div>
 
