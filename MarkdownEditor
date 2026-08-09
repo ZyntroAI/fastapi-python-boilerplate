@@ -1,0 +1,39 @@
+<h1>Markdown Editor</h1>
+<p>
+Start typing on the left — the preview updates as you go. When you're ready,
+copy the HTML or download a complete document.
+</p>
+<h2>Formatting</h2>
+<p>
+<strong>Bold</strong>, <em>italic</em>, strikethrough, and
+<code>inline code</code> all work.
+</p>
+<h2>Tables</h2>
+<p>
+| Tool | Use Case | |------|----------| | markdown-editor | Live preview &
+HTML export | | markdown-to-csv | Export tables to spreadsheets | |
+html-to-markdown | Convert web content to Markdown |
+</p>
+<h2>Code</h2>
+<p>
+<code>javascript function hello(name) { return Hello, ${name}!; } </code>
+</p>
+<h2>Task List</h2>
+<ul>
+<li>[x] Write some Markdown</li>
+<li>[ ] Tweak the export options</li>
+<li>[ ] Copy or download the HTML</li>
+</ul>
+
+App Functionality 
+Terminal Full bash-like shell with 25+ commands (ls, cd, cat, mkdir, rm, ps, ping, neofetch, cowsay, etc.) 
+Files Full file manager with create, delete, navigate, open files 
+System Monitor Real-time CPU, memory, disk, network graphs with live updates 
+Settings General, appearance, network, privacy, about panels 
+Logs System log viewer with color-coded levels 
+Processes Process manager with kill functionality 
+Disk Usage Storage analyzer with visual bars 
+Packages Package manager with install/remove 
+Firewall iptables-like rule management 
+Services systemd-like service control
+
