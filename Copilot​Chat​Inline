@@ -1,4 +1,4 @@
-Done — I fetched the repo at commit a28a09afa95.. and compared GEMINI.md against the previous version, checked the commands against package.json, drafted a short PR/commit message, and produced a section-by-section checklist.
+<div>Done — I fetched the repo at commit a28a09afa95.. and compared GEMINI.md against the previous version, checked the commands against package.json, drafted a short PR/commit message, and produced a section-by-section checklist.
 
 1. Diff between GEMINI.md at a28a09a and the previous version
 • Result: No substantive changes in the top-level GEMINI.md between commit a28a09afa95ad5d5988296772a7ca1a0ab0868ff and the prior commit I inspected (17de76fa...). The files are identical (no additions/deletions in GEMINI.md).
@@ -622,3 +622,4 @@ bash git add pytest.ini tests/testcimarkers.py git commit -m "test: add pytest m
 ───
 
 คุณอยากให้ผมช่วย เขียน GitHub Actions workflow ตัวอย่าง ที่รัน pytest -m smoke และ pytest -m ci ต่อไหมครับ จะได้เชื่อมกับ CI/CD ของคุณทันที?
+</div>
