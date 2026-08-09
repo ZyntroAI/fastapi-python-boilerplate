@@ -1,0 +1,53 @@
+That is a fantastic concept image! Building an Obsidian workflow that leverages Gemini's multimodal capabilities (processing text, PDFs, images, audio, and video) is incredibly powerful.
+
+If you are looking to integrate a Gemini CLI (geminicli) with Obsidian to process these attachments automatically, you can bridge the gap between your local markdown notes and the Gemini API.
+
+Here is how you can approach building this "Attach Files Skill" using a CLI and Obsidian.
+
+🔌 Connecting Obsidian to a CLI
+
+Since Obsidian is based on local markdown files, any CLI tool can interact with your vault directly. To trigger a geminicli command from within Obsidian when you attach a file, you have two main paths:
+
+1. The "Shell Commands" Plugin: This community plugin allows you to execute terminal commands directly from Obsidian via hotkeys or the command palette. You can pass the current file path as a variable to your CLI.
+2. Custom Obsidian Plugin (TypeScript): You can build a custom plugin (like the mockup suggests) that uses Node's child_process.exec to run geminicli in the background whenever a file is dropped into a note.
+
+───
+
+🛠️ Example CLI Workflows for Multimodal Files
+
+Assuming you have a CLI wrapper for the Gemini API (either a custom script or a community package) installed, here is how you might process the files shown in your mockup:
+
+1. Audio Transcription & Summarization (MP3, WAV)
+You can use Gemini 1.5's native audio understanding to transcribe voice memos attached to your notes.
+bash
+# Appends the transcription directly into your current Obsidian note
+geminicli prompt "Please transcribe this audio file and summarize the key action items." --file ./attachments/Interview_Audio.mp3 >> ./Project_Notes.md
+
+
+2. Image Analysis (PNG, JPEG)
+When you attach a design mockup or a whiteboard photo, send it to Gemini for OCR or design critique.
+bash
+geminicli prompt "Extract all the text from this whiteboard image and format it as a markdown list." --file ./attachments/Design_Mockup.png >> ./Project_Notes.md
+
+
+3. PDF Document Q&A (PDF)
+For long reports, you can attach the file and immediately query it.
+bash
+geminicli prompt "Read this PDF report and give me a 3-paragraph executive summary." --file ./attachments/Report_Draft.pdf >> ./Project_Notes.md
+
+
+4. Video Processing (MP4)
+Gemini 1.5 Pro can process video frame-by-frame along with the audio track.
+bash
+geminicli prompt "Watch this video attachment and write step-by-step instructions based on the tutorial." --file ./attachments/Screen_Recording.mp4 >> ./Project_Notes.md
+
+
+───
+
+⚙️ Setting Up Your Own geminicli
+
+If you are building this CLI from scratch, I highly recommend using Node.js or Python with the official @google/generative-ai SDK (or google-generativeai in Python). You will need:
+• A Gemini API Key from Google AI Studio.
+• The File API (for uploading files larger than a few megabytes before prompting, which is standard for video and audio).
+
+Are you currently using an existing community geminicli package, or are you planning to build your own custom CLI script to connect to the Gemini API?

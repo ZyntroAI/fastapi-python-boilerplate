@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://coderabbit.ai
+language: "th-TH"       # กำหนดให้ AI รีวิวและตอบกลับเป็นภาษาไทย
+early_access: false     # ปิดการใช้งานฟีเจอร์ทดลองล่วงหน้า
+
+reviews:
+  profile: "chill"      # สไตล์การรีวิว (เช่น chill, assertive)
+  request_changes_workflow: false # เปิด/ปิด ระบบสั่งบล็อกไม่ให้ Merge ถ้าตรวจเจอ Error
+  high_level_summary: true        # ให้สรุปภาพรวมการเปลี่ยนแปลงของ PR ด้านบนสุด
+  poem: false           # เปิด/ปิด การให้ AI แต่งกลอนสรุปโค้ด (เปิดเป็น true ได้หากชอบความสนุก)
+  
+  auto_review:
+    enabled: true       # เปิดระบบรีวิวอัตโนมัติทันทีที่สร้าง PR
+    drafts: false       # ไม่ต้องรีวิวถ้า PR นั้นยังเป็นสถานะ Draft
+    base_branches:      # เลือกเฉพาะกิ่งหลักที่ต้องการให้บอททำงาน
+      - "main"
+      - "develop"
+  
+  tools:
+    languagetool:
+      enabled: true     # ตรวจสอบไวยากรณ์และการสะกดคำ
+
+chat:
+  auto_reply: true      # ให้ AI ตอบกลับบทสนทนาในเซกชันคอมเมนต์โดยอัตโนมัติ
+  tone_instructions: "พูดจาสุภาพ เป็นกันเอง เหมือนเป็นรุ่นพี่วิศวกรคอมพิวเตอร์ที่คอยแนะนำรุ่นน้อง"
