@@ -1,4 +1,4 @@
-
+<p>
 Executive Summary
 Obsidian is a powerful Markdown-based knowledge management tool built onlocal plain-textnotes. Its core strengths arebidirectional linkingand visual mapping: notes are organized invaults(folders) and linked via[[Wiki-style links]], producing automaticbacklinksand interactivegraph views. Core plugins likeTemplates,Daily Notes, andBacklinksaugment Markdown with dynamic content and cross-reference panels. Users can customize Obsidian’s look withcommunity themesandCSS snippets.
 Advanced workflows layer methodology onto these features. For example, theZettelkastenmethod capturesatomic “evergreen” noteswith unique IDs and rich linking, fostering a web of ideas. ThePARAsystem (Projects, Areas, Resources, Archives) imposes a four-fold structure on files.Linking Your Thinking (LYT)emphasizeshub notesand Maps of Content (MOCs) to connect topics.Maps of Contentthemselves are user-created index pages that list related notes, providing navigational beacons in a free-form graph. Daily-Journal workflows use theDaily Notesplugin to collect recurring entries by date.
@@ -364,3 +364,4 @@ Linking
 Core
 Collapse long lists; use “Show more context”
 +Fin
+</p>
