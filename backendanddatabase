@@ -1,0 +1,24 @@
+Understanding Backend and Database
+Definition of Backend
+The backend is the part of a web application responsible for processing data and managing communication between the frontend (the user interface) and the database. It handles tasks such as:
+
+Data Management: Storing, retrieving, and updating data.
+Business Logic: Implementing the rules and processes that govern how data is handled.
+Server-side Processing: Managing user authentication, authorization, and input validation.
+APIs: Providing endpoints for the frontend to interact with the backend.
+Definition of Database
+A database is a structured collection of data that is managed by a database management system (DBMS). It serves as the storage solution for the backend, where data is organized and maintained. Key functions of a database include:
+
+Data Storage: Keeping data in an organized manner for easy access.
+Data Retrieval: Allowing the backend to query and manipulate data as needed.
+Data Integrity: Ensuring that the data remains accurate and consistent.
+Key Differences
+Feature	Backend	Database
+Purpose	Processes data and manages application logic	Stores and manages data
+Components	Includes servers, APIs, and business logic	Composed of tables, records, and schemas
+Interaction	Communicates with the frontend and database	Interacts with the backend for data access
+Functionality	Handles user requests and application workflows	Ensures data is organized and retrievable
+The backend and database work together to create a functional web application, with the backend facilitating data processing and the database providing a secure storage solution.
+
+ Wikipedia
+ yext.com
