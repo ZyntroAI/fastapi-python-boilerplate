@@ -6,6 +6,7 @@ __pycache__/
 *.egg-info/
 *.egg
 pip-wheel-metadata/
+main.py
 
 # Virtual env
 .venv/
@@ -44,6 +45,9 @@ docker-compose*.yml
 migrations/versions/*.pyc
 migrations/versions/__pycache__/
 
+#​ Kubernetes​
+*config
+
 # PyCharm / VSCode
 .idea/
 .vscode/
@@ -61,3 +65,4 @@ migrations/versions/__pycache__/
 # OS
 .DS_Store
 Thumbs.db
+node_modules

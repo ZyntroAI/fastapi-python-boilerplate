@@ -1,0 +1,83 @@
+/*โอเคครับ ✨ ผมจะทำตัวอย่างโค้ด Python สำหรับสร้างรายงานจากข้อมูลที่ได้จาก NotebookLM โดยโครงสร้างนี้จะช่วยให้คุณสามารถดึงข้อมูลจากโน้ต/สรุป แล้วแปลงเป็นรายงานในรูปแบบ Markdown หรือ PDF ได้  */
+
+---
+
+!/*📜 ตัวอย่างโค้ด*/ – Python Report Generator
+
+`python
+import json
+from fpdf import FPDF
+
+class NotebookLMReport:
+    def init(self, data_file):
+       /* # โหลดข้อมูลจาก NotebookLM (สมมติว่า export เป็น JSON)*/
+        with open(data_file, "r", encoding="utf-8") as f:
+            self.data = json.load(f)
+
+    def generatemarkdown(self, outputfile="report.md"):
+        with open(output_file, "w", encoding="utf-8") as f:
+            f.write("# รายงานจาก NotebookLM\n\n")
+            for section in self.data.get("sections", []):
+                f.write(f"## {section['title']}\n")
+                for point in section.get("points", []):
+                    f.write(f"- {point}\n")
+                f.write("\n")
+        print(f"✅ Markdown report saved to {output_file}")
+
+    def generatepdf(self, outputfile="report.pdf"):
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+
+        pdf.cell(200, 10, txt="รายงานจาก NotebookLM", ln=True, align="C")
+
+        for section in self.data.get("sections", []):
+            pdf.set_font("Arial", "B", size=12)
+            pdf.cell(200, 10, txt=section["title"], ln=True)
+            pdf.set_font("Arial", size=11)
+            for point in section.get("points", []):
+                pdf.multi_cell(0, 10, f"- {point}")
+            pdf.ln(5)
+
+        pdf.output(output_file)
+        print(f"✅ PDF report saved to {output_file}")
+
+/*
+===== ตัวอย่างการใช้งาน =====
+if name == "main":
+    report = NotebookLMReport("notebooklm_export.json")
+    report.generate_markdown()
+    report.generate_pdf()
+`
+*/
+
+---
+
+🛠 วิธีการทำงาน
+- NotebookLM Export → สมมติว่าคุณ export ข้อมูลออกมาเป็น JSON เช่น:
+  `json
+  {
+    "sections": [
+      {
+        "title": "บทสรุปการประชุม",
+        "points": [
+          "ทีมงานตกลงใช้ Flask API",
+          "ต้องการเชื่อมต่อ Google Drive"
+        ]
+      },
+      {
+        "title": "งานที่ต้องทำ",
+        "points": [
+          "ออกแบบโครงสร้าง API",
+          "ทดสอบการแปลง PDF เป็น HTML"
+        ]
+      }
+    ]
+  }
+  `
+- ฟังก์ชัน generate_markdown() → สร้างไฟล์รายงานในรูปแบบ Markdown  
+- ฟังก์ชัน generate_pdf() → สร้างไฟล์รายงานเป็น PDF ด้วย FPDF
+
+---
+
+คุณอยากให้ผมปรับโค้ดนี้ให้รองรับ สรุปเชิงวิเคราะห์ (Insight/Key Takeaways) หรือให้เน้น สร้าง Story แนวแฟนตาซี จากโน้ตใน NotebookLM ก่อนดีครับ?

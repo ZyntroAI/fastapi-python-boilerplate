@@ -1,0 +1,720 @@
+Working with the Container registry
+
+You can store and manage Docker and OCI images in the Container registry.
+
+About the Container registry
+
+The Container registry stores container images within your organization or personal account, and allows you to associate an image with a repository. You can choose whether to inherit permissions from a repository, or set granular permissions independently of a repository. You can also access public container images anonymously.
+
+About Container registry support
+
+The Container registry currently supports the following container image formats:
+
+• Docker Image Manifest V2, Schema 2
+• Open Container Initiative (OCI) Specifications
+
+When installing or publishing a Docker image, the Container registry supports foreign layers, such as Windows images.
+
+Authenticating to the Container registry
+
+[!NOTE]
+GitHub Packages only supports authentication using a personal access token (classic). For more information, see Managing your personal access tokens.
+
+You need an access token to publish, install, and delete private, internal, and public packages.
+
+You can use a personal access token (classic) to authenticate to GitHub Packages or the GitHub API. When you create a personal access token (classic), you can assign the token different scopes depending on your needs. For more information about packages-related scopes for a personal access token (classic), see About permissions for GitHub Packages.
+
+To authenticate to a GitHub Packages registry within a GitHub Actions workflow, you can use:
+
+• GITHUB_TOKEN to publish packages associated with the workflow repository.
+• A personal access token (classic) with at least read:packages scope to install packages associated with other private repositories (GITHUB_TOKEN can be used if the repository is granted read access to the package. See Configuring a package's access control and visibility).
+
+Authenticating in a GitHub Actions workflow
+
+This registry supports granular permissions. For registries that support granular permissions, if your GitHub Actions workflow is using a personal access token to authenticate to a registry, we highly recommend you update your workflow to use the GITHUB_TOKEN. For guidance on updating your workflows that authenticate to a registry with a personal access token, see Publishing and installing a package with GitHub Actions.
+
+[!NOTE]
+The ability for GitHub Actions workflows to delete and restore packages using the REST API is currently in public preview and subject to change.
+
+You can use a GITHUB_TOKEN in a GitHub Actions workflow to delete or restore a package using the REST API, if the token has admin permission to the package. Repositories that publish packages using a workflow, and repositories that you have explicitly connected to packages, are automatically granted admin permission to packages in the repository.
+
+For more information about the GITHUB_TOKEN, see Use GITHUB_TOKEN for authentication in workflows. For more information about the best practices when using a registry in actions, see Compromised runners.
+
+You can also choose to give access permissions to packages independently for GitHub Codespaces and GitHub Actions. For more information, see Configuring a package's access control and visibility and Configuring a package's access control and visibility.
+
+Authenticating with a personal access token (classic)
+
+[!NOTE]
+GitHub Packages only supports authentication using a personal access token (classic). For more information, see Managing your personal access tokens.
+
+1. Create a new personal access token (classic) with the appropriate scopes for the tasks you want to accomplish. If your organization requires SSO, you must enable SSO for your new token.
+
+> [!NOTE]
+> By default, when you select the write:packages scope for your personal access token (classic) in the user interface, the repo scope will also be selected. The repo scope offers unnecessary and broad access, which we recommend you avoid using for GitHub Actions workflows in particular. For more information, see Compromised runners. As a workaround, you can select just the write:packages scope for your personal access token (classic) in the user interface with this url: https://github.com/settings/tokens/new?scopes=write:packages.
+
+• Select the read:packages scope to download container images and read their metadata.
+• Select the write:packages scope to download and upload container images and read and write their metadata.
+• Select the delete:packages scope to delete container images.
+
+For more information, see Managing your personal access tokens.
+
+2. Save your personal access token (classic). We recommend saving your token as an environment variable.
+
+shell
+export CR_PAT=YOUR_TOKEN
+
+
+3. Using the CLI for your container type, sign in to the Container registry service at ghcr.io.
+
+shell
+$` echo `$CR_PAT | docker login ghcr.io -u USERNAME --password-stdin
+&gt; Login Succeeded
+
+
+Pushing container images
+
+This example pushes the latest version of IMAGE_NAME.
+
+shell
+docker push ghcr.io/NAMESPACE/IMAGE_NAME:latest
+
+
+Replace NAMESPACE with the name of the personal account or organization to which you want the image to be scoped.
+
+This example pushes the 2.5 version of the image.
+
+shell
+docker push ghcr.io/NAMESPACE/IMAGE_NAME:2.5
+
+
+When you first publish a package, the default visibility is private. To change the visibility or set access permissions, see Configuring a package's access control and visibility. You can link a published package to a repository using the user interface or command line. For more information, see Connecting a repository to a package.
+
+When you push a container image from the command line, the image is not linked to a repository by default. This is the case even if you tag the image with a namespace that matches the name of the repository, such as ghcr.io/octocat/my-repo:latest.
+
+The easiest way to connect a repository to a container package is to publish the package from a workflow using ${{secrets.GITHUB_TOKEN}}, as the repository that contains the workflow is linked automatically. Note that theGITHUB_TOKEN` will not have permission to push the package if you have previously pushed a package to the same namespace, but have not connected the package to the repository.
+
+To connect a repository when publishing an image from the command line, and to ensure your GITHUB_TOKEN has appropriate permissions when using a GitHub Actions workflow, we recommend adding the label org.opencontainers.image.source to your Dockerfile. For more information, see “Labelling container images” in this article and “Publishing and installing a package with GitHub Actions.”
+
+Pulling container images
+
+Pull by digest
+
+To ensure you're always using the same image, you can specify the exact container image version you want to pull by the digest SHA value.
+
+1. To find the digest SHA value, use docker inspect or docker pull and copy the SHA value after Digest:
+
+shell
+docker inspect ghcr.io/NAMESPACE/IMAGE_NAME
+
+
+Replace NAMESPACE with the name of the personal account or organization to which the image is scoped.
+
+2. Remove image locally as needed.
+
+shell
+docker rmi ghcr.io/NAMESPACE/IMAGE_NAME:latest
+
+
+3. Pull the container image with @YOUR_SHA_VALUE after the image name.
+
+shell
+docker pull ghcr.io/NAMESPACE/IMAGE_NAME@sha256:82jf9a84u29hiasldj289498uhois8498hjs29hkuhs
+
+
+Pull by name
+
+shell
+docker pull ghcr.io/NAMESPACE/IMAGE_NAME
+
+
+Replace NAMESPACE with the name of the personal account or organization to which the image is scoped.
+
+Pull by name and version
+
+Docker CLI example showing an image pulled by its name and the 1.14.1 version tag:
+
+shell
+`$ docker pull ghcr.io/NAMESPACE/IMAGE_NAME:1.14.1
+> 5e35bd43cf78: Pull complete
+> 0c48c2209aab: Pull complete
+> fd45dd1aad5a: Pull complete
+> db6eb50c2d36: Pull complete
+> Digest: sha256:ae3b135f133155b3824d8b1f62959ff8a72e9cf9e884d88db7895d8544010d8e
+> Status: Downloaded newer image for ghcr.io/NAMESPACE/IMAGE_NAME/release:1.14.1
+> ghcr.io/NAMESPACE/IMAGE_NAME/release:1.14.1
+
+
+Replace NAMESPACE with the name of the personal account or organization to which the image is scoped.
+
+Pull by name and latest version
+
+shell
+$` docker pull ghcr.io/NAMESPACE/IMAGE_NAME:latest
+> latest: Pulling from NAMESPACE/IMAGE_NAME
+> Digest: sha256:b3d3e366b55f9a54599220198b3db5da8f53592acbbb7dc7e4e9878762fc5344
+> Status: Downloaded newer image for ghcr.io/NAMESPACE/IMAGE_NAME:latest
+> ghcr.io/NAMESPACE/IMAGE_NAME:latest
+
+
+Replace NAMESPACE with the name of the personal account or organization to which the image is scoped.
+
+Building container images
+
+This example builds the hello_docker image:
+
+shell
+docker build -t hello_docker .
+
+
+Tagging container images
+
+1. Find the ID for the Docker image you want to tag.
+
+shell
+`$ docker images
+&gt; REPOSITORY                                            TAG                 IMAGE ID            CREATED             SIZE
+&gt; ghcr.io/my-org/hello_docker         latest            38f737a91f39        47 hours ago        91.7MB
+&gt; hello-world                                           latest              fce289e99eb9        16 months ago       1.84kB
+
+
+2. Tag your Docker image using the image ID and your desired image name and hosting destination.
+
+shell
+docker tag 38f737a91f39 ghcr.io/NAMESPACE/NEW_IMAGE_NAME:latest
+
+
+Replace NAMESPACE with the name of the personal account or organization to which you want the image to be scoped.
+
+Labelling container images
+
+You can use pre-defined annotation keys to add metadata including a description, a license, and a source repository to your container image. Values for supported keys will appear on the package page for the image.
+
+For most images, you can use Docker labels to add the annotation keys to an image. For more information, see LABEL in the official Docker documentation and Pre-Defined Annotation Keys in the opencontainers/image-spec repository.
+
+For multi-arch images, you can add a description to the image by adding the appropriate annotation key to the annotations field in the image's manifest. For more information, see Adding a description to multi-arch images.
+
+The following annotation keys are supported in the Container registry.
+
+
+Key
+Description
+
+org.opencontainers.image.source
+The URL of the repository associated with the package. For more information, see Connecting a repository to a package.
+
+org.opencontainers.image.description
+A text-only description limited to 512 characters. This description will appear on the package page, below the name of the package.
+
+org.opencontainers.image.licenses
+An SPDX license identifier such as "MIT," limited to 256 characters. The license will appear on the package page, in the "Details" sidebar. For more information, see SPDX License List.
+
+
+
+To add a key as a Docker label, we recommend using the LABEL instruction in your Dockerfile. For example, if you're the user octocat and you own my-repo, and your image is distributed under the terms of the MIT license, you would add the following lines to your Dockerfile:
+
+dockerfile
+LABEL org.opencontainers.image.source=https://github.com/octocat/my-repo
+LABEL org.opencontainers.image.description="My container image"
+LABEL org.opencontainers.image.licenses=MIT
+
+
+[!NOTE]
+If you publish a package that is linked to a repository, the package automatically inherits the access permissions of the linked repository, and GitHub Actions workflows in the linked repository automatically get access to the package, unless your organization has disabled automatic inheritance of access permissions. For more information, see Configuring a package's access control and visibility.
+
+Alternatively, you can add labels to an image at buildtime with the docker build command.
+
+shell
+$` docker build \
+ --label "org.opencontainers.image.source=https://github.com/octocat/my-repo" \
+ --label "org.opencontainers.image.description=My container image" \
+ --label "org.opencontainers.image.licenses=MIT"
+
+
+Adding a description to multi-arch images
+
+A multi-arch image is an image that supports multiple architectures. It works by referencing a list of images, each supporting a different architecture, within a single manifest.
+
+The description that appears on the package page for a multi-arch image is obtained from the annotations field in the image's manifest. Like Docker labels, annotations provide a way to associate metadata with an image, and support pre-defined annotation keys. For more information, see Annotations in the opencontainers/image-spec repository.
+
+To provide a description for a multi-arch image, set a value for the org.opencontainers.image.description key in the annotations field of the manifest, as follows.
+
+json
+"annotations": {
+  "org.opencontainers.image.description": "My multi-arch image"
+}
+
+
+For example, the following GitHub Actions workflow step builds and pushes a multi-arch image. The outputs parameter sets the description for the image.
+
+yaml
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+- name: Build and push Docker image
+  uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+  with:
+    context: .
+    file: ./Dockerfile
+    platforms: `${{ matrix.platforms }}
+    push: true
+    outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=My multi-arch image
+
+
+Troubleshooting
+
+• The Container registry has a 10 GB size limit for each layer.
+• The Container registry has a 10 minute timeout limit for uploads.
+
+
+Working with the Docker registry
+
+You can push and pull your Docker images using the GitHub Packages Docker registry.
+
+<!-- Main versioning block. Short page for dotcom -->
+
+GitHub's Docker registry (which used the namespace docker.pkg.github.com) has been replaced by the Container registry (which uses the namespace https://ghcr.io). The Container registry offers benefits such as granular permissions and storage optimizations for Docker images.
+
+Docker images previously stored in the Docker registry are being automatically migrated into the Container registry. For more information, see Migrating to the Container registry from the Docker registry and Working with the Container registry.
+
+<!-- End of main versioning block -->
+Working with the RubyGems registry
+
+You can configure RubyGems to publish a package to GitHub Packages and to use packages stored on GitHub Packages as dependencies in a Ruby project with Bundler.
+
+<!-- 2148AF7B-5FF8-4B28-A808-D692FEE2225A -->
+
+Prerequisites
+
+• You must have RubyGems 2.4.1 or higher. To find your RubyGems version:
+
+shell
+gem --version
+
+
+• You must have bundler 1.6.4 or higher. To find your Bundler version:
+
+shell
+$` bundle --version
+Bundler version 1.13.7
+
+
+Authenticating to GitHub Packages
+
+[!NOTE]
+GitHub Packages only supports authentication using a personal access token (classic). For more information, see Managing your personal access tokens.
+
+You need an access token to publish, install, and delete private, internal, and public packages.
+
+You can use a personal access token (classic) to authenticate to GitHub Packages or the GitHub API. When you create a personal access token (classic), you can assign the token different scopes depending on your needs. For more information about packages-related scopes for a personal access token (classic), see About permissions for GitHub Packages.
+
+To authenticate to a GitHub Packages registry within a GitHub Actions workflow, you can use:
+
+• GITHUB_TOKEN to publish packages associated with the workflow repository.
+• A personal access token (classic) with at least read:packages scope to install packages associated with other private repositories (GITHUB_TOKEN can be used if the repository is granted read access to the package. See Configuring a package's access control and visibility).
+
+Authenticating in a GitHub Actions workflow
+
+This registry supports granular permissions. For registries that support granular permissions, if your GitHub Actions workflow is using a personal access token to authenticate to a registry, we highly recommend you update your workflow to use the GITHUB_TOKEN. For guidance on updating your workflows that authenticate to a registry with a personal access token, see Publishing and installing a package with GitHub Actions.
+
+[!NOTE]
+The ability for GitHub Actions workflows to delete and restore packages using the REST API is currently in public preview and subject to change.
+
+You can use a GITHUB_TOKEN in a GitHub Actions workflow to delete or restore a package using the REST API, if the token has admin permission to the package. Repositories that publish packages using a workflow, and repositories that you have explicitly connected to packages, are automatically granted admin permission to packages in the repository.
+
+For more information about the GITHUB_TOKEN, see Use GITHUB_TOKEN for authentication in workflows. For more information about the best practices when using a registry in actions, see Compromised runners.
+
+You can also choose to give access permissions to packages independently for GitHub Codespaces and GitHub Actions. For more information, see Configuring a package's access control and visibility and Configuring a package's access control and visibility.
+
+Authenticating with a personal access token
+
+You must use a personal access token (classic) with the appropriate scopes to publish and install packages in GitHub Packages. For more information, see Introduction to GitHub Packages.
+
+To publish and install gems, you can configure RubyGems or Bundler to authenticate to GitHub Packages using your personal access token.
+
+To publish new gems, you need to authenticate to GitHub Packages with RubyGems by editing your ~/.gem/credentials file to include your personal access token (classic). Create a new ~/.gem/credentials file if this file doesn't exist.
+
+For example, you would create or edit a ~/.gem/credentials to include the following, replacing TOKEN with your personal access token.
+
+shell
+---
+:github: Bearer TOKEN
+
+
+To install gems, you need to authenticate to GitHub Packages by updating your gem sources to include https://USERNAME:TOKEN@rubygems.pkg.github.com/NAMESPACE/. You must replace:
+
+• USERNAME with your GitHub username.
+• TOKEN with your personal access token (classic).
+• NAMESPACE with the name of the personal account or organization to which the gem is scoped.
+
+If you would like your package to be available globally, you can run the following command to add your registry as a source.
+
+shell
+gem sources --add https://USERNAME:TOKEN@rubygems.pkg.github.com/NAMESPACE/
+
+
+To authenticate with Bundler, configure Bundler to use your personal access token (classic), replacing USERNAME with your GitHub username, TOKEN with your personal access token, and NAMESPACE with the name of the personal account or organization to which the gem is scoped.
+
+shell
+bundle config https://rubygems.pkg.github.com/NAMESPACE USERNAME:TOKEN
+
+
+Publishing a package
+
+When you first publish a package, the default visibility is private. To change the visibility or set access permissions, see Configuring a package's access control and visibility. For more information on creating your gem, see Make your own gem in the RubyGems documentation.
+
+[!NOTE]
+If you publish a package that is linked to a repository, the package automatically inherits the access permissions of the linked repository, and GitHub Actions workflows in the linked repository automatically get access to the package, unless your organization has disabled automatic inheritance of access permissions. For more information, see Configuring a package's access control and visibility.
+
+1. Authenticate to GitHub Packages. For more information, see Authenticating to GitHub Packages.
+
+2. Build the package from the gemspec to create the .gem package. Replace GEM_NAME with the name of your gem.
+
+shell
+gem build GEM_NAME.gemspec
+
+
+3. Publish a package to GitHub Packages, replacing NAMESPACE with the name of the personal account or organization to which the package will be scoped and GEM_NAME with the name of your gem package.
+
+> [!NOTE]
+> The maximum uncompressed size of a gem's metadata.gz file must be less than 2 MB. Requests to push gems that exceed that limit will fail.
+
+shell
+`$ gem push --key github \
+--host https://rubygems.pkg.github.com/NAMESPACE \
+GEM_NAME-0.0.1.gem
+
+
+Connecting a package to a repository
+
+The RubyGems registry stores packages within your organization or personal account, and allows you to associate packages with a repository. You can choose whether to inherit permissions from a repository, or set granular permissions independently of a repository.
+
+You can ensure gems will be linked to a repository as soon as they are published by including the URL of the GitHub repository in the github_repo field in gem.metadata. You can link multiple gems to the same repository.
+
+ruby
+gem.metadata = { "github_repo" => "ssh://github.com/OWNER/REPOSITORY" }
+
+
+For information on linking a published package with a repository, see Connecting a repository to a package.
+
+Installing a package
+
+You can use gems from GitHub Packages much like you use gems from rubygems.org. You need to authenticate to GitHub Packages by adding your GitHub user or organization as a source in the ~/.gemrc file or by using Bundler and editing your Gemfile.
+
+1. Authenticate to GitHub Packages. For more information, see Authenticating to GitHub Packages.
+
+2. For Bundler, add your GitHub user or organization as a source in your Gemfile to fetch gems from this new source. For example, you can add a new source block to your Gemfile that uses GitHub Packages only for the packages you specify, replacing GEM_NAME with the package you want to install from GitHub Packages and NAMESPACE with the personal account or organization to which the gem you want to install is scoped.
+
+ruby
+source "https://rubygems.org"
+
+<br>
+
+gem "rails"
+
+<br>
+
+source "https://rubygems.pkg.github.com/NAMESPACE" do
+  gem "GEM_NAME"
+end
+
+
+3. For Bundler versions earlier than 1.7.0, you need to add a new global source. For more information on using Bundler, see the bundler.io documentation.
+
+ruby
+source "https://rubygems.pkg.github.com/NAMESPACE"
+source "https://rubygems.org"
+
+<br>
+
+gem "rails"
+gem "GEM_NAME"
+
+
+4. Install the package:
+
+shell
+gem install GEM_NAME --version "0.1.1"
+
+
+Further reading
+
+• Deleting and restoring a package
+Working with the npm registry
+
+You can configure npm to publish packages to GitHub Packages and to use packages stored on GitHub Packages as dependencies in an npm project.
+
+<!-- 2148AF7B-5FF8-4B28-A808-D692FEE2225A -->
+
+Authenticating to GitHub Packages
+
+[!NOTE]
+GitHub Packages only supports authentication using a personal access token (classic). For more information, see Managing your personal access tokens.
+
+You need an access token to publish, install, and delete private, internal, and public packages.
+
+You can use a personal access token (classic) to authenticate to GitHub Packages or the GitHub API. When you create a personal access token (classic), you can assign the token different scopes depending on your needs. For more information about packages-related scopes for a personal access token (classic), see About permissions for GitHub Packages.
+
+To authenticate to a GitHub Packages registry within a GitHub Actions workflow, you can use:
+
+• GITHUB_TOKEN to publish packages associated with the workflow repository.
+• A personal access token (classic) with at least read:packages scope to install packages associated with other private repositories (GITHUB_TOKEN can be used if the repository is granted read access to the package. See Configuring a package's access control and visibility).
+
+Authenticating in a GitHub Actions workflow
+
+This registry supports granular permissions. For registries that support granular permissions, if your GitHub Actions workflow is using a personal access token to authenticate to a registry, we highly recommend you update your workflow to use the GITHUB_TOKEN. For guidance on updating your workflows that authenticate to a registry with a personal access token, see Publishing and installing a package with GitHub Actions.
+
+[!NOTE]
+The ability for GitHub Actions workflows to delete and restore packages using the REST API is currently in public preview and subject to change.
+
+You can use a GITHUB_TOKEN in a GitHub Actions workflow to delete or restore a package using the REST API, if the token has admin permission to the package. Repositories that publish packages using a workflow, and repositories that you have explicitly connected to packages, are automatically granted admin permission to packages in the repository.
+
+For more information about the GITHUB_TOKEN, see Use GITHUB_TOKEN for authentication in workflows. For more information about the best practices when using a registry in actions, see Compromised runners.
+
+You can also choose to give access permissions to packages independently for GitHub Codespaces and GitHub Actions. For more information, see Configuring a package's access control and visibility and Configuring a package's access control and visibility.
+
+Authenticating with a personal access token
+
+You must use a personal access token (classic) with the appropriate scopes to publish and install packages in GitHub Packages. For more information, see Introduction to GitHub Packages.
+
+You can authenticate to GitHub Packages with npm by either editing your per-user ~/.npmrc file to include your personal access token (classic) or by logging in to npm on the command line using your username and personal access token.
+
+To authenticate by adding your personal access token (classic) to your ~/.npmrc file, edit the ~/.npmrc file for your project to include the following line, replacing TOKEN with your personal access token. Create a new ~/.npmrc file if one doesn't exist.
+
+shell
+//npm.pkg.github.com/:_authToken=TOKEN
+
+
+To authenticate by logging in to npm, use the npm login command, replacing USERNAME with your GitHub username, TOKEN with your personal access token (classic), and PUBLIC-EMAIL-ADDRESS with your email address.
+
+If you are using npm CLI version 9 or greater and are logging in or out of a private registry using the command line, you should use the --auth-type=legacy option to read in your authentication details from prompts instead of using the default login flow through a browser. For more information, see npm-login.
+
+If GitHub Packages is not your default package registry for using npm and you want to use the npm audit command, we recommend you use the --scope flag with the namespace that hosts the package (the personal account or organization to which the package is scoped) when you authenticate to GitHub Packages.
+
+shell
+$ npm login --scope=@NAMESPACE --auth-type=legacy --registry=https://npm.pkg.github.com
+
+> Username: USERNAME
+> Password: TOKEN
+
+
+Publishing a package
+
+[!NOTE]
+
+▪ Package names and scopes must only use lowercase letters.
+▪ The tarball for an npm version must be smaller than 256MB in size.
+
+The GitHub Packages registry stores npm packages within your organization or personal account, and allows you to associate a package with a repository. You can choose whether to inherit permissions from a repository, or set granular permissions independently of a repository.
+
+When you first publish a package, the default visibility is private. To change the visibility or set access permissions, see Configuring a package's access control and visibility. For more information on linking a published package with a repository, see Connecting a repository to a package.
+
+You can connect a package to a repository as soon as the package is published by including a repository field in the package.json file. You can also use this method to connect multiple packages to the same repository. For more information, see Publishing multiple packages to the same repository.
+
+[!NOTE]
+If you publish a package that is linked to a repository, the package automatically inherits the access permissions of the linked repository, and GitHub Actions workflows in the linked repository automatically get access to the package, unless your organization has disabled automatic inheritance of access permissions. For more information, see Configuring a package's access control and visibility.
+
+You can set up the scope mapping for your project using either a local .npmrc file in the project or using the publishConfig option in the package.json. GitHub Packages only supports scoped npm packages. Scoped packages have names with the format of @NAMESPACE/PACKAGE-NAME. Scoped packages always begin with an @ symbol. You may need to update the name in your package.json to use the scoped name. For example, if you're the user octocat and your package is named test, you would assign the scoped package name as follows: "name": "@octocat/test".
+
+After you publish a package, you can view the package on GitHub. For more information, see Viewing packages.
+
+Publishing a package using a local .npmrc file
+
+You can use an .npmrc file to configure the scope mapping for your project. In the .npmrc file, use the GitHub Packages URL and account owner so GitHub Packages knows where to route package requests. Using an .npmrc file prevents other developers from accidentally publishing the package to npmjs.org instead of GitHub Packages.
+
+1. Authenticate to GitHub Packages. For more information, see Authenticating to GitHub Packages.
+
+2. In the same directory as your package.json file, create or edit an .npmrc file to include a line specifying GitHub Packages URL and the namespace where the package is hosted. Replace NAMESPACE with the name of the user or organization account to which the package will be scoped.
+
+shell
+@NAMESPACE:registry=https://npm.pkg.github.com
+
+
+3. Add the .npmrc file to the repository where GitHub Packages can find your project. For more information, see Adding a file to a repository.
+
+4. Verify the name of your package in your project's package.json. The name field must contain the scope and the name of the package. For example, if your package is called "test", and you are publishing it to the "My-org" GitHub organization, the name field in your package.json should be @my-org/test.
+
+5. Verify the repository field in your project's package.json. The repository field must match the URL for your GitHub repository. For example, if your repository URL is github.com/my-org/test then the repository field should be https://github.com/my-org/test.git.
+
+6. Publish the package:
+
+shell
+npm publish
+
+
+Publishing a package using publishConfig in the package.json file
+
+You can use publishConfig element in the package.json file to specify the registry where you want the package published. For more information, see publishConfig in the npm documentation.
+
+1. Edit the package.json file for your package and include a publishConfig entry.
+
+shell
+"publishConfig": {
+  "registry": "https://npm.pkg.github.com"
+},
+
+
+2. Verify the repository field in your project's package.json. The repository field must match the URL for your GitHub repository. For example, if your repository URL is github.com/my-org/test then the repository field should be https://github.com/my-org/test.git.
+
+3. Publish the package:
+
+shell
+npm publish
+
+
+Publishing multiple packages to the same repository
+
+To publish multiple packages and link them to the same repository, you can include the URL of the GitHub repository in the repository field of the package.json file for each package. For more information, see Creating a package.json file and Creating Node.js modules in the npm documentation.
+
+To ensure the repository's URL is correct, replace REPOSITORY with the name of the repository containing the package you want to publish, and OWNER with the name of the personal account or organization on GitHub that owns the repository.
+
+GitHub Packages will match the repository based on the URL.
+
+shell
+"repository":"https://github.com/OWNER/REPOSITORY",
+
+
+Installing a package
+
+You can install packages from GitHub Packages by adding the packages as dependencies in the package.json file for your project. For more information on using a package.json in your project, see Working with package.json in the npm documentation.
+
+By default, you can add packages from one organization. For more information, see Installing packages from other organizations.
+
+You also need to add the .npmrc file to your project so that all requests to install packages will go through GitHub Packages. When you route all package requests through GitHub Packages, you can use both scoped and unscoped packages from npmjs.org. For more information, see npm-scope in the npm documentation.
+
+1. Authenticate to GitHub Packages. For more information, see Authenticating to GitHub Packages.
+
+2. In the same directory as your package.json file, create or edit an .npmrc file to include a line specifying GitHub Packages URL and the namespace where the package is hosted. Replace NAMESPACE with the name of the user or organization account to which the package will be scoped.
+
+shell
+@NAMESPACE:registry=https://npm.pkg.github.com
+
+
+3. Add the .npmrc file to the repository where GitHub Packages can find your project. For more information, see Adding a file to a repository.
+
+4. Configure package.json in your project to use the package you are installing. To add your package dependencies to the package.json file for GitHub Packages, specify the full-scoped package name, such as @my-org/server. For packages from npmjs.com, specify the full name, such as @babel/core or lodash. Replace ORGANIZATION_NAME/PACKAGE_NAME with your package dependency.
+
+json
+{
+  "name": "@my-org/server",
+  "version": "1.0.0",
+  "description": "Server app that uses the ORGANIZATION_NAME/PACKAGE_NAME package",
+  "main": "index.js",
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "ORGANIZATION_NAME/PACKAGE_NAME": "1.0.0"
+  }
+}
+
+
+5. Install the package.
+
+shell
+npm install
+
+
+Installing packages from other organizations
+
+By default, you can only use GitHub Packages packages from one organization. If you'd like to route package requests to multiple organizations and users, you can add additional lines to your .npmrc file, replacing NAMESPACE with the name of the personal account or organization to which the package is scoped.
+
+shell
+@NAMESPACE:registry=https://npm.pkg.github.com
+@NAMESPACE:registry=https://npm.pkg.github.com
+
+Working with the Apache Maven registry
+
+You can configure Apache Maven to publish packages to GitHub Packages and to use packages stored on GitHub Packages as dependencies in a Java project.
+
+<!-- 2148AF7B-5FF8-4B28-A808-D692FEE2225A -->
+
+Authenticating to GitHub Packages
+
+[!NOTE]
+GitHub Packages only supports authentication using a personal access token (classic). For more information, see Managing your personal access tokens.
+
+You need an access token to publish, install, and delete private, internal, and public packages.
+
+You can use a personal access token (classic) to authenticate to GitHub Packages or the GitHub API. When you create a personal access token (classic), you can assign the token different scopes depending on your needs. For more information about packages-related scopes for a personal access token (classic), see About permissions for GitHub Packages.
+
+To authenticate to a GitHub Packages registry within a GitHub Actions workflow, you can use:
+
+• GITHUB_TOKEN to publish packages associated with the workflow repository.
+• A personal access token (classic) with at least read:packages scope to install packages associated with other private repositories (GITHUB_TOKEN can be used if the repository is granted read access to the package. See Configuring a package's access control and visibility).
+
+For more information about GITHUB_TOKEN used in GitHub Actions workflows, see Use GITHUB_TOKEN for authentication in workflows.
+
+Authenticating with a personal access token
+
+You must use a personal access token (classic) with the appropriate scopes to publish and install packages in GitHub Packages. For more information, see Introduction to GitHub Packages.
+
+You can authenticate to GitHub Packages with Apache Maven by editing your ~/.m2/settings.xml file to include your personal access token (classic). Create a new ~/.m2/settings.xml file if one doesn't exist.
+
+In the servers tag, add a child server tag with an id, replacing USERNAME with your GitHub username, and TOKEN with your personal access token.
+
+In the repositories tag, configure a repository by mapping the id of the repository to the id you added in the server tag containing your credentials. Replace OWNER with the name of the personal account or organization that owns the repository. Because uppercase letters aren't supported, you must use lowercase letters for the repository owner even if the GitHub user or organization name contains uppercase letters.
+
+If you want to interact with multiple repositories, you can add each repository to separate repository children in the repositories tag, mapping the id of each to the credentials in the servers tag.
+
+GitHub Packages supports SNAPSHOT versions of Apache Maven. To use the GitHub Packages repository for downloading SNAPSHOT artifacts, enable SNAPSHOTS in the POM of the consuming project or your ~/.m2/settings.xml file.
+
+xml
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                      http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+  <activeProfiles>
+    <activeProfile>github</activeProfile>
+  </activeProfiles>
+
+  <profiles>
+    <profile>
+      <id>github</id>
+      <repositories>
+        <repository>
+          <id>central</id>
+          <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+        <repository>
+          <id>github</id>
+          <url>https://maven.pkg.github.com/OWNER/REPOSITORY</url>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+    </profile>
+  </profiles>
+
+  <servers>
+    <server>
+      <id>github</id>
+      <username>USERNAME</username>
+      <password>TOKEN</password>
+    </server>
+  </servers>
+</settings>
+
+
+Publishing a package
+
+By default, GitHub publishes the package to an existing repository with the same name as the package. For example, GitHub will publish a package named com.example:test in a repository called OWNER/test.
+
+[!WARNING] Your Apache Maven package must follow the naming convention, and therefore the artifactId field should only contain lowercase letters, digits, or hyphens. For more information, see Naming convention of Maven coordinates in the maven.apache.org documentation. If you use uppercase letters in the artifact name, you'll get a 422 Unprocessable Entity response.
+
+If you would like to publish multiple packages to the same repository, you can include the URL of the repository in the <distributionManagement> element of the pom.xml file. GitHub will match the repository based on that field. Since the repository name is also part of the distributionManagement element, there are no additional steps to publish multiple packages to the same repository.
+
+For more information on creating a package, see the maven.apache.org documentation.
+
+1. Edit the distributionManagement element of the pom.xml file located in your package directory, replacing OWNER with the name of the personal account or organization that owns the repository and REPOSITORY with the name of the repository containing your project.
+
+xml
+&lt;distributionManagement&gt;
+   &lt;repository&gt;
+     &lt;id&gt;github&lt;/id&gt;
+     &lt;name&gt;GitHub OWNER Apache Maven Packages&lt;/name&gt;
+     &lt;url&gt;https://maven.pkg.github.com/OWNER/REPOSITORY&lt;/url&gt;
+   &lt;/repository&gt;
+&lt;/distrib
