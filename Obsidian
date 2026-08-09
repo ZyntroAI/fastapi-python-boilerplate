@@ -1,0 +1,366 @@
+
+Executive Summary
+Obsidian is a powerful Markdown-based knowledge management tool built onlocal plain-textnotes. Its core strengths arebidirectional linkingand visual mapping: notes are organized invaults(folders) and linked via[[Wiki-style links]], producing automaticbacklinksand interactivegraph views. Core plugins likeTemplates,Daily Notes, andBacklinksaugment Markdown with dynamic content and cross-reference panels. Users can customize Obsidian’s look withcommunity themesandCSS snippets.
+Advanced workflows layer methodology onto these features. For example, theZettelkastenmethod capturesatomic “evergreen” noteswith unique IDs and rich linking, fostering a web of ideas. ThePARAsystem (Projects, Areas, Resources, Archives) imposes a four-fold structure on files.Linking Your Thinking (LYT)emphasizeshub notesand Maps of Content (MOCs) to connect topics.Maps of Contentthemselves are user-created index pages that list related notes, providing navigational beacons in a free-form graph. Daily-Journal workflows use theDaily Notesplugin to collect recurring entries by date.
+Obsidian’s functionality can be extended via plugins. Core plugins (e.g. Graph, Backlinks, Search, Templates, Daily Notes) are bundled, and a vibrant community offers many advanced plugins (Dataview, Templater, Kanban, Tasks, etc.). Plugins enable tasks and queries (e.g. Dataview to run database-like queries on your notes, Templater to insert dynamic content via JavaScript). Vault structure best practices vary: some adopt flat “zettelkasten” vaults with timestamped filenames, others use PARA-style folders (Projects/, Areas/, etc.) or hybrid models likeLifeOSthat combine PARA with periodic notes. Naming conventions range from numeric prefixes (for uniqueness) to descriptive titles with dates (for readability). For collaboration, Obsidian Sync (paid) offers shared vaults butno live editing– changes merge on sync; alternatives include Git integration or emerging real-time plugins (e.g. Relay).
+To build Obsidian skills, start with fundamentals (creating notes, using links, the sidebar) and gradually add advanced features. A 12-week learning plan (below) guides through beginner topics (UI, linking, daily notes) to advanced (plugins, automation, vault design). Example vault archetypes illustrate typical structures (e.g. PARA, Zettelkasten, Journal, Research, Personal Knowledge Graph) with suggested folder trees and templates. A comparison of 12 top plugins (core vs community) highlights key uses and trade-offs. SampleDataviewqueries andTemplaterscripts show how to automate and query notes. Finally, a troubleshooting checklist covers common pitfalls (sync conflicts, plugin issues, CSS loading). All information is drawn from Obsidian’s official docs and community sources.
+Core Obsidian Features
+• Vaults:A vault is simply a folder on your file system containing Markdown notes. You can open multiple vaults for different projects, each with its own.obsidianfolder for settings. Because notes are plain text, they can be edited by any text editor and synced via services (Dropbox, iCloud, Git, etc.). Avoid nesting vaults inside each other.
+[  ] Notes and Markdown:Notes are Markdown (.md) files. Obsidian supports standard Markdown (headings, lists, emphasis) plus Obsidian-specific features: internal links[[Note Title]], embed images/notes via![[file.png]], and YAML frontmatter for metadata. You can also use tags (e.g.#tag) inline or in YAML.
+• Linking & Backlinks:The heart of Obsidian isbidirectional linking. When you link one note to another ([[Linked Note]]), Obsidian tracks this connection. TheBacklinkspane (core plugin) shows all notes linking to the current note (“Linked mentions”) and even unlinked references. This immediately reveals relationships between ideas. The documentation emphasizes that linking notes encourages deeper insight and “helps create a web of thoughts”. Use the backlinks pane to navigate backwards through your knowledge graph.
+• Graph View:TheGraph View(core plugin) visualizes your vault as a network: each note is a node, links are edges. You can open a global graph of all notes or aLocal Graphfor just one note and its neighbors. The graph view can be filtered (by tag, path, pinned status), and styled (color by tags). Advanced options include hiding nodes (orphans), grouping, and animating a time-lapse of note creation. It’s a powerful way to see clusters of related notes and spot areas to connect.
+• Templates:Obsidian’sTemplatescore plugin lets you define reusable note skeletons. Set a templates folder in Settings, then create Markdown files with placeholders like{{date}},{{title}}etc. Use the “Insert template” command or button to insert the content. Templates can include dynamic variables (e.g. current date{{date:YYYY-MM-DD}}). It’s recommended to edit templates in source mode to avoid interference from Obsidian’s Properties panel. For example, you might have a “Meeting Note” template with headings for attendees, agenda, and follow-ups.
+• CSS Snippets & Themes:The UI appearance is fully themeable. InSettings → Appearance, you can choose a community theme or use the built-in light/dark styles. For fine-grained tweaks, enableCSS snippets(core). Add.cssfiles to.obsidian/snippets/and toggle them on. Snippets can redefine fonts, colors, element spacing, etc. Obsidian exposes CSS variables (like--text-accentfor primary color) so you can use them in snippets. You can also add custom CSS classes via YAML frontmatter. For example, setting a note’scssclasses: quotein YAML applies styles defined for.quote. Community plugins likeStyle Settingscan provide GUI controls for theme variables.
+Advanced Workflows
+Obsidian supports many note-taking philosophies. Here are key examples:
+• Zettelkasten / Evergreen Notes:The classic Zettelkasten method (from Sascha L. on zettelkasten.de) centers on capturing ideas asatomic notesand richly linking them. In Obsidian, a common Zettelkasten practice is to give each note a unique ID (often a date-time stamp) as a filename, then write a concise title and content. The coreZettelkasten Prefixerplugin can automate this (e.g. “<Year><Month><Day><Hour><Min>format). Many find this useful: Jamie Rubin notes that prefixing note titles with a timestamp makes creation quick and ensures uniqueness, and it doubles as a date-search aid. The workflow is: write fleeting notes, expand them into a permanent note (Zettel) with one idea, and interlink new Zettels with existing ones. A simple flowchart of this might be:
+• mermaidคัดลอก
+flowchart LR
+  F[Fleeting Notes] --> P[Evergreen Notes]
+  P --> M[Maps of Content (MOCs)]
+  M --> N[Knowledge Network]
+
+• Key points: capture ideas freely, distill each idea into a dedicated note, then link related notes. Avoid rigid hierarchies: instead focus on creating awebof knowledge. Community advice emphasizes linking and tagging notes for structure and using folders mainly for process or workflows, not idea categories.
+• PARA (Projects, Areas, Resources, Archives):Developed by Tiago Forte, PARA organizes notes by purpose. One common implementation is four top-level folders:1. Projects/,2. Areas/,3. Resources/, and4. Archives/. Each project folder contains notes on active tasks (with deadlines), areas hold notes on ongoing responsibilities, resources hold reference material, and archives store inactive items. Importantly, this structure isshallow(generally one level under each PARA folder) to keep the vault wide rather than deep. An Obsidian PARA vault might number folders (as in the LifeOS example: “1. Projects”, “2. Areas”, etc.) to enforce order. PARA is more about keeping things actionable and easily reachable. For instance, withinProjects/Project-X/you might have a project brief, meeting notes, and linked tasks. A GitHub PARA starter vault advises only one subfolder per PARA folder to prevent deep nesting.
+• Linking Your Thinking (LYT) & Maps of Content:LYT (Nick Milo) is a methodology that emphasizeshuborcontent mapnotes connecting clusters of ideas. In practice, this means creatingMOCsfor broad topics (e.g. a “Biology MOC” linking to all biology-related notes). The MOC essentially acts as a curated index. One community article explains that MOCs serve as central navigation points in a non-hierarchical network, allowing free linking with optional structure. In Obsidian, you might have an “index” note for each major topic, linking to all child notes (further linked notes). The LYT approach often also uses consistent templates and frontmatter for metadata (e.g. “Status: Atomic/Evergreen/Project”), guiding how notes evolve. The key is progressive summarization: initial notes get refined into evergreen notes, linked through MOCs. LYT vaults often start with a Home or Starter note (“000 Home”) and “Start Here”, then branches into these MOCs.
+• Daily Notes / Journaling:TheDaily Notes(core) orPeriodic Notes(community) plugins support capturing a date-indexed diary or log. The Daily plugin creates/opens a note for “today” (defaultYYYY-MM-DD), often stored in a “Daily” folder. You can customize naming (adding day names, etc.) and set a template to auto-populate each daily note (e.g. with headings for Tasks, Gratitude, Journal). Periodic Notes extends this to weekly, monthly, etc., allowing different templates for each period. A typical use is to treat daily notes as an inbox for quick logs, tasks, meeting notes, etc. At period’s end, you might review and transfer relevant items to project notes or evergreen notes. Daily notes also auto-link if a note’s YAMLdatematches, helping build a chronological context.
+Each workflow has trade-offs. Zettelkasten is great for atomic insight but can produce many small notes. PARA provides clarity on actionability but can feel rigid if overused. MOCs give structure but require manual upkeep. Daily notes capture context but can clutter if not reviewed. In practice, many users blend elements (e.g. a PARA-backed vault that uses ZK linking within project notes). The Obsidian community often recommends iterating on your system rather than copying one style wholesale.
+Plugins (Essential & Advanced)
+Obsidian’s plugin ecosystem is vast. Here we highlight key core vs community plugins, their purposes, tips, and trade-offs. (See also thePlugin Comparison Tablebelow.)
+• Core Plugins (built-in):
+◦ Backlinks:As described, shows linked and unlinked mentions of the current note. Tip: collapse long lists in the backlinks pane to focus, and use the filter to search within backlinks. Since it’s core, it’s always available. A trade-off: extremely large vaults may make the backlinks pane slow or unwieldy; consider limiting link depth or using tags to filter.
+◦ Graph View:Visualizes connections. Tip: filter the global graph by tags or folders to reduce clutter. The local graph (for one note) can be limited to 1–2 link-depth. Disabling graph animations can improve performance on big vaults. Trade-off: graph can be resource-heavy on huge vaults or dense graphs, so use filters or only open local graphs when needed.
+◦ Search:Advanced text search with boolean and regex. For example, searching without quotes finds notes containing all terms (in any order); to match an exact phrase, use quotes. Prefixing a search with/enables regex (e.g./search.*termto find “search” followed by “term” in order). Tip: learn the operators (|,-,^, etc.) in Obsidian’s search syntax. Trade-off: native search is powerful but can be non-intuitive; the Omnisearch community plugin (used by some power users) offers a more Google-like interface and partial indexing.
+◦ Quick Switcher:Opens files by fuzzy search. (Core by default: Ctrl+O). It’s the fastest way to jump between notes. No special config needed.
+◦ Templates:Described above. Tip: keep a generic snippet (like{{title}}) at top for flexibility. Trade-off: the core templates plugin is simple; heavy automation (calculations, loops) requires the communityTemplaterplugin.
+◦ Daily Notes:Described above. Tip: set a default folder in settings (e.g. “Journal/”) and a meaningful filename format. You can also auto-link dates in other notes to these daily notes. Trade-off: daily notes can accumulate quickly; use tags or periodic reviews to archive or summarize them.
+◦ File Explorer / Pane Basics:Core UI for browsing the vault. Also core plugins like Outline (shows headings of current note) and Tag Pane (lists all tags) are crucial. These have no special config.
+◦ Workspaces:Allows saving a layout of open panes. Useful to have different setups (e.g. “Writing” vs “Review” workspace). Not heavy, but ensure to save workspace after customizing layout.
+◦ Properties (YAML Editor):(Core, Catalyst feature). Provides a form-based editor for YAML frontmatter. Useful to define metadata fields (dates, statuses). Trade-off: must be enabled via Early Access; some prefer editing YAML raw.
+• Community Plugins:
+◦ Dataview:Aqueryplugin (block or inline code). It lets you treat your vault like a database. For example, use a block starting with ```dataview to generate dynamic tables/lists of notes based on filters (tags, fields, links). Configuration: learn the query language (some SQL-like clauses). Pros: Very powerful for dashboards and reports. Cons: Complex queries may be slow in large vaults; updates often require toggling preview or reloading.
+◦ Templater:Advanced templating (with JavaScript). Use<% tp.date.now("YYYY-MM-DD") %>for current date, or write a script loop to generate content. Tips: Enable “Allow JavaScript” in settings. You can even create new files or prompts. Pros: Can automate many tasks (meeting notes template with timers, dynamic note creation). Cons: There’s a learning curve with JS; bad scripts can freeze the UI if misused.
+◦ QuickAdd:Helps automate creation of new notes (via templates, forms, or hotkeys). For example, set up a QuickAdd action to generate a templated “Book Note” and prompt for title. Tips: Combine with Templater for dynamic content. Pros: Speeds up repetitive note creation. Cons: Setup can be complex; consider simpler alternatives if you only need one template.
+◦ Calendar:Shows a mini-calendar sidebar. Integrates with Daily/Periodic Notes to jump to dates. Key setting: ensure it points to your daily notes folder. Pros: Handy visual nav. Cons: If you change date formats often, calendar links may break.
+◦ Periodic Notes:Extends daily notes to weekly/monthly/yearly. You define templates for each period. Example: a weekly notes template may include goals and review sections. Works with Calendar plugin (clicking on a day creates daily note). Pros: Great for regular reviews and budgeting tasks. Cons: Another plugin to configure; overlapping functionality with Daily Notes plugin (it’s separate).
+◦ Kanban:Creates Kanban boards inside notes (withkanbancode fences). Useful for project planning or task boards. Pros: Visual task organization in Obsidian. Cons: Being a community plugin, verify compatibility after Obsidian updates.
+◦ Tasks:A query-based task manager. It extends Markdown tasks (- [ ]) with filters (due date, recurrence) and can output task lists via code blocks. E.g.:tasksคัดลอก
+tasks
+status: open
+due after 2026-07-01
+sort by due
+
+◦ Pros: Turns Obsidian into a lightweight GTD system, and pairs well with Kanban. Cons: Requires learning its syntax; can overlap with Dataview (choose one for tasks to avoid duplication).
+◦ Auto Note Mover:Automatically files notes into folders based on rules (e.g. move new daily notes toJournal/). Pros: Keeps your vault tidy by reducing manual file moves. Cons: Can be confusing if misconfigured; always double-check your rules.
+◦ Homepage (aka Dashboard) Plugin:Allows designating one note as a “home” or dashboard. You can populate it with links, queries, or images. Pros: Central quick-access page. Cons: Another note to maintain, though it can be highly customized.
+◦ Paste Image or Attachments Remappers:E.g. Paste Image Renamer auto-renames images when pasted. Handy if you frequently insert screenshots. Cons: Focuses narrowly on attachments; not essential for all workflows.
+◦ Linter / Style Settings:Linter enforces consistency (formats lists, headings, etc.) automatically. Style Settings lets you tweak theme CSS variables via UI. Pros: Helps maintain a clean note style. Cons: Running linter after edits can be seen as intrusive; use it if consistency is a priority.
+◦ Tag Wrangler:Helps rename/merge tags globally. Useful for reorganizing tag taxonomy. Cons: Bulk tag ops can’t be undone easily; be careful when merging.
+Configuration tips: For any plugin, start with default settings and change one thing at a time. Document settings that you tweak (e.g. in a “Settings Vault”). Trade-offs include complexity vs power: e.g. Dataview and Templater unlock powerful automation, but have steeper learning curves. Always keep backups when adding many plugins, in case a plugin corrupts data.
+Real-World Vault Structures & Templates
+How you structure your vault (folders, naming, tags) depends on your workflow. Here arevault archetypeswith sample structures and templates:
+1. PARA Productivity Vault:Emphasizes action-oriented organization.
+2. bashคัดลอก
+VaultRoot/
+├── 0_Inbox/             # Quick capture (papers, ideas) 
+├── 1_Projects/          # Active projects
+│   ├── Project A.md     # (e.g. Status, tasks, notes)
+│   └── Project B/
+├── 2_Areas/             # Areas of Responsibility (ongoing aspects)
+│   ├── Finance.md
+│   └── Health.md
+├── 3_Resources/         # Topic-based references
+│   ├── Books/
+│   ├── Templates/
+│   └── TechStack.md
+└── 4_Archives/          # Inactive (old projects, notes)
+    └── 2025_Archive/
+
+1. Naming:Prefix numeric levels to force sort (0-, 1-, etc).
+Tags:Use tags for status or types (e.g.#project,#idea) rather than deep folders.
+Example template (Project Note):
+2. markdownคัดลอก
+markdown
+---
+title: <% tp.file.title %>
+status: Active
+due: <% tp.date.now("YYYY-MM-DD") %> ---
+# Project: <% tp.file.title %>
+- **Objective:** 
+- **Tasks:** 
+ - [ ] Task 1
+ - [ ] Task 2
+- **Notes:** 
+ - Linked ideas or references
+
+1. (The above uses Templater syntax for dynamic title/date.)
+2. Zettelkasten Vault:Atomized knowledge capture (often used by writers, researchers).
+3. graphqlคัดลอก
+VaultRoot/
+├── Zettels/             # or keep in root
+│   ├── 202607171230 Note on Quantum Physics.md
+│   ├── 202607181045 Deep Learning Concepts.md
+│   └── 202607191300 Another Concept.md
+├── Templates/
+└── MOCs/                # Optional: central Maps of Content
+    ├── Physics MOC.md
+    └── AI MOC.md
+
+1. Naming:Use timestamp prefixes for unique IDs. Titles are brief descriptions. The prefix allows jotting a note before thinking of a title.
+Tags:Possibly use broad tags (#physics, #AI) to categorize concepts across notes.
+Example template (Zettel):
+2. markdownคัดลอก
+markdown
+---
+title: <% tp.file.title %>
+tags: [] ---
+# <% tp.file.title %>
+Write the core idea here.  
+**Sources:** List references if any.  
+**Related:** [[Other Note]], [[Another Note]]
+
+1. This encourages linking to related Zettels.
+2. Daily/Journaling Vault:Focus on chronological capture (often for personal wiki or life log).
+3. yamlคัดลอก
+VaultRoot/
+├── Journal/             # contains daily or weekly notes
+│   ├── 2026-07-17.md    # (Daily note example)
+│   ├── 2026-07-18.md
+│   └── ...
+├── Monthly/
+├── Quarterly/
+├── Templates/
+└── Habit Tracker.md     # example of a separate functional note
+
+1. Naming:Date-based filenames as configured (e.g.YYYY-MM-DD Diary.md).
+Tags:Could tag entries with moods or projects (e.g.#mood/happy,#task/fitness).
+Example template (Daily Note):
+2. markdownคัดลอก
+markdown
+---
+date: <% tp.date.now("YYYY-MM-DD") %>
+tags: [journal] ---
+# Daily Log: <% tp.date.now("dddd, MMMM Do YYYY") %>
+## Tasks
+- [ ] 
+## Notes
+- 
+## Reflection
+- What went well:
+- What to improve:
+
+1. This uses Templater to insert the date.
+2. Research/Literature Vault:Organized around studies, papers, and topics.
+3. rubyคัดลอก
+VaultRoot/
+├── Topics/
+│   ├── Machine Learning/
+│   │   ├── Neural Networks.md
+│   │   └── Optimization.md
+│   └── History/
+│       └── WW2.md
+├── Papers/              # if using file attachments or PDFs
+├── Notes/               # individual reading/literature notes
+├── MOCs/
+└── Templates/
+
+1. Naming:Notes might be titled by title of paper or concept (with date prefix if ZK approach).
+Tags:Use#literatureor thematic tags (#AI,#Biology).
+Example template (Literature Note):
+2. markdownคัดลอก
+markdown
+---
+title: <% tp.file.title %>
+author: 
+year: 
+tags: [literature, topic] ---
+# <% tp.file.title %> (<??>)
+**Summary:** Key points…  
+**Highlights:**  
+- Highlight 1  
+- Highlight 2  
+**Insights / Comments:**
+
+1. Useful to link this to a central “Topic” MOC.
+2. Personal Knowledge Graph:A mix of ideas, goals, and life planning (often used in “LifeOS” or personal wiki).
+3. textคัดลอก
+VaultRoot/
+├── People/
+├── Places/
+├── Projects/
+├── Hobbies/
+├── Daily Notes/
+├── MOCs/
+└── Templates/
+
+1. Naming:Whatever categories matter to you (e.g. People names, Place names).
+Tags:Heavily use tags like#person,#life,#idea.
+Example template (MOC / Hub Note):
+2. markdownคัดลอก
+markdown
+---
+title: \<\<My Interests\>\> ---
+# Map of Content: My Interests
+- [[Project A]] – Description
+- [[Hobby Cycling]] – Personal notes on cycling
+- [[Biology]] – Science topics
+- [[Dated Journal]] – [[2026-07-01]], [[2026-07-02]] (links to journal entries)
+
+1. This MOC collects links to key notes.
+In all cases,folder vs tagstrategy is a personal choice. A common suggestion: use folders for broad types or workflows (as above) and use tags for cross-cutting categories. Avoid deep nesting – a flat or one-level hierarchy works best with Obsidian’s search and graph. Name files consistently (e.g. “YYYYMMDD Topic – Title” or just “Title”), and ensure links point correctly (Obsidian is case-sensitive on some OS, so match filenames exactly or use aliases in links).
+Automation & Integrations
+• Templating and Scripts:Use the Templater plugin for advanced automation. For instance, you can run JavaScript in templates to generate content. Example script to create a todo list of 3 items:templaterคัดลอก
+templater
+<%*
+for (let i = 1; i <= 3; i++) {
+  tR += `- [ ] Task ${i}\n`;
+}
+%>
+
+• Or insert current date/time:=<% tp.date.now("YYYY-MM-DD HH:mm") %>. Templater can also create new notes or prompt for input. (SeeDataview & Templater Examplesbelow for more.)
+• Databases & Queries:The Dataview plugin lets you treat your vault as a queryable database. You can write queries to list tasks, summarize notes by tag, aggregate data from YAML, etc. Example: list all notes with tag “meeting”:dataviewคัดลอก
+dataview
+TABLE date, attendees
+FROM "Meetings"
+WHERE contains(tags, "meeting")
+SORT date desc
+
+• Or list incomplete tasks:dataviewคัดลอก
+dataview
+TASK
+FROM "Projects"
+WHERE !completed
+SORT file.name asc
+
+• Dataview can return tables, lists, or task lists. (SeeDataview & Templater Examplesbelow for samples.)
+• Periodic Automation:ThePeriodic Notesplugin can automatically create notes for future dates and can roll over incomplete tasks (with Rollover plugin). For example, the Rollover Daily Todos plugin copies unchecked tasks to the next day.
+• External Sync:Obsidian itself doesn’t include real-time sync to Google/Dropbox by default (for security reasons). Common solutions:
+◦ Obsidian Sync(paid) handles end-to-end encrypted sync and allows shared vaults.
+◦ iCloud/OneDrive/Dropbox:You can store your vault folder in a cloud drive, but do thisvery carefully. Obsidian docs warnnotto let two sync services manage the same folder (e.g. iCloud plus Obsidian Sync), as it causes conflicts.
+◦ Git:Use the communityObsidian Gitplugin to automatically commit changes. This lets you push to GitHub or other remote. It’s manual conflict resolution, but gives version history.
+◦ Syncthing, Mobius:Third-party clients like Syncthing or Mobius Sync can sync your vault folder between devices without a centralized cloud. These require setting up a local server or account, but avoid monthly fees.
+• Task & Time Integrations:
+◦ Kanban + Tasks Plugins:Combine them to track work. For example, create a Kanban board of tasks and use Tasks plugin queries to filter them by due date.
+◦ Clock, Pomodoro:Plugins exist for timers if you need focus sessions.
+• External Publishing:UseObsidian Publish(official) to turn your vault into a website. Or use a static site generator (like MkDocs or GitBook) by exporting Markdown.
+• Zotero/BibTeX:For academic work, plugins likeZotero Integrationcan pull bibliography metadata.
+Trade-offs: External integrations often require trusting plugins or services. For example, Obsidian Sync is proprietary and costs money, while Git-based methods require some technical setup. Choose what matches your risk/t convenience.
+Search & Dataview Queries
+Obsidian’s search supports advanced operators. Some tips:
+• Basic search:Typing multiple words (without quotes) finds notes containingallthose words (in any order). For example, searchinggraph viewfinds notes with “graph” and “view” anywhere.
+• Exact phrases:Put quotes around terms: e.g."graph view tutorial"finds that exact sequence.
+• Negation:Use-termto exclude notes containingterm.
+• Wildcard / Regex:Prefix with/to start a regex. For instance,/learn.*Obsidian/matches “learn Obsidian” or “learn how Obsidian”. This can mimic AND or partial matching.
+• Field search:In core search you can search in titles (file:Term) or in tags. In Dataview you can directly query YAML fields (e.g.WHERE status="Active").
+• Search vs. Dataview:Core search is full-text (including YAML). Dataview queries only use YAML frontmatter and links unless usingcontains(text, ...)or similar.
+Sample Dataview Queries:(see more examples in [62] or Obsidian Example Vault for Dataview)
+• List all high-priority tasks:dataviewคัดลอก
+dataview
+TASK
+WHERE contains(text, "#urgent") AND !completed
+SORT priority desc
+
+• Table of notes by author and rating:(e.g. a book list)dataviewคัดลอก
+dataview
+TABLE author, rating 
+FROM "Books"
+WHERE rating >= 4 
+SORT rating desc
+
+• Kanban/project summary:List tasks grouped by project:dataviewคัดลอก
+dataview
+TASK
+WHERE !completed
+GROUP BY file.folder
+
+• DataviewJS:For custom scripts, wrap queries indataviewjsblocks (using JavaScript and thedvAPI).
+Remember, Dataview results update in preview mode and on file save. If a query doesn’t refresh, toggle source/preview or restart Obsidian.
+CSS/Theming & UI Customization
+Obsidian’s UI is highly customizable:
+• Themes:InSettings → Appearance, browse or install community themes (e.g. Minimal, Cybertron, etc.). Themes change fonts, colors, and UI styling. You can also tweak core CSS variables by editingobsidian.css(in a theme folder) or using theStyle Settingsplugin which exposes variables in a GUI.
+• CSS Snippets:For small tweaks, useCSS snippets. Example: to change heading color, createcustom.cssin.obsidian/snippetswith:
+• cssคัดลอก
+css
+h1 { color: var(--text-accent); }
+
+• Then enable it in Settings. Snippets are automatically reloaded when edited, no restart needed. You can mix variables (var(--fg-color)) and standard CSS.
+• Workspaces & Hotkeys:TheWorkspacescore plugin can save your pane layout (e.g. multiple notes side-by-side). Customize hotkeys in Settings to speed up commands (open Command Palette, toggle preview/source, etc.).
+• Minimal UI Plugins:
+◦ Sliding Panes (Andy Mode):A popular community plugin to have notes open in “slides” horizontally. This changes the UX dramatically; try it if you like Tinderbox/Roam-style workflows.
+◦ Contextual Tags/Titles:Plugins like “Folder Note” automatically create index pages for folders.
+◦ Minimal Theme Settings / Style Settings:Provide extra theming controls (font size slider, etc.).
+Be aware: mobile apps apply themes and snippets slightly differently (some UI elements differ). Always check settings on both platforms.
+Performance & Large-Vault Strategies
+A very large vault (thousands of notes) can slow down Obsidian. Here are strategies:
+• Limit Indexing:Obsidian indexes all notes on load. Exclude heavy directories (like archive ZIPs, node_modules, etc.) from the vault.
+• Disable Unused Plugins:Each plugin adds overhead. In a large vault, disable any you don’t need daily. For example, heavy query plugins or graph plugins can lag.
+• Optimize Graph View:InGraphsettings, set anode count limitor use filters (Hide orphan nodes) to keep it responsive. Turn off animations. For local graph, reduce Link Depth.
+• Split Vaults:Consider multiple vaults if you have unrelated projects; Obsidian handles each vault separately. If you have a “References” vault and a “Work” vault, open only one at a time.
+• Use DataviewJS Wisely:Complex Dataview or DataviewJS scripts can be slow. For large tables, it may freeze the UI. Paginate results or use summarizing queries instead.
+• Periodic Reloads:If Obsidian starts to lag after days of use, reload the app to clear memory (Command+R on desktop, pull-to-refresh on mobile).
+• Hardware:Since notes are local, having an SSD (for faster file access) and reasonable RAM helps. Obsidian itself is quite efficient, but dozens of open panels and heavyweight plugins will use more CPU.
+No official cite found, but community consensus is to keep your vault lean and use external sync carefully. In particular, avoid havingtwo syncing services(e.g. iCloud + Git) targeting the same vault folder, as this doubles file operations and can confuse Obsidian.
+Mobile vs Desktop Differences
+Obsidian mobile (iOS/Android) is similar in core features, but with some limitations:
+• File Access:On Android/iOS, apps are sandboxed. Unlike desktop, Obsidian mobilecannotdirectly open arbitrary cloud folders (for security reasons). You must either useObsidian Syncor place your vault in iCloud/Dropbox via the system file picker. For example, on Android you typically import/sync via the Obsidian Sync service or a supported cloud mounting; you cannot just “Open folder” from Google Drive easily.
+• UI Layout:Mobile has a single-column layout; panels (graph, backlinks) appear in separate views. Some core features (like Command Palette) are accessed via touch menu. Hotkeys obviously differ. Panels behave differently (e.g. sliding panels on iPad vs tabs on phone).
+• Plugin Support:Most plugins work on mobile, but a few graphical plugins (like large canvas or heavy graphs) may be slower. Some plugins require native APIs not present on mobile (e.g. notifications, custom OS integrations). Always check if a plugin is marked “Mobile compatible” in the community store.
+• Syncing:Desktop can rely on any cloud folder; on mobile, you mayonlysync via iCloud/Obsidian Sync by default. Workarounds exist (Syncthing apps, etc.), but Obsidian mobile has no built-in Google Drive integration.
+• Performance:Mobile devices may struggle with very large vaults or complex graph queries; keep queries light and avoid opening the entire graph. On iOS, themes and custom fonts can consume more battery.
+• Differences in Defaults:The mobile app may lag behind desktop in version (updates roll out later), so sometimes a plugin update for desktop doesn’t show up on mobile immediately.
+Overall, the experience is comparable, but expect to configure sync and plugins separately and adapt workflows for touch usage.
+Collaboration & Sharing Options
+• Obsidian Sync Shared Vaults:With Obsidian’s official Sync service, you can invite team members to a shared vault (each needs a Sync subscription). This gives everyone access to the same files. Permissions are uniform: all collaborators have equal access (owner alone can invite). There isno real-time editingthough: if multiple people edit the same note offline, Obsidian Sync will merge changes (or create conflict files) on sync. You won’t see others’ cursors or instant updates. Conflicts can be manually resolved later (Sync settings let you choose automatic merge or conflict-file creation).
+• Obsidian Publish:An official paid service for web publishing. You can select notes to publish as a static site (with friendly URLs, theme choices, search, etc.). Useful for sharing docs or blog posts. It’s one-way (vault → web).
+• Version Control (Git):TheObsidian Gitcommunity plugin allows automated commits and pushes to a Git repo. This enables collaboration via GitHub/Bitbucket. Users must resolve merge conflicts manually (Git’s merge UI) but get version history of notes. This also serves as a backup.
+• Live Collaboration Plugins:Emerging solutions (e.g.Relay – Multiplayerplugin) use CRDTs (Yjs) for real-time editing and shared folders. These are still new (2025+). For most teams, Obsidian Sync or Git is the stable option.
+• Read-Only Sharing:You can simply share Markdown files (via email or cloud links) or sync a vault to a public Dropbox/Nextcloud to give others read/write access (not real-time). People could also export notes to PDF/HTML.
+Security & Privacy: All core data is local and under your control. Obsidian Sync is end-to-end encrypted (optional). With shared vaults, be mindful that collaborators see all content. Always have backups when collaborating.
+Learning Path: 12-Week Curriculum
+Below is a suggested 12-week learning plan, moving from beginner to advanced, with goals and exercises each week. Tailor it to your schedule and adjust pacing.
+282930313233343536373839Setup Vault & InterfaceLinking & BacklinksGraph View & Tags/OutlineDaily Notes & Basic TemplatesAdvanced Templates & SnippetsZettelkasten WorkflowPARA & MOC OrganizationDataview Queries IntroductionTemplater Scripting & MacrosAdvanced Plugins (Kanban, Tasks)Performance & Vault TuningSharing & CollaborationWeeks 1–4 (Basics)Weeks 5–8 (Organization)Weeks 9–12 (Mastery)12-Week Obsidian Learning Plan
+แสดงโค้ด
+• Week 1:Vault Basics– Install Obsidian, create a new vault. Learn the UI: sidebars, ribbon, command palette, file explorer. Practice creating notes in Markdown (headings, lists).
+Exercise:Make notes for three topics you like. Practice using the Command Palette (Ctrl+P) and Quick Switcher (Ctrl+O) to open them.
+• Week 2:Linking Notes– Learn internal links and backlinks. Create some notes and link them with[[Link Title]]. View the Backlinks pane. Begin tagging notes (e.g.#project).
+Exercise:Create a cluster of related notes (e.g. “Project Alpha”, “Alpha Tasks”, “Alpha Resources”) and link them. Use the Graph view to visualize this mini-network.
+• Week 3:Graph & Organization– Explore the Graph view settings. Use filters (e.g. show only notes with a specific tag). Learn the Outline and Tag Pane. Try folder organization (e.g. “Projects/”, “Notes/”).
+Exercise:Organize your existing notes into 2-3 folders. Toggle global graph filters to see one folder at a time. Create an Outline pane of a long note.
+• Week 4:Journaling & Templates– Enable Daily Notes plugin. Configure its folder and format. Write daily journal entries. Create a simple Templates folder and file (e.g. “Meeting Note Template”), then enable the Templates plugin and insert it.
+Exercise:Write a daily note using your template. Include a task list and reflection. Practice CSS by installing a theme or enabling a CSS snippet (e.g. change heading color).
+• Week 5:Advanced Templates & CSS– Dive deeper into the Templates plugin: use its variables ({{date}}). Try the Templater plugin: insert dynamic fields like<% tp.date.now("hh:mm") %>. Explore CSS snippets: add a custom snippet to tweak UI elements.
+Exercise:Create a Templater template that prompts you for a note title or creates a new dated note. Write a snippet to change the font size or highlight color.
+• Week 6:Zettelkasten Workflow– Implement Zettelkasten-style notes. Use the prefix plugin to auto-name notes (e.g.202607241200). Write a few “zettels” (atomic notes) and link them. Practice re-filing notes by renaming titles.
+Exercise:Read about Zettelkasten on zettelkasten.de. Try taking a fleeting idea and making it a permanent note; link it to others. Review the index for orphan notes.
+• Week 7:PARA & MOCs– Set up a PARA folder structure (Projects, Areas, etc.). Create a Map of Content note for a major topic, listing sub-topics. Link child notes into that MOC. Use YAML frontmatter withcssclassesif you’re applying special styles to certain notes.
+Exercise:Build a MOC (e.g. “Work MOC”) and use it as your vault’s “home”. Try adding one big project in the PARA Projects folder and linking relevant notes.
+• Week 8:Dataview Basics– Install Dataview plugin. Start with simple queries: list all notes with a tag, or all tasks with!completedfrom a folder. Experiment withTABLE,LIST, andTASKblock queries.
+Exercise:Create a table of your projects (with due dates in YAML) using Dataview. Or list incomplete tasks from your Project notes. See if the results update when you change a note.
+• Week 9:Templater & Automation– Learn Templater advanced features: variables, loops, prompts. Create a daily note template that automatically titles the note with the date (as shown) and perhaps inserts quotes or tasks based on date.
+Exercise:Write a Templater script to generate a weekly summary from daily notes (e.g., list all tasks completed in the past week). SeeDataview & Templater Examplesbelow.
+• Week 10:Productivity Plugins– Explore task management: install Tasks and Kanban. Migrate some tasks into Obsidian’s format (- [ ]). Create a Kanban board note for a project. Try the Kanban plugin to track statuses (Backlog, Doing, Done).
+Exercise:Set up a simple Kanban for a current project. Use the Tasks plugin to query and display all your “TODO” items across notes.
+• Week 11:Performance & Large Vault– If your vault is growing, apply performance tips: disable unused plugins, split vaults if needed. Review graph filters and search syntax for efficiency. Learn about conflict resolution in Sync.
+Exercise:Simulate a conflict: edit the same note on two devices and sync; see how Obsidian Sync merges or creates conflict files. Configure Sync’s conflict resolution setting (auto-merge vs manual).
+• Week 12:Collaboration & Review– Practice using your vault collaboratively (e.g. set up Obsidian Sync shared vault) or via Git. Publish or export some notes (to PDF or Obsidian Publish). Do a full review: identify orphan notes (use Graph or Find Unlinked plugin), tidy up tags/folders, and ensure all templates work. Document your workflow in a “Start Here” note.
+Exercise:Invite a friend to a shared vault (if using Sync) or push to Git. Fix any merge issues. Export your vault’s summary (print graph or query list) as a report.
+This plan ensures progressive learning. Adjust as needed (for instance, swap some weeks if you prefer to tackle specific plugins earlier).
+Plugin Comparison (Top 12)
+
+Plugin
+Category
+Core?
+Key Config Tip
+Pros / Cons
+
+Graph View
+Visualization
+Core
+Use filters (tags/folders) to limit nodes
++Instant overview of link network.<br>−Can lag on huge vaults; disable physics.
+
+Backlinks
+Linking
+Core
+Collapse long lists; use “Show more context”
++Fin
