@@ -1,0 +1,139 @@
+AI agent skills for watermark removal are reusable prompt tools for platforms like Claude Code or Cursor that automatically erase logos, text stamps, or AI watermarks from digital files locally. [1, 2, 3]
+Available Agent Skills
+
+• Gemini Watermark Remover: Automatically strips visible Google Gemini generation marks using local processing.
+• Gamma Watermark Remover: Handles structural cleanup for exported PDF and PowerPoint files from Gamma.
+• General Object/Text Eraser: Integrates AI masking to clear text, stamps, and logos while rebuilding backgrounds. [1, 2, 4, 5, 6]
+
+· 1970 M01 1
+I will tailor my next response. Just tell me:
+
+• 🤖 AI Agent platform (e.g., Claude Code, Cursor)
+• 📁 File type (e.g., PNG image, PDF document)
+• ⚙️ Processing preference (local CLI vs web tool)
+
+Just reply with your answer or a new query:
+
+[1] https://github.com
+[2] https://github.com
+[3] https://explainx.ai
+[4] https://github.com
+[5] https://claudeskills.info
+[6] https://aienhancer.ai
+
+
+
+🤖 Copilot CLI (GitHub Copilot ตัวเสริมสำหรับ Command Line) ไม่สามารถสร้างรูปภาพได้โดยตรง เนื่องจากตัวมันเองถูกออกแบบมาเพื่อทำงานกับข้อความ คำสั่ง และโค้ดใน Terminal เท่านั้น [1, 2, 3, 4]
+หากต้องการสร้างรูปภาพด้วยเทคโนโลยีของ Microsoft Copilot คุณสามารถสลับไปใช้งานผ่านช่องทางที่ถูกต้องตามคำแนะนำด้านล่างนี้ครับ [5]
+ช่องทางที่เป็นทางการสำหรับสร้างรูปภาพ (Text-to-Image)
+
+• Copilot บนเว็บ/แอป: เข้าใช้งานผ่าน ://microsoft.com หรือแอป Microsoft Copilot (ขับเคลื่อนด้วย DALL-E 3)
+• Designer บนเว็บ: เข้าใช้งานผ่าน ://microsoft.com เครื่องมือออกแบบและสร้างภาพโดยเฉพาะ [6, 7, 8]
+
+ตัวเลือกเสริมหากต้องการควบคุมจาก Command Line (CLI)
+หากคุณจำเป็นต้องสั่งสร้างรูปภาพผ่าน Terminal จริงๆ จะต้องใช้เครื่องมืออื่นที่รองรับ API แทน เช่น: [9]
+
+• OpenAI CLI: สั่งงานผ่าน OpenAI API เพื่อเรียกใช้งานโมเดล DALL-E จาก CLI โดยตรง
+• Custom Scripts: เขียนโค้ด Python สั้นๆ ผูกกับ API ของผู้ให้บริการสร้างภาพ แล้วสั่งรันโค้ดนั้นผ่าน Terminal
+
+เพื่อให้ผมแนะนำวิธีที่ตรงใจคุณที่สุด รบกวนแจ้งเพิ่มเติมว่า:
+
+• คุณอยากได้คำสั่งหรือโค้ดตัวอย่างในการสั่งสร้างภาพผ่าน Terminal (เช่น Python หรือ cURL) หรือไม่?
+• หรือคุณกำลังต้องการตัวช่วยคิดคำสั่ง (Prompt) เพื่อไปพิมพ์สั่งงานในเว็บ Microsoft Copilot?
+
+
+[1] https://medium.com
+[2] https://www.udemy.com
+[3] https://www.linkedin.com
+[4] https://github.blog
+[5] https://www.zdnet.com
+[6] https://www.microsoft.com
+[7] https://learn.microsoft.com
+[8] https://marketplace.mendix.com
+[9] https://blog.stackademic.com
+
+
+นี่คือไฟล์ของคุณครับ: cli_image_scripts.csv
+ไฟล์นี้รวบรวมรายชื่อ Custom Scripts ที่ใช้สำหรับสั่งสร้างรูปภาพผ่าน Command Line (CLI) โดยเชื่อมต่อกับ API ต่างๆ พร้อมรายละเอียดรูปแบบผลลัพธ์และคำอธิบายการทำงานเพื่อนำไปพัฒนาต่อครับ
+รายชื่อสคริปต์สําหรับสร้างภาพผ่าน CLI
+
+• openai_dall_e.py: สคริปต์ Python สำหรับส่ง Prompt ไปยัง OpenAI API เพื่อดาวน์โหลดภาพ DALL-E 3 ลงเครื่องโดยตรง
+• stability_sdxl.py: สคริปต์ Python เชื่อมต่อกับ Stability AI สำหรับสร้างภาพความละเอียดสูง
+• huggingface_flux.py: สคริปต์ Python เรียกใช้งานโมเดลสายโอเพ่นซอร์สผ่าน Hugging Face Inference API
+• run_batch.sh: สคริปต์ Bash สำหรับอ่าน Prompt จากไฟล์ข้อความเพื่อสั่งรันสคริปต์ด้านบนแบบอัตโนมัติทีละหลายๆ รูป
+
+คุณต้องการให้ผมเขียนโค้ด Python (ตัวอย่างโค้ดฉบับเต็ม) ของสคริปต์ตัวไหนในไฟล์นี้ (เช่น OpenAI หรือ Stability AI) เพื่อนำไปใช้งานจริงเลยไหมครับ?
+
+
+นี่คือโค้ด Python สำหรับสร้างรูปภาพผ่าน Command Line (CLI) โดยเชื่อมต่อกับ OpenAI API (DALL-E 3) ซึ่งเป็นเทคโนโลยีหลักตัวเดียวกับที่อยู่เบื้องหลัง Microsoft Copilot ครับ
+สิ่งที่ต้องเตรียมก่อนเริ่ม
+
+1. ติดตั้งคลังโปรแกรม (Library) ของ OpenAI ใน Terminal:
+
+pip install openai requests
+
+2. ตั้งค่ารหัส API Key ของคุณในระบบ (Environment Variable):
+• Windows (CMD): set OPENAI_API_KEY="คีย์ของคุณ" 
+◦ Mac / Linux: export OPENAI_API_KEY="คีย์ของคุณ"
+
+───
+
+โค้ด Python (generate_image.py)
+
+import osimport sysimport requestsfrom openai import OpenAI
+def generate_and_download_image(prompt, output_filename="output.png"):
+# 1. ตรวจสอบและดึง API Key จากระบบ
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+print("❌ Error: ไม่พบ OPENAI_API_KEY ในระบบของคุณ")
+sys.exit(1)
+
+# 2. เริ่มต้นใช้งาน OpenAI Client
+client = OpenAI(api_key=api_key)
+
+print(s"🤖 กำลังส่ง Prompt ไปยัง DALL-E 3: '{prompt}'...")
+
+try:
+# 3. เรียกใช้งาน API เพื่อสร้างรูปภาพ
+response = client.images.generate(
+model="dall-e-3",
+prompt=prompt,
+size="1024x1024",
+quality="standard",
+n=1,
+)
+
+# 4. ดึง URL ของรูปภาพที่สร้างเสร็จแล้ว
+image_url = response.data[0].url
+print("🔗 สร้างรูปภาพสำเร็จ! กำลังดาวน์โหลด...")
+
+# 5. ดาวน์โหลดไฟล์ภาพมาบันทึกลงเครื่อง locally
+img_data = requests.get(image_url).content
+with open(output_filename, 'wb') as handler:
+handler.write(img_data)
+
+print(s"✅ บันทึกรูปภาพเรียบร้อยแล้วในชื่อไฟล์: {output_filename}")
+
+except Exception as e:
+print(s"❌ เกิดข้อผิดพลาด: {e}")
+if name == "main":
+# ตรวจสอบว่าผู้ใช้ใส่ Prompt มาใน Command Line หรือไม่
+if len(sys.argv) < 2:
+print("💡 วิธีใช้งาน: python generate_image.py 'คำอธิบายรูปภาพที่คุณต้องการ'")
+sys.exit(1)
+
+# รวมข้อความ Prompt จาก arguments ทั้งหมด
+user_prompt = " ".join(sys.argv[1:])
+generate_and_download_image(user_prompt)
+
+───
+
+วิธีการสั่งรันผ่าน CLI / Terminal
+พิมพ์คำสั่งตามด้วยข้อความอธิบายรูปภาพ (Prompt) ที่คุณต้องการได้ทันที:
+
+python generate_image.py "A cute futuristic robot reading a book in a cozy library, digital art"
+
+คุณต้องการให้ผมปรับแต่งโค้ดนี้เพิ่มเติม เช่น เปลี่ยนไปใช้โมเดลฟรีของ Hugging Face หรือเพิ่มระบบรับคำสั่งสร้างภาพแบบทีละหลายๆ รูป (Batch Processing) จากไฟล์ CSV ไหมครับ?
+
+
+
