@@ -1,4 +1,4 @@
-That is a fantastic concept image! Building an Obsidian workflow that leverages Gemini's multimodal capabilities (processing text, PDFs, images, audio, and video) is incredibly powerful.
+<div>That is a fantastic concept image! Building an Obsidian workflow that leverages Gemini's multimodal capabilities (processing text, PDFs, images, audio, and video) is incredibly powerful.
 
 If you are looking to integrate a Gemini CLI (geminicli) with Obsidian to process these attachments automatically, you can bridge the gap between your local markdown notes and the Gemini API.
 
@@ -51,3 +51,4 @@ If you are building this CLI from scratch, I highly recommend using Node.js or P
 • The File API (for uploading files larger than a few megabytes before prompting, which is standard for video and audio).
 
 Are you currently using an existing community geminicli package, or are you planning to build your own custom CLI script to connect to the Gemini API?
+</div>
