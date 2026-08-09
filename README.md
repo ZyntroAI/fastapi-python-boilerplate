@@ -134,6 +134,7 @@ You can follow our tutorials to use our API endpoints to [Add Login Using the Au
 * [Tokens](/docs/secure/tokens)
 * [Token Best Practices](/docs/secure/tokens/token-best-practices)
 * [Which OAuth 2.0 Flow Should I Use?](/docs/get-started/authentication-and-authorization-flow/which-oauth-2-0-flow-should-i-use)
+* <hide>
 ## โครงสร้างโปรเจกต์
 
 ```text
@@ -186,7 +187,7 @@ oauth-fastapi/
 ├── Dockerfile
 ├── docker-compose.yml
 └── README.md
-```
+```</hide>
 
 ---
 
