@@ -1,0 +1,183 @@
+
+
+
+
+Based on the outline provided in the text, here is a suggested Python/FastAPI boilerplate structure designed to implement the core features of ManusAI as described (CI/CD integration, Knowledge Hub, and Code Generation).
+
+This code sets up the foundation for the "Core Architecture" and "Integration with GitHub Actions" sections of your document.
+
+Project Structure
+text
+manusai-core/
+├── app/
+│   ├── __init__.py
+│   ├── main.py            # Entry point
+│   ├── core/
+│   │   ├── config.py      # Settings & API Keys
+│   │   └── security.py    # Auth & WebAuthn logic
+│   ├── api/
+│   │   ├── v1/
+│   │   │   ├── endpoints/
+│   │   │   │   ├── code_review.py   # Feature: Code Generation & Review
+│   │   │   │   ├── workflow.py      # Feature: Workflow Automation
+│   │   │   │   └── knowledge.py     # Feature: Knowledge Hub (Notion/Sheets)
+│   │   │   └── router.py
+│   ├── services/
+│   │   ├── llm_client.py  # Abstraction for AI Models
+│   │   └── github_service.py # GitHub Actions integration
+│   └── models/
+│       └── schemas.py     # Pydantic models
+├── tests/
+├── requirements.txt
+└── README.md
+
+
+1. Main Entry Point (app/main.py)
+This sets up the FastAPI app and includes the "DevTools integration" mentioned in the outline.
+
+python
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.api.v1.router import router
+from app.core.config import settings
+
+app = FastAPI(
+    title="ManusAI Core",
+    description="Developer-focused AI workflow automation engine.",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
+
+# Enable CORS for frontend tools (React + Tailwind integration)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/")
+def read_root():
+    return {"status": "ManusAI Core is running", "version": settings.VERSION}
+
+# Include API routes
+app.include_router(router, prefix="/api/v1")
+
+# Health check for CI/CD pipelines
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
+
+
+2. Code Review & Generation Endpoint (app/api/v1/endpoints/code_review.py)
+Implements the "Auto PR comments" and "Rubric scoring" feature.
+
+python
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from typing import List, Optional
+from app.services.llm_client import LLMClient
+
+router = APIRouter()
+
+class CodeReviewRequest(BaseModel):
+    code_snippet: str
+    language: str = "python"
+    rubric: List[str] = ["security", "performance", "readability"]
+
+class ReviewResult(BaseModel):
+    score: float
+    feedback: List[str]
+    suggested_fix: Optional[str] = None
+
+@router.post("/review", response_model=ReviewResult)
+async def review_code(request: CodeReviewRequest):
+    """
+    Analyzes code based on rubric and returns a score + feedback.
+    Integrates with GitHub Actions for automated PR comments.
+    """
+    try:
+        # Simulating LLM call (In production, call actual model)
+        llm = LLMClient()
+        feedback = await llm.analyze_code(request.code_snippet, request.rubric)
+        
+        # Simple heuristic for demo: 0.0 to 1.0 score
+        score = 0.85 if "security" in request.rubric else 0.92
+        
+        return ReviewResult(
+            score=score,
+            feedback=feedback,
+            suggested_fix="Consider using a secure random generator here."
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+3. Knowledge Hub Integration (app/api/v1/endpoints/knowledge.py)
+Implements the "Knowledge Hub Integration" (Google Sheets, Notion, etc.) mentioned in section 4 of the outline.
+
+python
+from fastapi import APIRouter, Query
+from pydantic import BaseModel
+from typing import Dict, Any
+
+router = APIRouter()
+
+class KnowledgeQuery(BaseModel):
+    query: str
+    sources: List[str] = ["notion", "google_sheets", "obsidian"]
+
+@router.post("/search")
+async def search_knowledge_base(payload: KnowledgeQuery):
+    """
+    Centralized search across Notion, Google Sheets, and Obsidian.
+    Returns relevant context for RAG (Retrieval-Augmented Generation).
+    """
+    results = []
+    
+    # Placeholder for actual integration logic
+    for source in payload.sources:
+        if source == "notion":
+            results.append({"source": "Notion", "content": "Project API specs v2.1"})
+        elif source == "google_sheets":
+            results.append({"source": "Sheets", "content": "Q3 Budget allocation"})
+            
+    return {
+        "query": payload.query,
+        "context": results,
+        "integration_status": "connected"
+    }
+
+
+4. Configuration (app/core/config.py)
+Handles environment variables for API keys and settings.
+
+python
+from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+    APP_NAME: str = "ManusAI"
+    VERSION: str = "1.0.0"
+    LLM_API_KEY: str = "your-llm-key"
+    NOTION_TOKEN: str = "your-notion-token"
+    GITHUB_TOKEN: str = "your-github-token"
+    
+    class Config:
+        env_file = ".env"
+
+settings = Settings()
+
+
+How to Run
+1. Install dependencies: bash
+pip install fastapi uvicorn pydantic pydantic-settings
+
+2. Run the server: bash
+uvicorn app.main:app --reload
+
+3. Access Documentation:
+Navigate to http://127.0.0.1:8000/docs to test the endpoints interactively.
+
+This boilerplate provides the structural foundation to expand into the 10,000-word document by adding specific implementations for the "Workflow Automation" and "Security Testing" sections later. Would you like to see a specific implementation for the GitHub Actions integration or the Obsidian Knowledge Graph next?
