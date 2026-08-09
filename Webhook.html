@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About GitHub Webhooks</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #24292f;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+        }
+        h1 {
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+        }
+        h2 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-size: 1.25em;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+        p {
+            margin-bottom: 16px;
+        }
+        ul {
+            padding-left: 2em;
+            margin-bottom: 16px;
+        }
+        li {
+            margin-bottom: 4px;
+        }
+        code {
+            background-color: rgba(175, 184, 193, 0.2);
+            padding: 0.2em 0.4em;
+            border-radius: 6px;
+            font-size: 85%;
+            font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+        }
+        .citation {
+            font-size: 0.8em;
+            vertical-align: super;
+            color: #0969da;
+            text-decoration: none;
+            margin-left: 2px;
+        }
+        .citation:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>About GitHub Webhooks</h1>
+
+    <p>GitHub webhooks are automated mechanisms that allow you to receive real-time notifications in your own server whenever specific events occur on GitHub [7]. Instead of constantly checking (polling) the GitHub API to see if something has changed, webhooks push data to a URL you specify as soon as an event like a push, pull request, or issue update happens [6].</p>
+
+    <h2>Key Components</h2>
+
+    <ul>
+        <li><strong>Event Subscription:</strong> When you create a webhook, you define a payload URL and select which events you want to listen for, such as <code>push</code>, <code>pull_request</code>, or <code>issues</code> [3]. You can limit the number of requests by subscribing only to the specific events you need to handle [1].</li>
+        <li><strong>Payload Delivery:</strong> When a subscribed event occurs, GitHub sends an HTTP POST request containing a JSON payload with details about the event to your specified URL [7]. This payload includes headers like <code>X-GitHub-Event</code> (identifying the event type) and <code>X-Hub-Signature-256</code> (for verifying the request authenticity) [1].</li>
+        <li><strong>Scope and Types:</strong> Webhooks can be created at the repository, organization, or GitHub App level. Some events are specific to certain scopes; for instance, organization webhooks can subscribe to organization-level events that repository webhooks cannot [5].</li>
+        <li><strong>Security:</strong> It is highly recommended to configure a secret token when creating a webhook. This allows your server to verify that incoming requests actually originate from GitHub by validating the HMAC signature in the <code>X-Hub-Signature-256</code> header [3].</li>
+    </ul>
+
+    <p>If you are looking to set one up, you can configure them directly in the repository or organization settings under the "Webhooks" tab [4].</p>
+
+</body>
+</html>
