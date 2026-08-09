@@ -1,0 +1,63 @@
+# Zstandard (zstd) vs gzip for Container Images
+
+A decision reference for adopting zstd compression on container image layers — smaller images, faster pulls, and quicker container startup.
+
+---
+
+## At a glance
+
+| Metric | zstd advantage | Typical numbers |
+|---|---|---|
+| Compressed size | **10–50% smaller** | 20–30% common; up to ~50% on large / ML images |
+| Decompression speed | **50–60%+ faster than pigz** | 2–10× faster than classic gzip |
+| Compression speed | **Often faster** (multi-threaded by default) | 5–10× faster than single-thread gzip |
+| Startup impact | **Measurable** | AWS Fargate: up to 27% faster task/pod start; ~½ pull time on multi-GB images |
+
+---
+
+## Core findings
+
+- **Algorithm** — Zstandard (zstd) vs gzip.
+- **Compressed size** — 10–50% smaller; 20–30% is common, up to ~50% on large or ML-heavy images.
+- **Decompression speed** — 50–60%+ faster than pigz; 2–10× faster than classic gzip.
+- **Compression speed** — often faster, multi-threaded by default; 5–10× faster than single-thread gzip.
+- **Startup impact** — measurable; AWS Fargate shows up to 27% faster task/pod start and roughly half the pull time on multi-GB images.
+
+---
+
+## Why zstd wins for containers
+
+- **Layers** — smaller layers mean less network transfer.
+- **Decompression** — dramatically faster, so containers are ready sooner.
+- **Compatibility** — supported by BuildKit, containerd, Docker 23+, Podman, CRI-O, and major registries including Vercel.
+
+---
+
+## Vercel relevance
+
+- **Recommendation** — use zstd when pushing to VCR (Vercel Container Registry).
+- **Optimization** — feeds into the precompiled snapshot used for Fluid compute and Sandbox quick boots.
+
+---
+
+## Recommended command (Buildx)
+
+Set compression to zstd with level 3 for a good size/speed balance:
+
+```
+docker buildx build --push \
+  --provenance=false \
+  --output type=image,compression=zstd,compression-level=3 \
+  -t your-image:tag .
+```
+
+- **Level 3** — recommended default: solid size reduction with fast builds.
+- **Level 9** — extra size reduction at the cost of longer builds.
+
+---
+
+## Skill reference
+
+- **Skill name** — `zstd-compression`
+- **Triggers** — optimizing image size, pull/startup time, VCR, Buildx, gzip vs zstd comparisons
+- **Contents** — decision table, Buildx recipe, compatibility notes, and Vercel / Fluid-compute context
