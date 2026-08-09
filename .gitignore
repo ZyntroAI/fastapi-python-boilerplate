@@ -1,4 +1,4 @@
-# Python
+I# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -6,6 +6,7 @@ __pycache__/
 *.egg-info/
 *.egg
 pip-wheel-metadata/
+main.py
 
 # Virtual env
 .venv/
