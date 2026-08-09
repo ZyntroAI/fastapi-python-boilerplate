@@ -1,3 +1,4 @@
+<div>
 If you mean the structure/flow of OAuth 2.0 + PKCE, the typical structure is:
 
 User / Client App
@@ -375,3 +376,4 @@ Deployment guide
 Troubleshooting guide
 Contributing guidelines
 Release notes or changelog
+</div>
