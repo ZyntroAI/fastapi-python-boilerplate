@@ -1,0 +1,13 @@
+name: Test React
+
+runs:
+ using: composite
+
+ steps:
+
+ - name: Lint
+ shell: bash
+   run: npm run lint
+   - name: Unit Test
+ shell: bash
+   run: npm test
