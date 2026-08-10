@@ -1,0 +1,36 @@
+<div>
+Kubernetes Security Checklist Table
+| # | Phase / Activity | Component / Tool | Best Practice / Security Goal | Implementation Detail / Config | Priority |
+|---|---|---|---|---|---|
+| 1 | Static Code Analysis | Gitleaks | Scan full Git history for hardcoded secrets, Prevent credential leaks | Regex & Entropy scanning via GitHub Actions | Critical |
+| 2 | Static Code Analysis | Kube-linter | Validate Kubernetes manifests against security rules, Enforce configuration standards | Ensure runAsNonRoot and resource limits | High |
+| 3 | Static Code Analysis | Hadolint | Lint Dockerfiles for optimization and security, Minimize image vulnerabilities | Avoid using latest tags and root users | Medium |
+| 4 | Secure Container Build | Docker Buildx | Compile multi-stage container images, Reduce attack surface | Separate build environment from final runtime | High |
+| 5 | Secure Container Build | Base Images | Use Alpine or Distroless as base layers, Eliminate unnecessary OS utilities | Remove tools like curl, apt, and bash from prod | High |
+| 6 | Image Vulnerability Scan | Trivy | Scan OS packages and application dependencies, Detect known CVEs before deployment | Fail pipeline if CRITICAL or HIGH CVEs found | Critical |
+| 7 | Artifact Registry | GHCR / Docker Hub | Push verified container images to private registry, Ensure image provenance | Use Least Privilege permissions (packages:write) | Medium |
+| 8 | Cluster Admission Control | Kyverno / OPA | Enforce policies inside the cluster at runtime, Block manual unsecure deployments | Reject non-compliant YAMLs at API Server level | High |
+| 9 | Runtime Application | Pod Lifecycle | Configure Graceful Shutdown preStop hooks, Maintain zero-downtime rolling updates | Add sleep 15 to allow network propagation | High |
+Pipeline Visual Flowchart (Mermaid)
+If you use a tool that supports Mermaid diagrams (like GitHub, Notion, or diagramming apps), you can render this flow:
+graph TD
+    subgraph "1. Static Code Analysis"
+        A1[Gitleaks: Secrets Scan] --> A2[Kube-linter: Manifest Check]
+        A2 --> A3[Hadolint: Dockerfile Lint]
+    end
+
+    subgraph "2. Secure Build & Scan"
+        A3 --> B1[Docker Buildx: Multi-stage Build]
+        B1 --> B2[Base Images: Minimal / Distroless]
+        B2 --> B3[Trivy: CVE Vulnerability Scan]
+    end
+
+    subgraph "3. Registry & Admission Control"
+        B3 --> C1[GHCR / Docker Hub: Push Image]
+        C1 --> C2[Kyverno / OPA: Admission Control]
+    end
+
+    subgraph "4. Runtime"
+        C2 --> D1[Pod Lifecycle: Graceful Shutdown preStop]
+    end
+</div>
