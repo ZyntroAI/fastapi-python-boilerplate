@@ -1,0 +1,4 @@
+I have provided three self-contained artifacts:
+​docs/architecture_spec.md: Complete system architecture documentation detailing the database schema, canonicalization rules, and optimistic locking mechanics.
+​src/knowledge_graph_engine.py: A fully functional, production-grade Python script utilizing SQLite WAL mode, async concurrency handling, optimistic lock retries, and automated deduplication rules.
+​index.html: An interactive Tailwind CSS and Vis.js visualizer demonstrating the transformation from your uncleaned graph view into the optimized structure.
