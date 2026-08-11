@@ -1,0 +1,98 @@
+To set up FastAPI with SQLModel and PostgreSQL, you will use SQLModel (which combines SQLAlchemy ORM and Pydantic validation) alongside psycopg2-binary (or asyncpg for async setups) as the PostgreSQL driver.
+1. Install Required Packages
+First, activate your virtual environment and install fastapi, sqlmodel, and the PostgreSQL driver (psycopg2-binary for synchronous operations or asyncpg for asynchronous operations):
+# Standard sync setup
+pip install "fastapi[standard]" sqlmodel psycopg2-binary
+
+2. Configure Database Connection (app/database.py)
+Create app/database.py to hold your database URL, engine setup, session dependency, and lifecycle table initialization.
+from typing import Generator
+from sqlmodel import SQLModel, Session, create_engine
+
+# Connection string: postgresql://username:password@localhost:5432/dbname
+POSTGRES_URL = "postgresql://postgres:postgres@localhost:5432/my_db"
+
+engine = create_engine(POSTGRES_URL, echo=True)
+
+def create_db_and_tables():
+    """Creates database tables on startup based on SQLModel metadata."""
+    SQLModel.metadata.create_all(engine)
+
+def get_session() -> Generator[Session, None, None]:
+    """Dependency yielding a database session for request handling."""
+    with Session(engine) as session:
+        yield session
+
+3. Define Database Models (app/models.py)
+Define your database schema using SQLModel. The table=True argument registers the class as a database table.
+from typing import Optional
+from sqlmodel import SQLModel, Field
+
+# Database Table Schema
+class Item(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    title: str = Field(index=True)
+    description: Optional[str] = None
+    price: float
+    is_available: bool = True
+
+# Pydantic Schemas for Request/Response Validation
+class ItemCreate(SQLModel):
+    title: str
+    description: Optional[str] = None
+    price: float
+    is_available: bool = True
+
+class ItemRead(SQLModel):
+    id: int
+    title: str
+    description: Optional[str] = None
+    price: float
+    is_available: bool
+
+4. Create API Endpoints (app/main.py)
+Use FastAPI's lifespan context manager to handle automatic table creation when the application starts, and inject the Session dependency into your routes.
+from contextlib import asynccontextmanager
+from typing import List
+from fastapi import FastAPI, Depends, HTTPException, status
+from sqlmodel import Session, select
+
+from app.database import create_db_and_tables, get_session
+from app.models import Item, ItemCreate, ItemRead
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Setup tables on startup
+    create_db_and_tables()
+    yield
+
+app = FastAPI(title="FastAPI + SQLModel + PostgreSQL", lifespan=lifespan)
+
+@app.post("/items/", response_model=ItemRead, status_code=status.HTTP_201_CREATED)
+def create_item(item: ItemCreate, session: Session = Depends(get_session)):
+    # Convert Pydantic request data to DB Model
+    db_item = Item.model_validate(item)
+    session.add(db_item)
+    session.commit()
+    session.refresh(db_item)
+    return db_item
+
+@app.get("/items/", response_model=List[ItemRead])
+def read_items(offset: int = 0, limit: int = 100, session: Session = Depends(get_session)):
+    statement = select(Item).offset(offset).limit(limit)
+    items = session.exec(statement).all()
+    return items
+
+@app.get("/items/{item_id}", response_model=ItemRead)
+def read_item(item_id: int, session: Session = Depends(get_session)):
+    item = session.get(Item, item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return item
+
+5. Run the Server
+Start your PostgreSQL database instance, make sure the database my_db exists, then run your FastAPI application:
+fastapi dev app/main.py
+
+Check [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) to test interactive CRUD requests directly against your PostgreSQL database.
+For a detailed video demonstration, check out Building a REST API with FastAPI, Async SQLModel, and PostgreSQL. This tutorial walks through setting up asynchronous database sessions, settings management with Pydantic, and writing complete CRUD endpoints with SQLModel.
