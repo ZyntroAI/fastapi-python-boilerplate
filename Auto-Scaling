@@ -1,0 +1,53 @@
+ถ้าคุณอยากเห็นแนวคิด **Auto Scaling** ด้วย Python แบบง่ายๆ ลองดูตัวอย่างนี้:
+
+```python
+# จำลอง Auto Scaling แบบง่าย
+
+cpu_usage = 85  # เปอร์เซ็นต์การใช้งาน CPU
+servers = 2     # จำนวน Server ปัจจุบัน
+
+if cpu_usage > 70:
+    servers += 1
+    print("CPU สูง -> เพิ่ม Server")
+elif cpu_usage < 30:
+    servers -= 1
+    print("CPU ต่ำ -> ลด Server")
+else:
+    print("ใช้งานปกติ -> คงจำนวน Server")
+
+print(f"จำนวน Server ปัจจุบัน: {servers}")
+```
+
+### ผลลัพธ์เมื่อ CPU = 85%
+
+```text
+CPU สูง -> เพิ่ม Server
+จำนวน Server ปัจจุบัน: 3
+```
+
+### เปรียบเทียบกับร้านกาแฟ
+- `cpu_usage` = จำนวนลูกค้าในร้าน
+- `servers` = จำนวนพนักงาน
+- CPU สูง → ลูกค้าเยอะ → เพิ่มพนักงาน (Scale Out)
+- CPU ต่ำ → ลูกค้าน้อย → ลดพนักงาน
+
+ตัวอย่างที่ใกล้เคียงกับระบบจริงมากขึ้น:
+
+```python
+cpu_usage = [25, 45, 80, 90, 50, 20]
+servers = 2
+
+for cpu in cpu_usage:
+    if cpu > 70:
+        servers += 1
+        action = "เพิ่ม Server"
+    elif cpu < 30 and servers > 1:
+        servers -= 1
+        action = "ลด Server"
+    else:
+        action = "ไม่เปลี่ยน"
+
+    print(f"CPU={cpu}% | {action} | Servers={servers}")
+```
+
+โค้ดนี้จำลองการที่ระบบคอยตรวจสอบการใช้งานและปรับจำนวน Server อัตโนมัติตามภาระงาน ซึ่งเป็นหัวใจของ Auto Scaling ใน Azure, AWS และ Google Cloud ครับ।
