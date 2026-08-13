@@ -1,0 +1,50 @@
+# Playwright API
+
+This document summarizes the key Playwright APIs used by this project.
+
+## Basics
+
+### Launch a browser
+- `chromium.launch()`
+- `firefox.launch()`
+- `webkit.launch()`
+
+### Create a page
+- `browser.newPage()`
+
+### Navigate
+- `page.goto(url, options?)`
+
+## Common page interactions
+
+### Click
+- `page.click(selector, options?)`
+
+### Fill
+- `page.fill(selector, value, options?)`
+
+### Type
+- `page.type(selector, text, options?)`
+
+### Wait
+- `page.waitForSelector(selector, options?)`
+- `page.waitForTimeout(ms)`
+
+## Assertions (examples)
+
+- `expect(locator).toBeVisible()`
+- `expect(locator).toHaveText(text)`
+- `expect(page).toHaveURL(urlOrRegExp)`
+
+## Locators
+
+- `page.locator(selector)`
+- `locator.click()`
+- `locator.fill()`
+- `locator.textContent()`
+
+## Tracing / debugging
+
+- `context.tracing.start({ ... })`
+- `context.tracing.stop()`
+- `page.pause()`
