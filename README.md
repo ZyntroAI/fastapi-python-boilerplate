@@ -1,274 +1,690 @@
-🚀 FastAPI Production Blueprint: Dual
-Deployment (Vercel Serverless &
-Kubernetes)
-คมู่ อื นร
-ี้
-ะบรุ ายละเอยีดและโคด้ ตวัอยา่ งสำ หรับการตงั้คา่ โปรเจกต์FastAPI ใหร้องรับการ Deploy บน
-Vercel สำ หรับงานทดสอบ/Serverless และขยายขดี ความสามารถไปยงั Kubernetes (K8s) สำ หรับ
-ระบบระดบั Production Scale
-📁 1. โครงสราง้ โปรเจกต์(Project Directory Structure)
+🚀 FastAPI Production Blueprint: Dual Deployment
+
+Vercel Serverless + Kubernetes
+
+โครงสร้างนี้เหมาะสำหรับ FastAPI ที่ต้องการ codebase เดียว แต่ deploy ได้ 2 runtime โดยแยก concerns ระหว่าง Vercel สำหรับ lightweight serverless/testing และ Kubernetes สำหรับ production scale อย่างชัดเจน
+
+This blueprint keeps one FastAPI application while separating deployment concerns:
+
+FastAPI Application
+                            │
+              ┌─────────────┴─────────────┐
+              │                           │
+          Vercel                      Kubernetes
+        Serverless                  Production
+              │                           │
+        api/index.py                 Docker Image
+                                      │
+                                      ▼
+                                  Deployment
+                                      │
+                                  Service
+                                      │
+                                  Ingress
+                                      │
+                              ┌───────┴───────┐
+                              ▼               ▼
+                           HPA/Pods       Monitoring
+
+
+---
+
+1. Project Structure
+
 oauth-fastapi/
 │
 ├── app/
-│ ├── api/
-│ │ ├── __init__.py
-│ │ ├── auth.py # OAuth2 + PKCE endpoints
-│ │ ├── callback.py # OAuth Callback handler
-│ │ └── health.py # Health, Readiness, Metrics endpoints
-│ │
-│ ├── services/
-│ │ ├── __init__.py
-│ │ ├── oauth_service.py # บริการจัดการ OAuth2 Flow
-│ │ ├── token_service.py # บริการจัดการ JWT / Tokens
-│ │ └── user_service.py # บริการจัดการข้อมูลผู้ใช้
-│ │
-│ ├── core/
-│ │ ├── __init__.py
-│ │ ├── config.py # App Settings (pydantic-settings)
-│ │ ├── security.py # Security utilities
-│ │ └── logging.py # Logging Configuration
-│ │
-│ └── main.py # Main Application Entry Point
+│   ├── __init__.py
+│   │
+│   ├── api/
+│   │   ├── __init__.py
+│   │   ├── auth.py
+│   │   ├── callback.py
+│   │   └── health.py
+│   │
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── oauth_service.py
+│   │   ├── token_service.py
+│   │   └── user_service.py
+│   │
+│   ├── core/
+│   │   ├── __init__.py
+│   │   ├── config.py
+│   │   ├── security.py
+│   │   └── logging.py
+│   │
+│   └── main.py
 │
 ├── api/
-│ └── index.py # Vercel Serverless Handler
+│   └── index.py
 │
 ├── docker/
-│ └── Dockerfile
+│   └── Dockerfile
 │
 ├── k8s/
-│ ├── namespace.yaml
-│ ├── configmap.yaml
-│ ├── secret.example.yaml
-app.include_router(health.router, tags=["Monitoring"])
+│   ├── namespace.yaml
+│   ├── configmap.yaml
+│   ├── secret.example.yaml
+│   ├── deployment.yaml
+│   ├── service.yaml
+│   ├── ingress.yaml
+│   ├── hpa.yaml
+│   └── kustomization.yaml
+│
+├── tests/
+│   ├── conftest.py
+│   ├── test_health.py
+│   └── test_auth.py
+│
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       ├── deploy-vercel.yml
+│       └── deploy-k8s.yml
+│
+├── .dockerignore
+├── .gitignore
+├── requirements.txt
+├── requirements-dev.txt
+├── vercel.json
+└── README.md
+
+
+---
+
+2. FastAPI Application
+
+app/main.py
+
+from fastapi import FastAPI
+
+from app.api.auth import router as auth_router
+from app.api.callback import router as callback_router
+from app.api.health import router as health_router
+
+app = FastAPI(
+    title="OAuth FastAPI",
+    version="1.0.0",
+)
+
+app.include_router(health_router, tags=["health"])
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
+app.include_router(callback_router, prefix="/auth", tags=["callback"])
+
+
 @app.get("/")
-def read_root():
-return {
-"message": "ยินดีต้อนรับสู่ FastAPI OAuth2 Service",
-"environment": settings.ENVIRONMENT,
-"docs": "/docs"
-}
-⚡ 3. Vercel Configuration (Serverless)
+async def root():
+    return {
+        "service": "oauth-fastapi",
+        "status": "ok",
+    }
+
+
+---
+
+3. Configuration
+
+ใช้ pydantic-settings เพื่อให้ configuration มาจาก environment แทนการ hard-code secrets
+
+app/core/config.py
+
+from functools import lru_cache
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    app_name: str = "oauth-fastapi"
+    environment: str = "development"
+
+    oauth_client_id: str
+    oauth_client_secret: str
+    oauth_redirect_uri: str
+
+    jwt_secret: str
+
+    cors_origins: str = ""
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
+
+Production:
+
+Environment variables
+        │
+        ├── Vercel Environment Variables
+        │
+        └── Kubernetes Secret
+
+ไม่ควร commit:
+
+.env
+secret.yaml
+private keys
+OAuth client secrets
+JWT secrets
+
+
+---
+
+4. Health / Readiness
+
+app/api/health.py
+
+from fastapi import APIRouter
+
+router = APIRouter()
+
+
+@router.get("/health")
+async def health():
+    return {
+        "status": "ok",
+    }
+
+
+@router.get("/ready")
+async def ready():
+    return {
+        "status": "ready",
+    }
+
+ใช้แยก:
+
+/health
+    │
+    └── Process is alive
+
+/ready
+    │
+    └── Application is ready
+
+Kubernetes จะใช้ /ready เป็น readiness probe และ /health เป็น liveness probe
+
+
+---
+
+5. Vercel Serverless
+
 api/index.py
+
 from app.main import app
-# Handler สำหรับ Vercel Serverless Function
-handler = app
+
+__all__ = ["app"]
+
 vercel.json
+
 {
-"version": 2,
-"builds": [
-{
-"src": "api/index.py",
-"use": "@vercel/python"
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "api/index.py"
+    }
+  ]
 }
-],
-"routes": [
-{
-"src": "/(.*)",
-"dest": "api/index.py"
-}
-],
-"functions": {
-"api/index.py": {
-"maxDuration": 60
-}
-}
-}
-🐳 4. Docker & Containerization
-Dockerfile
-FROM python:3.13-slim
-# ตั้งค่าไม่ให้สร้างไฟล์ .pyc และพิมพ์ log ทันที
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+
+Flow:
+
+HTTP Request
+     │
+     ▼
+Vercel
+     │
+     ▼
+api/index.py
+     │
+     ▼
+app.main:app
+
+Vercel เหมาะกับ preview/testing และ workloads ที่ไม่ต้องการ persistent process
+
+
+---
+
+6. Docker Production Image
+
+docker/Dockerfile
+
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
 WORKDIR /app
-# ติดตั้ง Dependencies
+
 COPY requirements.txt .
+
 RUN pip install --no-cache-dir -r requirements.txt
-# คัดลอก ซอร์สโค้ดทั้งหมด
-COPY . .
-# เปิดพอร์ต 8000
+
+COPY app ./app
+
+RUN useradd \
+    --create-home \
+    --shell /usr/sbin/nologin \
+    appuser
+
+USER appuser
+
 EXPOSE 8000
-# คำสั่งสำหรับรันระบบ
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-docker-compose.yml
-version: "3.9"
-services:
-api:
-build: .
-ports:
-- "8000:8000"
-env_file:
-- .env
-volumes:
-- .:/app
-environment:
-- ENVIRONMENT=development
-☸️ 5. Kubernetes Manifests
+
+CMD [
+  "uvicorn",
+  "app.main:app",
+  "--host",
+  "0.0.0.0",
+  "--port",
+  "8000"
+]
+
+Production image:
+
+Dockerfile
+    │
+    ▼
+FastAPI
+    │
+    ▼
+Uvicorn
+    │
+    ▼
+Container
+
+
+---
+
+7. Kubernetes Namespace
+
+k8s/namespace.yaml
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: oauth-fastapi
+
+
+---
+
+8. ConfigMap
+
+k8s/configmap.yaml
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oauth-fastapi-config
+  namespace: oauth-fastapi
+data:
+  APP_NAME: "oauth-fastapi"
+  ENVIRONMENT: "production"
+  OAUTH_REDIRECT_URI: "https://api.example.com/auth/callback"
+
+Non-sensitive configuration belongs here.
+
+Secrets do not.
+
+
+---
+
+9. Secret
+
+k8s/secret.example.yaml
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: oauth-fastapi-secret
+  namespace: oauth-fastapi
+type: Opaque
+stringData:
+  OAUTH_CLIENT_ID: "replace-me"
+  OAUTH_CLIENT_SECRET: "replace-me"
+  JWT_SECRET: "replace-me"
+
+ใช้เป็น example เท่านั้น:
+
+secret.example.yaml
+       │
+       └── Documentation only
+
+Production
+       │
+       └── External Secret Manager / sealed secret / platform secret
+
+
+---
+
+10. Kubernetes Deployment
+
 k8s/deployment.yaml
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-name: oauth-api
-namespace: oauth-app
-labels:
-app: oauth-api
+  name: oauth-fastapi
+  namespace: oauth-fastapi
 spec:
-replicas: 2
-selector:
-matchLabels:
-app: oauth-api
-template:
-metadata:
-labels:
-app: oauth-api
-spec:
-containers:
-- name: oauth-api
-image: ghcr.io/your-org/oauth-api:latest
-imagePullPolicy: Always
-ports:
-- containerPort: 8000
-envFrom:
-- configMapRef:
-name: oauth-config
-- secretRef:
-name: oauth-secret
-livenessProbe:
-httpGet:
-path: /health
-port: 8000
-initialDelaySeconds: 10
-periodSeconds: 10
-readinessProbe:
-httpGet:
-path: /ready
-port: 8000
-initialDelaySeconds: 5
-periodSeconds: 5
-resources:
-requests:
-memory: "128Mi"
-cpu: "100m"
-limits:
-memory: "512Mi"
-cpu: "500m"
+  replicas: 3
+
+  selector:
+    matchLabels:
+      app: oauth-fastapi
+
+  template:
+    metadata:
+      labels:
+        app: oauth-fastapi
+
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/zyntroai/oauth-fastapi:latest
+
+          ports:
+            - containerPort: 8000
+
+          envFrom:
+            - configMapRef:
+                name: oauth-fastapi-config
+
+            - secretRef:
+                name: oauth-fastapi-secret
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+
+            initialDelaySeconds: 5
+            periodSeconds: 5
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+
+
+---
+
+11. Kubernetes Service
+
 k8s/service.yaml
+
 apiVersion: v1
 kind: Service
 metadata:
-name: oauth-service
-namespace: oauth-app
+  name: oauth-fastapi
+  namespace: oauth-fastapi
 spec:
-type: ClusterIP
-selector:
-app: oauth-api
-ports:
-- port: 80
-targetPort: 8000
-protocol: TCP
-name: http
+  selector:
+    app: oauth-fastapi
+
+  ports:
+    - port: 80
+      targetPort: 8000
+
+  type: ClusterIP
+
+
+---
+
+12. Ingress
+
 k8s/ingress.yaml
+
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-name: oauth-ingress
-namespace: oauth-app
-annotations:
-kubernetes.io/ingress.class: "nginx"
-cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  name: oauth-fastapi
+  namespace: oauth-fastapi
+
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+
 spec:
-tls:
-- hosts:
-- oauth.example.com
-secretName: oauth-tls
-rules:
-- host: oauth.example.com
-http:
-paths:
-- path: /
-pathType: Prefix
-backend:
-service:
-name: oauth-service
-port:
-number: 80
-🤖 6. CI/CD Pipelines (GitHub Actions)
+  ingressClassName: nginx
+
+  rules:
+    - host: api.example.com
+
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+
+            backend:
+              service:
+                name: oauth-fastapi
+                port:
+                  number: 80
+
+
+---
+
+13. Horizontal Pod Autoscaler
+
+k8s/hpa.yaml
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: oauth-fastapi
+  namespace: oauth-fastapi
+
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: oauth-fastapi
+
+  minReplicas: 3
+  maxReplicas: 20
+
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 30
+
+    scaleDown:
+      stabilizationWindowSeconds: 300
+
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+
+---
+
+14. Kustomization
+
+k8s/kustomization.yaml
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: oauth-fastapi
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  - hpa.yaml
+
+Deploy:
+
+kubectl apply -k k8s/
+
+
+---
+
+15. CI
+
 .github/workflows/ci.yml
-name: Continuous Integration
+
+name: FastAPI CI
+
 on:
-push:
-branches: [ main, dev ]
-pull_request:
-branches: [ main ]
+  pull_request:
+    branches:
+      - main
+      - develop
+      - "release/**"
+
+  push:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+
 jobs:
-lint-and-test:
-runs-on: ubuntu-latest
-steps:
-- uses: actions/checkout@v4
-- name: Set up Python
-uses: actions/setup-python@v5
-with:
-python-version: '3.13'
-- name: Install Dependencies
-run: |
-python -m pip install --upgrade pip
-pip install ruff pytest security-scanner
-if [ -f requirements.txt ]; then pip install -r
-requirements.txt; fi
-- name: Lint with Ruff
-run: ruff check .
-- name: Test with Pytest
-run: pytest
-🔒 7. Secrets & Environment Variables
-สำ หรับการใชง้านจรงิ ใหแ้ยกการจัดการ Environment Variables และ Secrets ดงัน:
-ี้
-Key Variable คำ อธบิ าย ตวัอยา่ งคา่ บน Dev Vercel Env K8s Target
-CLIENT_ID OAuth Client ID client_xyz123 ✅ Add via
-Dashboard
-Secret
-CLIENT_SECRET OAuth Client
-Secret
-secret_abc456 ✅ Add via
-Dashboard
-Secret
-REDIRECT_URI Callback URL https://api.example✅ Add via ConfigMap
-Key Variable คำ อธบิ าย ตวัอยา่ งคา่ บน Dev Vercel Env K8s Target
-.com/callback Dashboard
-JWT_SECRET Secret Key สำ หรับ
-Sign JWT
-super-secret-jwt-k
-ey
-✅ Add via
-Dashboard
-Secret
-DATABASE_URL Connection String
-ไปยงั DB
-postgresql://user:p
-ass@host/db
-✅ Add via
-Dashboard
-Secret
-REDIS_URL Connection String
-ไปยงั Redis
-redis://redis:6379/
-0
-✅ Add via
-Dashboard
-ConfigMap/Secret
-📊 8. Observability & Monitoring Strategy
-ในระบบ Kubernetes Production Scale แนะนำ ตงั้คา่ Monitoring Stack ดงัน:
-ี้
-1. Metrics Collection (Prometheus & Grafana):
-○ ใช ้prometheus-fastapi-instrumentator เพอ
-ื่ สง่ ออก HTTP Metrics เชน่ Request
-Latency, Error Rate (4xx, 5xx), Request Counter ไปยงั Prometheus
-2. Log Aggregation (Loki / Fluentd):
-○ ให้FastAPI พมิ พ์Log เป็น JSON Format ออกทาง stdout/stderr เพอ
-ื่ ให้Promtail/Loki
-เกบ็ ขอ้มลู log เขา้สศู่ นู ยก์ ลาง
-3. Tracing (OpenTelemetry & Jaeger):
-○ เพม
-ิ่ OpenTelemetry Middleware ใน FastAPI เพอ
-ื่
-ทำ Distributed Tracing สำ หรับ
-วเิคราะห์Latency ในการเรยี กไปยงั Database หรอื Auth Server
+  test:
+    name: Python Tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Test
+        run: pytest -q
+
+
+---
+
+16. Dual Deployment
+
+GitHub
+                       │
+                       ▼
+                    CI/CD
+                       │
+             ┌─────────┴─────────┐
+             │                   │
+             ▼                   ▼
+          Vercel                GHCR
+             │                   │
+       Serverless             Docker
+             │                   │
+             │                   ▼
+             │               Kubernetes
+             │                   │
+             │            ┌──────┴──────┐
+             │            ▼             ▼
+             │          Service        HPA
+             │            │
+             │          Ingress
+             │            │
+             └───────┬────┘
+                     ▼
+                  FastAPI
+
+Environment strategy
+
+Environment	Runtime	Purpose
+
+Preview	Vercel	PR/preview
+Dev	Kubernetes	Integration
+UAT	Kubernetes	Acceptance
+Production	Kubernetes	Scale
+Emergency	Vercel	Temporary fallback
+
+
+
+---
+
+17. Production Rules
+
+Production
+                        │
+              ┌─────────┴─────────┐
+              ▼                   ▼
+          GitHub CI            Security
+              │                   │
+        ┌─────┼─────┐       ┌─────┼─────┐
+        ▼     ▼     ▼       ▼     ▼     ▼
+      Lint   Test  Build   SAST  SCA  Secrets
+        │     │     │       │     │     │
+        └─────┴─────┴───────┴─────┴─────┘
+                        │
+                        ▼
+                   Docker Image
+                        │
+                        ▼
+                       GHCR
+                        │
+                        ▼
+                   Kubernetes
+                        │
+                  ┌─────┴─────┐
+                  ▼           ▼
+                 HPA       Monitoring
+
+จุดที่ควรเพิ่มใน production จริงคือ PostgreSQL/Redis, external secret manager, TLS/cert-manager, Prometheus/Grafana, image scanning, NetworkPolicy และ rolling deployment โดยเฉพาะ OAuth/JWT ไม่ควรผูก secret storage เข้ากับ Git repository เพราะนั่นเป็นวิธีที่มนุษย์ใช้เปลี่ยน incident เล็ก ๆ ให้กลายเป็น incident ใหญ่
+
+I can also turn this blueprint into a ready-to-commit repository package with the FastAPI files, Docker/K8s manifests, tests, and GitHub Actions wired together.
