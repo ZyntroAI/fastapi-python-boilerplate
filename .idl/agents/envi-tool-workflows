@@ -1,0 +1,52 @@
+## OVERVIEW
+
+Detect land cover changes between two satellite images using spectral indices (e.g., NDVI).  
+This workflow highlights areas of vegetation loss, urban expansion, or other environmental changes.
+
+## REQUIREMENTS
+
+**Required Data**:
+- Base image (reference, before event)
+- Target image (comparison, after event)
+
+**Data Best Practices**:
+- Both images should be co-registered to the same coordinate system
+- Radiometric correction applied to ensure comparable pixel values
+- Images should have overlapping coverage
+
+## KEY CONCEPTS
+
+**Spectral Indices**:  
+- NDVI (Normalized Difference Vegetation Index) for vegetation change  
+- NDBI (Normalized Difference Built-up Index) for urban expansion  
+- NDWI (Normalized Difference Water Index) for water body changes  
+
+**Thresholding**:  
+Define cutoff values to classify pixels as "changed" or "unchanged."
+
+**Classification**:  
+Group results into binary or multi-class outputs for visualization.
+
+## WORKFLOW
+
+### Step 1: Preprocessing
+- Align both images to the same projection and grid
+- Apply radiometric correction if needed
+
+### Step 2: Compute Spectral Indices
+- Run **SpectralIndex** tool for NDVI on both Base and Target images
+
+### Step 3: Difference Calculation
+- Subtract Base NDVI from Target NDVI → ΔNDVI raster
+
+### Step 4: Thresholding
+- Apply **RasterThresholdClassification**  
+- Example: ΔNDVI > 0.2 → Positive change (vegetation gain)  
+- Example: ΔNDVI < -0.2 → Negative change (vegetation loss)
+
+### Step 5: Classification & Visualization
+- Generate change map raster  
+- Display results with color coding:
+  - Red = Loss
+  - Green = Gain
+  - Gray = No change
