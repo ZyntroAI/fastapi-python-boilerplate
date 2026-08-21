@@ -1,0 +1,40 @@
+name: CI/CD Governance
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest --maxfail=1 --disable-warnings -q
+
+      - name: Lint code
+        run: flake8 .
+
+      - name: Coverage report
+        run: coverage run -m pytest && coverage report
+
+  release:
+    needs: build-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v4
+        with:
+          branch: main
