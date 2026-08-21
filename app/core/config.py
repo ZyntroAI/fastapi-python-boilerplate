@@ -57,6 +57,8 @@ class Settings(BaseSettings):
         ge=60,
         le=86400,
     )
+    JWT_ISSUER: str | None = None
+JWT_AUDIENCE: str | None = None
 
     # OAuth state
     SESSION_STATE_TTL_SECONDS: int = Field(
