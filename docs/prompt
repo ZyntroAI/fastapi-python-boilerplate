@@ -1,0 +1,53 @@
+I'll help you create 30 example prompts for building a web app with FastAPI. Let me put together a solid, practical set.
+
+## 30 Prompts for Building FastAPI Web Apps
+
+**Getting Started & Project Setup**
+1. "Build a FastAPI web app with a clean project structure — `app/main.py`, `routers/`, `models/`, `schemas/`, and `database.py`."
+2. "Create a FastAPI project scaffold with `requirements.txt`, `.env` config, and a `README` with run instructions."
+3. "Set up a FastAPI app with CORS enabled for a React frontend running on a different port."
+4. "Add environment-based configuration to a FastAPI app — dev, staging, and prod settings via pydantic-settings."
+
+**Database & Models**
+5. "Build a FastAPI app with SQLAlchemy models and a PostgreSQL database, including a migration setup."
+6. "Create a FastAPI CRUD API for a 'products' table — GET, POST, PUT, DELETE endpoints with proper Pydantic schemas."
+7. "Add async SQLAlchemy support to a FastAPI app using asyncpg for PostgreSQL."
+8. "Set up SQLite for local development and PostgreSQL for production in the same FastAPI app."
+
+**Authentication & Security**
+9. "Add JWT authentication to a FastAPI app — login endpoint, token refresh, and protected routes."
+10. "Implement OAuth2 password flow with hashed passwords (bcrypt) for user signup and login in FastAPI."
+11. "Add role-based access control (admin/user) to FastAPI routes with dependency injection."
+12. "Secure a FastAPI API with API-key authentication for third-party clients."
+
+**Validation & Schemas**
+13. "Build Pydantic schemas with validation for a user registration form — email format, password strength, and field constraints."
+14. "Add request/response models with nested serialization for a blog app — posts with author and comments."
+15. "Create a FastAPI endpoint that accepts file uploads with size and type validation."
+
+**Advanced Features**
+16. "Add pagination, sorting, and filtering to a FastAPI list endpoint for a large dataset."
+17. "Build a background task system in FastAPI — run a job in the background and poll its status."
+18. "Add WebSocket support to a FastAPI app for real-time chat or live notifications."
+19. "Implement rate limiting on a FastAPI API to prevent abuse."
+20. "Add full-text search to a FastAPI app using PostgreSQL's built-in search features."
+
+**Testing & Quality**
+21. "Write unit tests for FastAPI endpoints using pytest and TestClient."
+22. "Set up automated tests with a test database fixture that runs against a clean schema."
+23. "Add request logging and structured error handling to a FastAPI app."
+
+**Docs & Production**
+24. "Customize FastAPI's auto-generated Swagger docs — add descriptions, tags, and examples to all endpoints."
+25. "Containerize a FastAPI app with Docker and docker-compose, including the database service."
+26. "Deploy a FastAPI app with Gunicorn + Uvicorn workers behind an Nginx reverse proxy."
+27. "Add health-check and readiness endpoints to a FastAPI app for Kubernetes or Docker health probes."
+28. "Set up automatic OpenAPI schema generation and versioned API routes (/v1, /v2)."
+
+**Real-World Examples**
+29. "Build a complete FastAPI todo app with a frontend — CRUD endpoints, SQLite, and a simple HTML/JS interface."
+30. "Create a FastAPI REST API for a small e-commerce store — products, orders, cart, and checkout endpoints."
+
+---
+
+These cover the full journey from scaffold to production deploy. Want me to actually **build one of these** as a working FastAPI project? Pick a number and I'll scaffold it, run it, and show you the live API.
