@@ -6,14 +6,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """
-    Application configuration.
-
-    Configuration priority:
-        Environment variables
-        > .env
-        > default values
-    """
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -22,15 +14,13 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # ============================================================
     # Application
-    # ============================================================
-
     APP_NAME: str = "OAuth FastAPI"
     APP_VERSION: str = "1.0.0"
 
     ENV: Literal[
         "dev",
+        "development",
         "test",
         "staging",
         "prod",
@@ -39,36 +29,27 @@ class Settings(BaseSettings):
 
     DEBUG: bool = False
 
-    # ============================================================
-    # Server / Routing
-    # ============================================================
-
+    # Server
     ROOT_PATH: str = ""
-
     BASE_URL: AnyHttpUrl
 
+    # Database
+    DATABASE_URL: str
+    DATABASE_URL_TEST: str | None = None
+
+    # CORS
+    CORS_ORIGINS: str = ""
     FRONTEND_ORIGIN: AnyHttpUrl | None = None
 
-    # ============================================================
     # OAuth
-    # ============================================================
-
     OAUTH_PROVIDER: str = "google"
-
     CLIENT_ID: str
-
     CLIENT_SECRET: SecretStr
-
     OAUTH_SCOPES: str = "openid email profile"
-
     OAUTH_CALLBACK_PATH: str = "/api/auth/callback"
 
-    # ============================================================
     # JWT
-    # ============================================================
-
     JWT_SECRET: SecretStr
-
     JWT_ALG: str = "HS256"
 
     JWT_TTL_SECONDS: int = Field(
@@ -77,27 +58,18 @@ class Settings(BaseSettings):
         le=86400,
     )
 
-    # ============================================================
-    # OAuth Session Security
-    # ============================================================
-
+    # OAuth state
     SESSION_STATE_TTL_SECONDS: int = Field(
         default=600,
         ge=60,
         le=3600,
     )
 
-    # ============================================================
     # Observability
-    # ============================================================
-
     METRICS_ENABLED: bool = True
+    ENABLE_REQUEST_LOGS: bool = True
 
     LOG_LEVEL: str = "INFO"
-
-    # ============================================================
-    # Computed helpers
-    # ============================================================
 
     @property
     def IS_PROD(self) -> bool:
@@ -108,7 +80,10 @@ class Settings(BaseSettings):
 
     @property
     def IS_DEV(self) -> bool:
-        return self.ENV == "dev"
+        return self.ENV in {
+            "dev",
+            "development",
+        }
 
     @property
     def OAUTH_CALLBACK_URL(self) -> str:
