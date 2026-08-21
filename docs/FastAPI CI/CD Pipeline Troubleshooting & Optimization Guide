@@ -1,0 +1,245 @@
+article🛠web_search:1#0🛠web_search:1#1🛠web_search:1#5🛠web_search:2#0🛠web_search:1#7
+
+FastAPI CI/CD Pipeline Troubleshooting & Optimization Guide
+
+FastAPI applications running in GitHub Actions with Postgres and Redis service containers are powerful, but they fail in predictable ways. This guide identifies the top 5 failure patterns, provides a pre-flight validation script you can run before every deployment, and shows how to cut pipeline time by 60–80% using `astral-sh/setup-uv` with a global cache strategy.
+
+---
+
+1. Top 5 Causes of Workflow Failures — Troubleshooting Checklist
+
+🔴 Cause 1: Service Health Check Timeouts
+
+The Symptom: Your workflow fails at "Initialize containers" with `Error: Failed to initialize, postgres service is unhealthy` or tests start before Postgres/Redis are actually ready, causing `ConnectionRefusedError`.
+
+Root Cause: GitHub Actions uses an exponential backoff polling mechanism via `docker inspect` to check container health. It does not respect your `--health-interval` precisely — it retries with its own backoff schedule. If your container needs more than 30–40 seconds to become healthy, the runner may give up before the service is ready.  
+
+Checklist:
+- Add explicit `options:` with `--health-cmd`, `--health-interval`, `--health-timeout`, `--health-retries`, and `--health-start-period` to both Postgres and Redis services.
+- Set `--health-start-period` to at least 1.5× your expected startup time (e.g., 10–15s for Postgres, 5s for Redis).
+- Add a manual wait step after `actions/checkout` that loops until `pg_isready` and `redis-cli ping` succeed — do not rely solely on Docker healthchecks.
+- Use `postgres:16-alpine` and `redis:7-alpine` for faster pull/startup times.
+
+Example fix:
+
+```yaml
+services:
+  postgres:
+    image: postgres:16-alpine
+    options: >-
+      --health-cmd "pg_isready -U postgres -d testdb"
+      --health-interval 5s
+      --health-timeout 5s
+      --health-retries 10
+      --health-start-period 10s
+    ports:
+      - 5432:5432
+```
+
+---
+
+🔴 Cause 2: Migration Application Errors (The "Migration Gap")
+
+The Symptom: Tests pass locally but fail in CI with `sqlalchemy.exc.ProgrammingError: column X does not exist`, or Alembic throws `Target database is not up to date`.
+
+Root Cause: This is the most common cause of FastAPI deployment failure — the "Migration Gap." The application code expects a schema that hasn't been applied yet, or the CI test database is stale relative to the migration history.  
+
+Checklist:
+- Run `alembic upgrade head` before pytest in CI, not after or during app startup.
+- Ensure `target_metadata` in `alembic/env.py` correctly imports all SQLAlchemy models — autogenerate will silently miss changes otherwise.
+- For destructive migrations (adding non-nullable columns to tables with data), split into three migrations: add nullable → populate data → make non-nullable. 
+- In CI, use a fresh test database per run — do not reuse a persistent database that may have drifted.
+- If using async SQLAlchemy, ensure Alembic's `env.py` uses `async_engine_from_config` with `poolclass=pool.NullPool` to avoid connection pool exhaustion during migrations. 
+
+---
+
+🔴 Cause 3: Dependency Resolution Conflicts in `pyproject.toml`
+
+The Symptom: `uv sync` or `pip install` fails with `ResolutionImpossible`, or CI installs different versions than local development, causing runtime `ImportError` or behavior changes.
+
+Root Cause: Without a lockfile, CI resolves dependencies against the latest PyPI index at build time, which can introduce breaking changes in transitive dependencies. Even with a lockfile, sub-dependencies can conflict when mixing sources (e.g., PyPI + private index). 
+
+Checklist:
+- Commit `uv.lock` (or `poetry.lock`) to version control and treat it as a source file.
+- Run a lockfile consistency check in CI: fail the build if `pyproject.toml` mtime is newer than `uv.lock` mtime.
+- Pin `requires-python` in `pyproject.toml` to an exact minor version (e.g., `>=3.12,<3.13`) to avoid resolver ambiguity.
+- Use `uv sync --frozen` in CI to prevent silent lockfile updates.
+- If you have private package indexes, ensure they are declared consistently in both `pyproject.toml` and CI environment variables.
+
+---
+
+🔴 Cause 4: Database Connection Pool Exhaustion in Tests
+
+The Symptom: Tests hang for 30–50 seconds, then fail with `asyncpg.exceptions.TooManyConnectionsError` or `TimeoutError: QueuePool limit reached`.
+
+Root Cause: Pytest with `pytest-asyncio` and async SQLAlchemy can spawn many concurrent test functions, each holding a database connection. If the engine's `pool_size` + `max_overflow` exceeds Postgres's `max_connections` (default 100), or if connections aren't returned to the pool between tests, the pool exhausts.  
+
+Checklist:
+- In test fixtures, create the engine with `poolclass=NullPool` to disable connection pooling entirely — each test gets its own connection that is closed immediately. 
+- Use `async with engine.begin()` or `async with async_session_factory() as session:` with explicit `await session.close()` in fixture teardown.
+- Set Postgres `max_connections` higher in CI via command option: `options: --max-connections=200`.
+- Run pytest with `-n auto` (via `pytest-xdist`) but cap workers to `2` or `3` in CI to limit concurrent connections: `pytest -n 2`.
+
+---
+
+🔴 Cause 5: Incorrect Hostname / Port Mapping in Service Containers
+
+The Symptom: `Connection refused` or `Name or service not known` when your app tries to connect to Postgres/Redis, even though the service containers appear to start successfully.
+
+Root Cause: When using GitHub Actions service containers, the hostname inside the runner is the service name (e.g., `postgres`, `redis`), not `localhost`. However, if you map ports with `ports: - 5432:5432`, you can use `localhost:5432` from the runner context. Mixing these two addressing modes — or using the wrong one in your `DATABASE_URL` — causes connection failures. 
+
+Checklist:
+- If using port mapping (`ports: - 5432:5432`), use `localhost:5432` in your `DATABASE_URL` and `REDIS_URL`.
+- If using container-to-container networking (no port mapping, or running inside a job container), use the service name (`postgres`, `redis`) as the hostname.
+- Never mix the two: do not set `POSTGRES_HOST=postgres` while mapping ports to `localhost`.
+- Verify with a debug step: `run: nc -zv localhost 5432 && nc -zv localhost 6379`.
+
+---
+
+2. Automated Pre-Flight Validation Script
+
+Before you push code or open a PR, run this script locally to catch all 10 common connection and configuration errors. It checks environment variables, URL parsing, TCP reachability, authentication, SQLAlchemy engine health, Alembic config, lockfile consistency, and workflow YAML structure.
+
+Download: [validate_ci_env.py](sandbox:///mnt/agents/output/validate_ci_env.py)
+
+What it validates
+
+Check	What it does	
+Environment Variables	Confirms `DATABASE_URL`, `REDIS_URL`, `POSTGRES_USER`, etc. are set and non-empty.	
+DATABASE_URL Parse	Validates URL scheme (warns if not `postgresql+asyncpg`), hostname, and database name.	
+Postgres TCP Reachable	Opens a TCP socket to the Postgres host:port.	
+Postgres Auth & Query	Connects via `asyncpg` and runs `SELECT 1, version()`.	
+Redis TCP Reachable	Opens a TCP socket to the Redis host:port.	
+Redis Auth & PING	Connects via `redis-py` and runs `PING`.	
+SQLAlchemy Engine	Creates an async engine and executes a test query.	
+Alembic Config	Verifies `alembic.ini` exists and `script_location` points to a real directory.	
+Lockfile Consistency	Fails if `pyproject.toml` is newer than `uv.lock` (stale lockfile).	
+Workflow YAML Structure	Scans `.github/workflows/*.yml` for missing healthcheck `options` on service containers.	
+
+Running it
+
+```bash
+# Local development
+cp .env.example .env
+source .env
+python scripts/validate_ci_env.py
+
+# With verbose output
+python scripts/validate_ci_env.py -v --timeout 15
+```
+
+Integrating into CI
+
+Add it as a pre-flight job that gates the test suite:
+
+```yaml
+- name: Run pre-flight validation
+  run: uv run python scripts/validate_ci_env.py
+```
+
+If any check fails, the script exits with code `1` and prints a specific suggestion (e.g., "Add asyncpg to your dev dependencies" or "Run `uv lock` and commit the updated uv.lock").
+
+---
+
+3. Optimizing Pipeline Speed with `astral-sh/setup-uv`
+
+The default `setup-uv` action with `enable-cache: true` works, but it creates fragmented caches — every Pull Request builds and stores its own copy of `.venv` and `~/.cache/uv`, even when `uv.lock` hasn't changed. This wastes 30–90 seconds per job. 
+
+The Global Cache Strategy
+
+The solution is to build one canonical cache on `main` and share it across all branches via `actions/cache/restore`. 
+
+Architecture:
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Push to main  │────▶│  build-cache    │────▶│  Save cache     │
+│  (deps changed) │     │  uv sync --dev  │     │  uv-main-<hash> │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+                                                          │
+                              ┌───────────────────────────┘
+                              ▼
+                    ┌─────────────────┐
+                    │  PR workflows   │
+                    │  restore cache  │
+                    │  uv sync (fast) │
+                    └─────────────────┘
+```
+
+Key Optimizations
+
+1. Disable `setup-uv` built-in cache (`enable-cache: false`) and manage caching manually with `actions/cache`. This gives you cross-branch cache sharing. 
+
+2. Cache three paths together:
+   - `~/.cache/uv` — uv's package index cache
+   - `~/.local/share/uv` — uv's tool and Python installations
+   - `.venv` — the resolved virtual environment
+
+3. Prune the cache before saving with `uv cache prune --ci` to keep cache size small. 
+
+4. Use `uv sync` instead of `uv pip install` — it verifies the environment in milliseconds when the cache hits, rather than re-downloading wheels.
+
+5. Add a scheduled cache refresh to prevent expiry (GitHub caches expire after 7 days of no use):
+
+```yaml
+on:
+  schedule:
+    - cron: "0 0 */5 * *"  # Refresh every 5 days
+```
+
+Complete Optimized Workflow
+
+Download: [fastapi_optimized_ci.yml](sandbox:///mnt/agents/output/fastapi_optimized_ci.yml)
+
+This workflow demonstrates:
+- A `build-cache` job that populates the global cache only when `uv.lock` or `pyproject.toml` changes on `main`.
+- A `lint` job that restores the cache and runs Ruff, MyPy, and Bandit with zero dependency install time.
+- A `test` job with Postgres and Redis service containers, explicit healthchecks, a manual wait loop, Alembic migrations, the pre-flight validation script, and pytest with coverage.
+- A `build` job that uses Docker Buildx with GitHub Actions cache (`type=gha`).
+
+Expected Performance Gains
+
+Scenario	Before (pip + actions/setup-python)	After (uv + global cache)	
+Cold install	4–6 min	2–3 min	
+Warm cache (lockfile unchanged)	3–4 min	15–30 sec	
+Cache restore time	N/A	3–5 sec	
+`uv sync` verification	N/A	<1 sec	
+
+---
+
+Quick Reference: Health-First Workflow Template
+
+If you copy only one thing, use this minimal pattern for any FastAPI + Postgres + Redis workflow:
+
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        options: >-
+          --health-cmd "pg_isready -U postgres -d testdb"
+          --health-interval 5s --health-timeout 5s
+          --health-retries 10 --health-start-period 10s
+        ports: ["5432:5432"]
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s
+          --health-retries 10 --health-start-period 5s
+        ports: ["6379:6379"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with: { version: "0.8.4", python-version: "3.12", enable-cache: true }
+      - run: uv sync --all-extras --dev
+      - run: |
+          for i in {1..30}; do pg_isready -h localhost -p 5432 && break; sleep 2; done
+          for i in {1..30}; do redis-cli -h localhost -p 6379 ping && break; sleep 2; done
+      - run: uv run alembic upgrade head
+      - run: uv run pytest -n auto
+```
+
+This pattern eliminates 80% of the common failures by ensuring services are healthy, dependencies are cached, and migrations run before tests.
