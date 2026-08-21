@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oauth-fastapi-config
+  namespace: oauth-fastapi
+data:
+  APP_NAME: "oauth-fastapi"
+  ENVIRONMENT: "production"
+  OAUTH_REDIRECT_URI: "https://api.example.com/auth/callback"
