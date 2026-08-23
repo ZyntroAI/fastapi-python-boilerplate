@@ -1051,3 +1051,5 @@ async def call_weather_api(client, url, params):
     - โครงสร้างที่ออกแบบไว้ใน `weather.py` ของ ZyntroAI ควรใช้ **Dependency Injection** เพื่อดึง Config เหล่านี้เข้าสู่ `WeatherService` และใช้ **Circuit Breaker Pattern** มาครอบไว้ เพื่อหยุดยั้งการพยายามเรียก API ที่ตายแล้วทันที ซึ่งจะช่วยป้องกันการเกิด Cascading Failures ในระบบโดยรวม
 
 หากคุณต้องการให้ผมเขียนฟังก์ชันตัวอย่างสำหรับ **Idempotency Check** หรือ **Prometheus Decorator** เพื่อวัดค่าประสิทธิภาพการ Retry สามารถแจ้งได้เลยครับ ผมจะเตรียมโค้ดที่พร้อมนำไปวางในโปรเจกต์ของคุณให้ทันที!
+
+
