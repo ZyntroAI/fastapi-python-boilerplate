@@ -688,3 +688,46 @@ Production
 จุดที่ควรเพิ่มใน production จริงคือ PostgreSQL/Redis, external secret manager, TLS/cert-manager, Prometheus/Grafana, image scanning, NetworkPolicy และ rolling deployment โดยเฉพาะ OAuth/JWT ไม่ควรผูก secret storage เข้ากับ Git repository เพราะนั่นเป็นวิธีที่มนุษย์ใช้เปลี่ยน incident เล็ก ๆ ให้กลายเป็น incident ใหญ่
 
 I can also turn this blueprint into a ready-to-commit repository package with the FastAPI files, Docker/K8s manifests, tests, and GitHub Actions wired together.
+
+**ได้ครับ** สามารถรวมเนื้อหานี้เข้าไปใน `README.md` ของโปรเจกต์ FastAPI ได้เลย
+
+แนะนำให้อยู่ในส่วนที่เกี่ยวข้องกับ **Compliance / Legal / Third-party Services** หรือสร้างหัวข้อใหม่ชื่อประมาณ:
+
+```markdown
+## OpenAI Terms of Use (Consumer vs Business)
+```
+
+### ตัวอย่างการใส่ใน README.md (พร้อมใช้)
+
+```markdown
+## OpenAI Terms of Use – Consumer vs Business
+
+โปรเจกต์นี้ใช้บริการของ OpenAI ดังนั้นควรเข้าใจความแตกต่างระหว่างข้อกำหนดสำหรับผู้ใช้ทั่วไป (Consumer) กับผู้ใช้เชิงธุรกิจ (Business)
+
+### ตารางเปรียบเทียบโดยย่อ
+
+| หัวข้อ | Consumer (ผู้ใช้ทั่วไป) | Business (องค์กร) |
+|--------|--------------------------|-------------------|
+| กลุ่มเป้าหมาย | บุคคลทั่วไป | องค์กร, ผู้ประกอบการ, ผู้พัฒนา |
+| บริการที่ครอบคลุม | ChatGPT, DALL·E, เว็บ/แอปทั่วไป | ChatGPT Enterprise, API, บริการองค์กร |
+| การจัดการบัญชี | บัญชีส่วนบุคคล | บัญชีองค์กร + การควบคุมสิทธิ์ |
+| การใช้ข้อมูล | อาจถูกใช้ฝึกโมเดล | มีตัวเลือก Opt-out การใช้ข้อมูลฝึกโมเดล |
+| ความปลอดภัย | มาตรฐานทั่วไป | ระดับองค์กร (สูงกว่า) |
+| การสนับสนุน | ช่องทางมาตรฐาน | SLA + Support พิเศษ |
+| การชำระเงิน | แบบบุคคล | Billing องค์กร |
+
+### สรุปสั้น ๆ
+- **Consumer Terms** → เหมาะกับการใช้งานส่วนบุคคล
+- **Business Terms** → แนะนำสำหรับองค์กรที่ต้องการความปลอดภัยสูงกว่า, การควบคุมข้อมูล, และ SLA
+
+> **คำแนะนำ**: หากโปรเจกต์นี้ใช้งานในระดับ production หรือมีข้อมูลสำคัญ ควรตรวจสอบและยอมรับ **Business Terms** ของ OpenAI โดยตรง
+
+อ้างอิง: [OpenAI Terms of Use](https://openai.com/policies/terms-of-use) และ Business Terms ที่เกี่ยวข้อง
+```
+
+### ตำแหน่งที่แนะนำใน README
+1. หลังส่วน **Features** หรือ **Tech Stack**
+2. ก่อนส่วน **Installation** / **Getting Started**
+3. หรือสร้างหัวข้อย่อยใต้ **Important Notes** / **Compliance**
+
+ต้องการให้ผมเขียนเวอร์ชันที่สั้นกว่านี้ (เหมาะกับ README จริง ๆ) หรือเวอร์ชันเต็มพร้อมรายละเอียดเพิ่มเติมไหม?
