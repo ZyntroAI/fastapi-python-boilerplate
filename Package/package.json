@@ -1,11 +1,27 @@
 {
-  "name": "fastapi-desktop",
+  "name": "fastapi-frontend",
   "version": "1.0.0",
-  "main": "main.js",
+  "private": true,
   "scripts": {
-    "start": "electron ."
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "test": "vitest run"
   },
   "dependencies": {
-    "electron": "^29.0.0"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "axios": "^1.7.2",
+    "react-router-dom": "^6.23.0",
+    "zustand": "^4.5.2", 
+    "tailwindcss": "^3.4.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.0",
+    "vite": "^5.2.0",
+    "eslint": "^9.0.0",
+    "eslint-plugin-react": "^7.34.0",
+    "vitest": "^1.5.0"
   }
 }
