@@ -1,14 +1,27 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-// Expose safe APIs to the renderer
+// Expose structured API to the renderer
 contextBridge.exposeInMainWorld('api', {
-  // Call FastAPI backend via IPC
-  fetchData: async (endpoint) => {
-    return await ipcRenderer.invoke('fetch-data', endpoint);
+  users: {
+    getAll: async () => await ipcRenderer.invoke('users:getAll'),
+    getById: async (id) => await ipcRenderer.invoke('users:getById', id),
+    create: async (data) => await ipcRenderer.invoke('users:create', data),
+    update: async (id, data) => await ipcRenderer.invoke('users:update', { id, data }),
+    delete: async (id) => await ipcRenderer.invoke('users:delete', id),
   },
-
-  // Example: send a message to backend
-  sendMessage: (msg) => {
-    ipcRenderer.send('log-message', msg);
+  items: {
+    getAll: async () => await ipcRenderer.invoke('items:getAll'),
+    getById: async (id) => await ipcRenderer.invoke('items:getById', id),
+    create: async (data) => await ipcRenderer.invoke('items:create', data),
+    update: async (id, data) => await ipcRenderer.invoke('items:update', { id, data }),
+    delete: async (id) => await ipcRenderer.invoke('items:delete', id),
+  },
+  search: {
+    query: async (q) => await ipcRenderer.invoke('search:query', q),
+    stats: async () => await ipcRenderer.invoke('search:stats'),
+  },
+  health: {
+    liveness: async () => await ipcRenderer.invoke('health:liveness'),
+    readiness: async () => await ipcRenderer.invoke('health:readiness'),
   }
 });
