@@ -32,3 +32,90 @@ jobs:
           MERGE_RETRY_SLEEP: "10000"
           UPDATE_LABELS: ""
           MERGE_DELETE_BRANCH: "true"
+
+# Navigating code on GitHub
+
+You can understand the relationships within and across repositories by navigating code directly in GitHub.
+
+<!-- If you make changes to this feature, check whether any of the changes affect languages listed in /get-started/learning-about-github/github-language-support. If so, please update the article accordingly. -->
+
+## About navigating code on GitHub
+
+Code navigation helps you to read, navigate, and understand code by showing and linking definitions of a named entity corresponding to a reference to that entity, as well as references corresponding to an entity's definition.
+
+![Screenshot showing a file with a function highlighted. A pop-up has information about the function on two tabs: "Definition" and "Reference".](/assets/images/help/repository/code-navigation-popover.png)
+
+Code navigation uses the open source [`tree-sitter`](https://github.com/tree-sitter/tree-sitter) library. The following languages support code navigation.
+
+* Bash
+* C
+* C#
+* C++
+* CodeQL
+* Elixir
+* Go
+* JSX
+* Java
+* JavaScript
+* Lua
+* PHP
+* Protocol Buffers
+* Python
+* R
+* Ruby
+* Rust
+* Scala
+* Starlark
+* Swift
+* Typescript
+
+You do not need to configure anything in your repository to enable code navigation. We will automatically extract code navigation information for these supported languages in all repositories.
+
+GitHub has developed a code navigation approach based on the open source [`tree-sitter`](https://github.com/tree-sitter/tree-sitter) library that searches all definitions and references across a repository to find entities with a given name.
+
+You can use keyboard shortcuts to navigate within a code file. For more information, see [Keyboard shortcuts](/en/get-started/accessibility/keyboard-shortcuts#navigating-within-code-files).
+
+## Using the symbols pane
+
+You can now quickly view and navigate between symbols such as functions or classes in your code with the symbols pane. You can search for a symbol in a single file, in all files in a repository, or even in all public repositories on GitHub.
+
+Symbol search is a feature of code search. For more information, see [Understanding GitHub Code Search syntax](/en/search-github/github-code-search/understanding-github-code-search-syntax#symbol-qualifier).
+
+1. Select a repository, then navigate to a file containing symbols.
+
+2. To bring up the symbols pane, above the file content, click <svg version="1.1" width="16" height="16" viewBox="0 0 16 16" class="octicon octicon-code-square" aria-label="The code square icon" role="img"><path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v12.5A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25Zm7.47 3.97a.75.75 0 0 1 1.06 0l2 2a.75.75 0 0 1 0 1.06l-2 2a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L10.69 8 9.22 6.53a.75.75 0 0 1 0-1.06ZM6.78 6.53 5.31 8l1.47 1.47a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215l-2-2a.75.75 0 0 1 0-1.06l2-2a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042Z"></path></svg>.
+
+   Alternatively, you can open the symbols pane by clicking an eligible symbol in your file. Clickable symbols are highlighted in yellow when you hover over them.
+
+3. Click the symbol you would like to find from the symbols pane or within the file itself.
+
+   * To search for a symbol in the repository as a whole, in the symbols pane, click **Search for this symbol in this repository**. To search for a symbol in all repositories on GitHub, click **all repositories**.
+
+4. To navigate between references to a symbol, click <svg version="1.1" width="16" height="16" viewBox="0 0 16 16" class="octicon octicon-chevron-down" aria-label="The downwards-facing chevron icon" role="img"><path d="M12.78 5.22a.749.749 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.06 0L3.22 6.28a.749.749 0 1 1 1.06-1.06L8 8.939l3.72-3.719a.749.749 0 0 1 1.06 0Z"></path></svg> or <svg version="1.1" width="16" height="16" viewBox="0 0 16 16" class="octicon octicon-chevron-up" aria-label="The upwards-facing chevron icon" role="img"><path d="M3.22 10.53a.749.749 0 0 1 0-1.06l4.25-4.25a.749.749 0 0 1 1.06 0l4.25 4.25a.749.749 0 1 1-1.06 1.06L8 6.811 4.28 10.53a.749.749 0 0 1-1.06 0Z"></path></svg>.
+
+5. To navigate to a specific reference to a symbol, click a result of the symbol search under **<svg version="1.1" width="16" height="16" viewBox="0 0 16 16" class="octicon octicon-chevron-down" aria-label="chevron-down" role="img"><path d="M12.78 5.22a.749.749 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.06 0L3.22 6.28a.749.749 0 1 1 1.06-1.06L8 8.939l3.72-3.719a.749.749 0 0 1 1.06 0Z"></path></svg> In this file**.
+
+6. To exit the search for a specific symbol, click **<svg version="1.1" width="16" height="16" viewBox="0 0 16 16" class="octicon octicon-arrow-left" aria-label="arrow-left" role="img"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06Z"></path></svg> All Symbols**.
+
+## Jumping to the definition of a function or method
+
+You can jump to a function or method's definition within the same repository by clicking the function or method call in a file.
+
+![Screenshot of the function window. A section, titled "Definition," is outlined in dark orange.](/assets/images/help/repository/jump-to-definition-tab.png)
+
+## Finding all references of a function or method
+
+You can find all references for a function or method within the same repository by clicking the function or method call in a file.
+
+![Screenshot of the function window. A section, titled "3 References," is outlined in dark orange.](/assets/images/help/repository/find-all-references-tab.png)
+
+## Troubleshooting code navigation
+
+If code navigation is enabled for you but you don't see links to the definitions of functions and methods:
+
+* Code navigation only works for active branches. Push to the branch and try again.
+* Code navigation only works for repositories with fewer than 100,000 files.
+
+## Further reading
+
+* [About GitHub Code Search](/en/search-github/github-code-search/about-github-code-search)
