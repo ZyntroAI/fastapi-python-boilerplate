@@ -1,0 +1,315 @@
+import { useMemo, useState } from "react";
+import {
+  ChevronDown,
+  CircleAlert,
+  Gauge,
+  Minus,
+  Plus,
+  RotateCcw,
+} from "lucide-react";
+
+/**
+ * RubricScoring
+ * ---------------------------------------------------------------
+ * Weighted rubric scoring panel for evaluating a submission against
+ * a set of criteria. Each criterion carries a weight (%) and is
+ * scored 1–5; the total is the weighted average, shown as a
+ * percentage and a letter-style band.
+ *
+ * Design notes:
+ * - High-density technical layout (compact rows, thin borders,
+ *   monospace numerics) suited to an evaluation/dashboard context
+ *   rather than a marketing surface.
+ * - No emoji anywhere — status is conveyed with lucide-react icons.
+ * - Full interactive-state coverage: hover, focus-visible, disabled,
+ *   and an empty state when no score has been given yet.
+ */
+
+const DEFAULT_CRITERIA = [
+  {
+    id: "req",
+    label: "ความครบถ้วนของ Requirement",
+    description: "ครอบคลุมทุกเงื่อนไขที่ระบุใน spec หรือ user story",
+    weight: 30,
+  },
+  {
+    id: "code",
+    label: "คุณภาพโค้ด",
+    description: "โครงสร้างชัดเจน อ่านง่าย มี error handling ที่เหมาะสม",
+    weight: 25,
+  },
+  {
+    id: "test",
+    label: "การทดสอบ",
+    description: "มี test ครอบคลุม edge case และรันผ่านจริง",
+    weight: 20,
+  },
+  {
+    id: "doc",
+    label: "เอกสารประกอบ",
+    description: "README / comment เพียงพอให้คนอื่นเข้าใจและต่อยอดได้",
+    weight: 15,
+  },
+  {
+    id: "perf",
+    label: "ประสิทธิภาพ",
+    description: "ไม่มี bottleneck ที่ชัดเจน ใช้ resource อย่างสมเหตุสมผล",
+    weight: 10,
+  },
+];
+
+const SCORE_LABELS = {
+  1: "ต้องแก้ไขมาก",
+  2: "ต้องปรับปรุง",
+  3: "ผ่านเกณฑ์",
+  4: "ดี",
+  5: "ดีเยี่ยม",
+};
+
+function bandForPercent(pct) {
+  if (pct >= 90) return { label: "ดีเยี่ยม", tone: "band-excellent" };
+  if (pct >= 75) return { label: "ดี", tone: "band-good" };
+  if (pct >= 60) return { label: "ผ่านเกณฑ์", tone: "band-pass" };
+  return { label: "ต้องปรับปรุง", tone: "band-low" };
+}
+
+function ScoreStepper({ value, onChange, disabled }) {
+  const clamp = (n) => Math.min(5, Math.max(1, n));
+
+  return (
+    <div
+      className={[
+        "flex items-center gap-1 rounded-md border border-slate-700 bg-slate-900/60 p-1",
+        disabled ? "opacity-50" : "",
+      ].join(" ")}
+    >
+      <button
+        type="button"
+        disabled={disabled || value === null}
+        onClick={() => onChange(clamp((value ?? 1) - 1))}
+        aria-label="ลดคะแนน"
+        className="flex h-7 w-7 items-center justify-center rounded text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 disabled:pointer-events-none disabled:opacity-40"
+      >
+        <Minus className="h-3.5 w-3.5" aria-hidden="true" />
+      </button>
+
+      <div className="flex w-24 flex-col items-center">
+        <span className="font-mono text-sm font-semibold tabular-nums text-slate-100">
+          {value ?? "—"}
+          <span className="text-slate-500">/5</span>
+        </span>
+        <span className="text-[10px] leading-tight text-slate-500">
+          {value ? SCORE_LABELS[value] : "ยังไม่ให้คะแนน"}
+        </span>
+      </div>
+
+      <button
+        type="button"
+        disabled={disabled || value === 5}
+        onClick={() => onChange(clamp((value ?? 0) + 1))}
+        aria-label="เพิ่มคะแนน"
+        className="flex h-7 w-7 items-center justify-center rounded text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 disabled:pointer-events-none disabled:opacity-40"
+      >
+        <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+      </button>
+    </div>
+  );
+}
+
+export default function RubricScoring({
+  title = "แบบประเมิน Rubric",
+  criteria = DEFAULT_CRITERIA,
+  onSubmit,
+}) {
+  const [scores, setScores] = useState({});
+  const [notes, setNotes] = useState({});
+  const [openNoteId, setOpenNoteId] = useState(null);
+
+  const totalWeight = useMemo(
+    () => criteria.reduce((sum, c) => sum + c.weight, 0),
+    [criteria]
+  );
+
+  const scoredCount = Object.keys(scores).length;
+  const isComplete = scoredCount === criteria.length;
+
+  const weightedPercent = useMemo(() => {
+    if (scoredCount === 0) return null;
+    const earned = criteria.reduce((sum, c) => {
+      const s = scores[c.id];
+      if (s == null) return sum;
+      return sum + (s / 5) * c.weight;
+    }, 0);
+    const weightScored = criteria.reduce(
+      (sum, c) => (scores[c.id] != null ? sum + c.weight : sum),
+      0
+    );
+    if (weightScored === 0) return null;
+    // Show progress against total possible weight, not just what's scored,
+    // so the number reflects the whole rubric rather than a partial subset.
+    return Math.round((earned / totalWeight) * 100);
+  }, [scores, criteria, totalWeight, scoredCount]);
+
+  const band = weightedPercent != null ? bandForPercent(weightedPercent) : null;
+
+  const handleScore = (id, value) => {
+    setScores((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleReset = () => {
+    setScores({});
+    setNotes({});
+    setOpenNoteId(null);
+  };
+
+  return (
+    <div className="w-full max-w-2xl rounded-lg border border-slate-800 bg-slate-950 text-slate-100">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4 border-b border-slate-800 px-5 py-4">
+        <div>
+          <h2 className="text-sm font-semibold tracking-wide text-slate-100">
+            {title}
+          </h2>
+          <p className="mt-0.5 text-xs text-slate-500">
+            {criteria.length} เกณฑ์ · น้ำหนักรวม {totalWeight}%
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleReset}
+          disabled={scoredCount === 0}
+          className="flex items-center gap-1.5 rounded-md border border-slate-700 px-2.5 py-1.5 text-xs text-slate-400 transition-colors hover:border-slate-600 hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:pointer-events-none disabled:opacity-40"
+        >
+          <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+          ล้างคะแนน
+        </button>
+      </div>
+
+      {/* Criteria rows */}
+      <ul className="divide-y divide-slate-800">
+        {criteria.map((c) => {
+          const value = scores[c.id] ?? null;
+          const noteOpen = openNoteId === c.id;
+
+          return (
+            <li key={c.id} className="px-5 py-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="rounded border border-slate-700 bg-slate-900 px-1.5 py-0.5 font-mono text-[10px] text-slate-400">
+                      {c.weight}%
+                    </span>
+                    <h3 className="truncate text-sm font-medium text-slate-100">
+                      {c.label}
+                    </h3>
+                  </div>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                    {c.description}
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={() => setOpenNoteId(noteOpen ? null : c.id)}
+                    className="mt-2 flex items-center gap-1 text-[11px] text-slate-500 transition-colors hover:text-teal-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                  >
+                    <ChevronDown
+                      className={[
+                        "h-3 w-3 transition-transform",
+                        noteOpen ? "rotate-180" : "",
+                      ].join(" ")}
+                      aria-hidden="true"
+                    />
+                    {noteOpen ? "ซ่อนความเห็น" : "เพิ่มความเห็น"}
+                  </button>
+
+                  {noteOpen && (
+                    <textarea
+                      value={notes[c.id] ?? ""}
+                      onChange={(e) =>
+                        setNotes((prev) => ({ ...prev, [c.id]: e.target.value }))
+                      }
+                      placeholder="เหตุผลประกอบคะแนนข้อนี้..."
+                      rows={2}
+                      className="mt-2 w-full resize-none rounded-md border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-200 placeholder:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+                    />
+                  )}
+                </div>
+
+                <ScoreStepper
+                  value={value}
+                  onChange={(v) => handleScore(c.id, v)}
+                />
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* Summary */}
+      <div className="border-t border-slate-800 px-5 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-xs text-slate-500">
+            <Gauge className="h-4 w-4" aria-hidden="true" />
+            <span>
+              ให้คะแนนแล้ว {scoredCount}/{criteria.length} เกณฑ์
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {band && (
+              <span
+                className={[
+                  "rounded-full px-2.5 py-1 text-[11px] font-medium",
+                  band.tone === "band-excellent" &&
+                    "bg-emerald-500/10 text-emerald-400",
+                  band.tone === "band-good" && "bg-teal-500/10 text-teal-400",
+                  band.tone === "band-pass" && "bg-amber-500/10 text-amber-400",
+                  band.tone === "band-low" && "bg-rose-500/10 text-rose-400",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+              >
+                {band.label}
+              </span>
+            )}
+            <span className="font-mono text-2xl font-semibold tabular-nums text-slate-100">
+              {weightedPercent != null ? `${weightedPercent}%` : "—"}
+            </span>
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+          <div
+            className="h-full rounded-full bg-teal-500 transition-all duration-300"
+            style={{ width: `${weightedPercent ?? 0}%` }}
+          />
+        </div>
+
+        {!isComplete && (
+          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-amber-400/90">
+            <CircleAlert className="h-3.5 w-3.5" aria-hidden="true" />
+            ยังเหลือ {criteria.length - scoredCount} เกณฑ์ที่ยังไม่ได้ให้คะแนน
+          </div>
+        )}
+
+        <button
+          type="button"
+          disabled={!isComplete}
+          onClick={() =>
+            onSubmit?.({
+              scores,
+              notes,
+              percent: weightedPercent,
+              band: band?.label ?? null,
+            })
+          }
+          className="mt-4 w-full rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:cursor-not-allowed disabled:bg-slate-800 disabled:text-slate-500"
+        >
+          บันทึกผลการประเมิน
+        </button>
+      </div>
+    </div>
+  );
+}
