@@ -1,0 +1,84 @@
+# .github/workflows/auto-compress-manage.yml
+name: 📦 Auto File Compress & Manage
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Compression target'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - images
+          - web-assets
+          - artifacts
+
+jobs:
+  # ─── สแกนหาไฟล์ที่ต้องบีบอัด ───
+  scan:
+    runs-on: ubuntu-latest
+    outputs:
+      has-images: ${{ steps.check.outputs.has-images }}
+      has-web: ${{ steps.check.outputs.has-web }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        run: |
+          echo "has-images=$(find . -type f \( -name '*.jpg' -o -name '*.png' -o -name '*.webp' \) | head -1 | wc -l)" >> $GITHUB_OUTPUT
+          echo "has-web=$(find . -type f \( -name '*.js' -o -name '*.css' -o -name '*.html' \) | head -1 | wc -l)" >> $GITHUB_OUTPUT
+
+  # ─── บีบอัดรูปภาพ ───
+  compress-images:
+    needs: scan
+    if: needs.scan.outputs.has-images == '1'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: calibreapp/image-actions@main
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          compressOnly: true
+      - uses: peter-evans/create-pull-request@v7
+        if: success()
+        with:
+          title: '📸 Auto-compress Images'
+          commit-message: 'chore: auto-compress images'
+          branch: auto/compress-images
+
+  # ─── บีบอัดไฟล์เว็บ ───
+  compress-web:
+    needs: scan
+    if: needs.scan.outputs.has-web == '1'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: stefh/ghaction-CompressFiles@v2
+        with:
+          path: .
+          extensions: '.js,.css,.html,.json'
+          tools: 'brotli,gzip'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: compressed-web-assets
+          path: '**/*.{br,gz}'
+          compression-level: 0
+
+  # ─── สรุปผล ───
+  summary:
+    needs: [compress-images, compress-web]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Job Summary
+        run: |
+          echo "## 📦 Auto Compress & Manage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Images | ${{ needs.compress-images.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Web Assets | ${{ needs.compress-web.result }} |" >> $GITHUB_STEP_SUMMARY
