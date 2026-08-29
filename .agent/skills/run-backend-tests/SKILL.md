@@ -10,3 +10,4 @@ Follow these exact steps to verify the FastAPI backend:
 1. **Navigate to Backend Directory:**
    ```bash
    cd backend
+   Run Ruff Linter & Formatter Check:
