@@ -1,19 +1,26 @@
-FROM python:3.12-slim
+# Use Alpine for minimal footprint
+FROM python:3.12-alpine
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
+# Install only essential packages
+RUN apk add --no-cache \
+    curl \
+    bash \
+    && rm -rf /var/cache/apk/*
 
+# Set working directory
 WORKDIR /app
 
+# Copy only requirements first (better caching)
 COPY requirements.txt .
+
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app ./app
+# Copy source code
+COPY . .
 
-RUN useradd --create-home --shell /usr/sbin/nologin appuser
-USER appuser
+# Expose port
+EXPOSE 8080
 
-EXPOSE 8000
-
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Use lightweight entrypoint
+CMD ["python", "app.py"]
