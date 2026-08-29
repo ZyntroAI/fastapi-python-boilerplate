@@ -2,29 +2,76 @@ name: Test & Coverage
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches:
+      - main
+      - master
+      - develop
   pull_request:
-    branches: [ main, master, develop ]
+    branches:
+      - main
+      - master
+      - develop
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-and-test:
+  test:
+    name: Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+
     steps:
-    - name: Checkout repository 📂
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python 🐍
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-        cache: 'pip'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
 
-    - name: Install dependencies 📦
-      run: |
-        python -m pip install --upgrade pip
-        pip install pytest pytest-cov
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest pytest-cov
+          if [ -f requirements.txt ]; then
+            python -m pip install -r requirements.txt
+          fi
 
-    - name: Run tests with pytest ⚡
-      run: pytest --cov=./ --cov-report=xml
+      - name: Run tests with coverage
+        run: |
+          pytest \
+            --cov=. \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml \
+            --cov-report=html:htmlcov \
+            -v
+
+      - name: Upload coverage XML
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml-python-${{ matrix.python-version }}
+          path: coverage.xml
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload HTML coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html-python-${{ matrix.python-version }}
+          path: htmlcov/
+          if-no-files-found: warn
+          retention-days: 14
