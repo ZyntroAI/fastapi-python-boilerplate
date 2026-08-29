@@ -1,4 +1,4 @@
-# .github/workflows/compress-build.yml
+#.github/workflows/compress-build.yml
 name: 📦 Auto Compress Build Artifacts
 on:
   push:
@@ -10,32 +10,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3 # try v3 first. If still blocked, ask admin to allow v3/v4
+
+      - name: Install zstd
+        run: sudo apt-get update && sudo apt-get install -y zstd
 
       - name: Compress Build Output
-        id: pack
-        uses: somaz94/compress-decompress@v1
-        with:
-          command: compress
-          source: ./dist
-          format: tzst          # zstd = เร็ว + บีบอัดดี
-          compression_level: '3'
-          dest: ./artifacts
-          destfilename: 'build-release'
+        run: |
+          mkdir -p./artifacts
+          zstd -3 -o./artifacts/build-release.tzst./dist
+          echo "FILE_PATH=./artifacts/build-release.tzst" >> $GITHUB_OUTPUT
+          echo "ORIGINAL_SIZE=$(du -b./dist | awk '{sum+=$1} END {print sum}')" >> $GITHUB_OUTPUT
+          echo "COMPRESSED_SIZE=$(stat -c%s./artifacts/build-release.tzst)" >> $GITHUB_OUTPUT
+          echo "FILE_COUNT=$(find./dist -type f | wc -l)" >> $GITHUB_OUTPUT
+          echo "CHECKSUM=$(sha256sum./artifacts/build-release.tzst | awk '{print $1}')" >> $GITHUB_OUTPUT
+          echo "DURATION=0" >> $GITHUB_OUTPUT
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3 # try v3. If blocked, ask admin
         with:
           name: compressed-build
-          path: ./artifacts/build-release.tzst
-          compression-level: 0  # ป้องกัน double-zip
+          path:./artifacts/build-release.tzst
+          if-no-files-found: error
 
       - name: Report Compression Stats
         run: |
-          echo "📦 Archive: ${{ steps.pack.outputs.file_path }}"
-          echo "📁 Files: ${{ steps.pack.outputs.file_count }}"
-          echo "📊 Original: ${{ steps.pack.outputs.original_size }} bytes"
-          echo "📉 Compressed: ${{ steps.pack.outputs.compressed_size }} bytes"
-          echo "🎯 Ratio: ${{ steps.pack.outputs.compression_ratio }}%"
-          echo "⏱️ Duration: ${{ steps.pack.outputs.duration }}s"
-          echo "🔐 SHA256: ${{ steps.pack.outputs.checksum }}"
+          echo "📦 Archive:./artifacts/build-release.tzst"
+          echo "📁 Files: $(find./dist -type f | wc -l)"
+          echo "📊 Original: $(du -b./dist | awk '{sum+=$1} END {print sum}') bytes"
+          echo "📉 Compressed: $(stat -c%s./artifacts/build-release.tzst) bytes"
+          echo "🔐 SHA256: $(sha256sum./artifacts/build-release.tzst | awk '{print $1}')"
