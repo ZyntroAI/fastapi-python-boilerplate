@@ -1,6 +1,10 @@
-def explain_team(team, score_breakdown):
-    lines = [f"Team Score: {score_breakdown['total']:.1f}"]
-    for reason, val in score_breakdown['parts'].items():
-        sign = "+" if val >= 0 else ""
-        lines.append(f" {sign}{val:.1f} {reason}")
+from.models import Person, Role
+
+def explain_score(team: list[Person] | None, role: Role) -> str:
+    if not team: return "No team"
+    lines = [f"Team: {', '.join(p.name for p in team)}"]
+    for skill, req in role.required_skills.items():
+        levels = [s.level for p in team for s in p.skills if s.name == skill]
+        best = max(levels) if levels else 0
+        lines.append(f"- {skill}: need {req}, best has {best} → +{min(best, req)*10}")
     return "\n".join(lines)
