@@ -1,20 +1,25 @@
-from dataclasses import dataclass, field
-from typing import List, Dict, Set
+from pydantic import BaseModel
+from typing import List, Dict, Literal
 
-@dataclass
-class Skill:
+SkillLevel = Literal[0, 1, 2, 3, 4, 5] # 0=none, 5=expert
+
+class Skill(BaseModel):
     name: str
-    level: int = 1 # 1-5
+    level: SkillLevel
 
-@dataclass
-class Person:
+class Person(BaseModel):
     id: str
     name: str
-    skills: List[Skill] = field(default_factory=list)
-    tags: Set[str] = field(default_factory=set) # "senior", "remote", etc
+    skills: List[Skill]
+    years_experience: int = 0
+    tags: List[str] = [] # "senior", "backend", "remote"
 
-@dataclass
-class TeamRequirements:
-    must_have_skills: Dict[str, int] = field(default_factory=dict) # {"python": 3}
-    team_size: int = 4
-    constraints: Dict = field(default_factory=dict) # {"max_seniors": 2}
+class Role(BaseModel):
+    name: str
+    required_skills: Dict[str, SkillLevel] # {"python": 4, "aws": 3}
+    nice_to_have: Dict[str, SkillLevel] = {}
+
+class TeamRequirement(BaseModel):
+    role: Role
+    team_size: int = 3
+    must_have_tags: List[str] = []
