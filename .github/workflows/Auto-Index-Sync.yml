@@ -1,0 +1,54 @@
+name: Auto Index Sync
+
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: "0 2 * * *"   # nightly sync at 2 AM UTC
+  workflow_dispatch:       # manual trigger
+
+jobs:
+  index-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Extract repo docs metadata
+        run: |
+          python scripts/extract_metadata.py docs/ > repo_index.json
+
+      - name: Push to search index
+        env:
+          ALGOLIA_APP_ID: ${{ secrets.ALGOLIA_APP_ID }}
+          ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
+        run: |
+          python scripts/push_index.py repo_index.json
+
+  sync-external-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Crawl OpenClaw docs
+        run: |
+          curl -s https://docs.openclaw.ai > openclaw.html
+          python scripts/parse_docs.py openclaw.html > openclaw_index.json
+
+      - name: Push external docs to index
+        run: |
+          python scripts/push_index.py openclaw_index.json
+
+  audit-policies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch affiliate terms
+        run: |
+          curl -s https://www.upcomers.com/policies/affiliate-terms-conditions > affiliate.html
+          python scripts/diff_policy.py affiliate.html > policy_diff.md
+
+      - name: Commit policy changes
+        run: |
+          git config user.name "index-bot"
+          git config user.email "bot@example.com"
+          git add policy_diff.md
+          git commit -m "chore: update affiliate policy snapshot"
+          git push
