@@ -1,0 +1,58 @@
+# .github/workflows/compress-images.yml
+name: 📸 Auto Compress Images
+on:
+  pull_request:
+    paths:
+      - '**.jpg'
+      - '**.jpeg'
+      - '**.png'
+      - '**.webp'
+      - '**.avif'
+  push:
+    branches: [main]
+    paths:
+      - '**.jpg'
+      - '**.jpeg'
+      - '**.png'
+      - '**.webp'
+      - '**.avif'
+  workflow_dispatch:
+  schedule:
+    - cron: '0 23 * * 0'  # ทุกวันอาทิตย์ 23:00
+
+jobs:
+  compress:
+    name: Compress Images
+    runs-on: ubuntu-latest
+    if: |
+      github.repository == 'ZyntroAI/crystalcastleX' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Compress Images
+        id: calibre
+        uses: calibreapp/image-actions@main
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          jpegQuality: '85'
+          pngQuality: '80'
+          webpQuality: '85'
+          avifQuality: '75'
+          compressOnly: ${{ github.event_name != 'pull_request' }}
+
+      - name: Create PR for Compressed Images
+        if: |
+          github.event_name != 'pull_request' &&
+          steps.calibre.outputs.markdown != ''
+        uses: peter-evans/create-pull-request@v7
+        with:
+          title: '📸 Auto-compressed Images'
+          branch-suffix: timestamp
+          commit-message: 'chore: compress images'
+          body: ${{ steps.calibre.outputs.markdown }}
