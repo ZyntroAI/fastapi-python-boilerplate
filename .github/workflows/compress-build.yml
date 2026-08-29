@@ -1,0 +1,41 @@
+# .github/workflows/compress-build.yml
+name: 📦 Auto Compress Build Artifacts
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  compress:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Compress Build Output
+        id: pack
+        uses: somaz94/compress-decompress@v1
+        with:
+          command: compress
+          source: ./dist
+          format: tzst          # zstd = เร็ว + บีบอัดดี
+          compression_level: '3'
+          dest: ./artifacts
+          destfilename: 'build-release'
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: compressed-build
+          path: ./artifacts/build-release.tzst
+          compression-level: 0  # ป้องกัน double-zip
+
+      - name: Report Compression Stats
+        run: |
+          echo "📦 Archive: ${{ steps.pack.outputs.file_path }}"
+          echo "📁 Files: ${{ steps.pack.outputs.file_count }}"
+          echo "📊 Original: ${{ steps.pack.outputs.original_size }} bytes"
+          echo "📉 Compressed: ${{ steps.pack.outputs.compressed_size }} bytes"
+          echo "🎯 Ratio: ${{ steps.pack.outputs.compression_ratio }}%"
+          echo "⏱️ Duration: ${{ steps.pack.outputs.duration }}s"
+          echo "🔐 SHA256: ${{ steps.pack.outputs.checksum }}"
