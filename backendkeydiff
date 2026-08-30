@@ -1,6 +1,0 @@
-Key Differences
-Feature Backend Database
-Purpose Processes data and manages application logic Stores and manages data
-Components Includes servers, APIs, and business logic Composed of tables, records, and schemas
-Interaction Communicates with the frontend and database Interacts with the backend for data access
-Functionality Handles user requests and application workflows Ensures data is organized and retrievable
