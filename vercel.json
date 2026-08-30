@@ -1,22 +1,18 @@
-/*
 {
-  "version": 2,
   "builds": [
     {
-      "src": "api/index.py",
+      "src": "app/main.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "api/index.py"
+      "dest": "app/main.py"
     }
   ],
-  "functions": {
-    "api/index.py": {
-      "maxDuration": 60
-    }
+  "env": {
+    "ENV": "vercel"
   }
 }
-*/
+⚠️ หมายเหตุ: Vercel รองรับ Python Serverless Functions แต่ไม่รองรับ WebSocket และ background tasks แบบ long-running
