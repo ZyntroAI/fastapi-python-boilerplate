@@ -1,84 +1,129 @@
-Here’s an updated project structure that reflects everything we’ve built so far: a hybrid FastAPI backend (robust logging, DB, health checks) + desktop GUI serving (static files, templates) + Electron wrapper for distribution. This structure is designed for scaling, testing, and packaging into installers.
+# 🧠 SQL Agent with LangGraph
 
----
+This project demonstrates a **zero-config AI agent** that uses [LangGraph] to answer natural language
+questions by querying a SQL database — all orchestrated with [Docker Compose].
 
-📂 Updated Project Structure
+> [!Tip]
+> ✨ No configuration needed — run it with a single command.
 
-`
-project-root/
-│
-├── app/
-│   ├── core/                  # Core utilities
-│   │   ├── logging.py
-│   │   ├── security.py
-│   │   └── config.py
-│   │
-│   ├── db/                    # Database lifecycle
-│   │   ├── session.py
-│   │   └── models.py
-│   │
-│   ├── routes/                # API routers
-│   │   ├── items_router.py
-│   │   ├── users_router.py
-│   │   └── auth_router.py
-│   │
-│   ├── api/                   # Feature APIs
-│   │   ├── search.py
-│   │   └── stats.py
-│   │
-│   ├── static/                # GUI assets
-│   │   ├── index.html
-│   │   ├── style.css
-│   │   └── app.js
-│   │
-│   ├── templates/             # Jinja2 templates
-│   │   └── base.html
-│   │
-│   ├── main.py                # Hybrid FastAPI app (API + GUI)
-│   └── lifespan.py            # DB init/shutdown hooks
-│
-├── electron-app/              # Electron wrapper
-│   ├── main.js                # Electron entry point
-│   ├── preload.js             # Optional preload scripts
-│   ├── package.json           # Electron dependencies
-│   └── renderer/              # Extra frontend assets (optional)
-│
-├── tests/                     # Unit + integration tests
-│   ├── test_items.py
-│   ├── test_users.py
-│   ├── test_search.py
-│   └── test_gui.py
-│
-├── run_desktop.py             # Local launcher (FastAPI via uvicorn)
-├── fastapi_app.spec           # PyInstaller spec file
-├── electron-builder.yml       # Electron build config
-├── requirements.txt           # Python dependencies
-├── package.json               # Root Node/Electron config (optional)
-├── Dockerfile                 # Containerization (optional)
-└── README.md                  # Documentation
-`
+<p align="center">
+  <img src="demo.gif"
+       alt="Demo"
+       width="50%"
+       style="border: 1px solid #ccc; border-radius: 8px;" />
+</p>
 
----
+# 🚀 Getting Started
 
-🔑 Best Practice Highlights
+### Requirements
 
-- Hybrid main.py → Combines API routers, GUI serving, middleware, health checks.  
-- rundesktop.py → Simple launcher for local desktop mode.  
-- Electron wrapper → main.js spawns FastAPI backend and opens native window.  
-- PyInstaller spec → Bundles backend into .exe or .app.  
-- Electron-builder config → Generates installers for Windows, macOS, Linux.  
-- Tests → Separate unit tests for API + GUI routes.  
++ **[Docker Desktop] 4.43.0+ or [Docker Engine]** installed.
++ **A laptop or workstation with a GPU** (e.g., a MacBook) for running open models locally. If you
+  don't have a GPU, you can alternatively use **[Docker Offload]**.
++ If you're using [Docker Engine] on Linux or [Docker Desktop] on Windows, ensure that the
+  [Docker Model Runner requirements] are met (specifically that GPU
+  support is enabled) and the necessary drivers are installed.
++ If you're using Docker Engine on Linux, ensure you have [Docker Compose] 2.38.1 or later installed.
 
----
+### Run the project
 
-🚀 Scaling Path
+```sh
+docker compose up
+```
 
-1. Local dev → python run_desktop.py + npm start (Electron).  
-2. Packaging → pyinstaller fastapi_app.spec for backend, electron-builder for installers.  
-3. Distribution → Ship .exe, .dmg, .AppImage with auto‑updates.  
-4. Scaling DB → SQLite for local, Postgres for multi‑user.  
-5. Workers → Uvicorn --workers 4 for concurrency.  
+That’s all. The agent spins up automatically, sets up PostgreSQL, loads a pre-seeded database
+(`Chinook.db`), and starts answering your questions.
 
----
+# 🧠 Inference Options
 
-Would you like me to now draft the electron-builder.yml config so you can generate installers (.exe, .dmg, .AppImage) with one command?
+By default, this project uses [Docker Model Runner] to handle LLM inference locally — no internet
+connection or external API key is required.
+
+If you’d prefer to use OpenAI instead:
+
+1. Create a `secret.openai-api-key` file with your OpenAI API key:
+
+    ```plaintext
+    sk-...
+    ```
+
+2. Restart the project with the OpenAI configuration:
+
+    ```sh
+    docker compose down -v
+    docker compose -f compose.yaml -f compose.openai.yaml up
+    ```
+
+# ❓ What Can It Do?
+
+The project lets you explore the [Chinkook database](https://github.com/lerocha/chinook-database) using
+natural language. This database represents a digital media store with information regarding artists,
+albums, media tracks, invoices, and customers.
+
+The agent will write the SQL for your natural language questions:
+
++ “Who was the best-selling sales agent in 2010?”
++ “List the top 3 albums by sales.”
++ “How many customers are from Brazil?”
+
+You can **customize the initial question** asked by the agent — just edit the question in `compose.yaml`.
+
+Need to work with a **different dataset?** Simply swap out `Chinook.db` with your own SQLite file and
+update the mount path in `compose.yaml`.
+
+# 🧱 Project Structure
+
+| File/Folder    | Purpose                                                                   |
+| -------------- | ------------------------------------------------------------------------- |
+| `compose.yaml` | Defines service orchestration and database import (from SQLite).          |
+| `Dockerfile`   | Builds the container environment.                                         |
+| `agent.py`     | Contains the LangGraph agent and logic for forming and answering queries. |
+| `Chinook.db`   | Example SQLite database — can be replaced with your own.                  |
+
+# 🔧 Architecture Overview
+
+```mermaid
+
+flowchart TD
+    A[User] -->|Natural language query| B[Agent]
+
+    B --> C{Agent Flow}
+
+    C -->|Tool call| D[(Docker MCP Server)]
+    D -->|SQL Query| E[(PostgreSQL)]
+
+    C -->|LLM call| F[(Docker Model Runner)]
+
+    E -->|Results| D
+    D -->|Structured Output| B
+    F -->|Generated Answer| B
+
+    B -->|Response| A
+```
+
++ The LangGraph-based agent transforms questions into SQL.
++ PostgreSQL is populated from a SQLite dump at runtime.
++ All components are fully containerized for plug-and-play usage.
+
+# 🧹 Cleanup
+
+To stop and remove containers and volumes:
+
+```sh
+docker compose down -v
+```
+
+# 📎 Credits
+
++ [LangGraph]
++ [PostgreSQL]
++ [Docker Compose]
+
+[LangGraph]: https://github.com/langchain-ai/langgraph
+[PostgreSQL]: https://postgresql.org
+[Docker Compose]: https://github.com/docker/compose
+[Docker Desktop]: https://www.docker.com/products/docker-desktop/
+[Docker Engine]: https://docs.docker.com/engine/
+[Docker Model Runner]: https://docs.docker.com/ai/model-runner/
+[Docker Model Runner requirements]: https://docs.docker.com/ai/model-runner/
+[Docker Offload]: https://www.docker.com/products/docker-offload/
