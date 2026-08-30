@@ -1,0 +1,5 @@
+- uses: github/codeql-action/init@v4
+  with:
+    config-file: ./.github/codeql/codeql-config.yml
+    queries: security-extended
+    packs: my-company/my-java-queries@~7.8.9,my-repo/my-java-model-pack
