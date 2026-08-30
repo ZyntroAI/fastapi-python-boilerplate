@@ -1,107 +1,18 @@
-apiVersion: apps/v1
-kind: Deployment
-
-metadata:
-  name: oauth-api
-  namespace: oauth
-
-spec:
-  replicas: 2
-
-  revisionHistoryLimit: 3
-
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 0
-      maxSurge: 1
-
-  selector:
-    matchLabels:
-      app: oauth
-
-  template:
-    metadata:
-      labels:
-        app: oauth
-
-    spec:
-      terminationGracePeriodSeconds: 30
-
-      containers:
-        - name: oauth
-
-          image: ghcr.io/zyntroai/oauth-api:latest
-
-          imagePullPolicy: IfNotPresent
-
-          ports:
-            - name: http
-              containerPort: 8000
-              protocol: TCP
-
-          envFrom:
-            - configMapRef:
-                name: oauth-config
-
-            - secretRef:
-                name: oauth-secrets
-
-          # --------------------------------------------------
-          # Health
-          # --------------------------------------------------
-
-          readinessProbe:
-            httpGet:
-              path: /readyz
-              port: http
-
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            timeoutSeconds: 3
-            failureThreshold: 3
-            successThreshold: 1
-
-          livenessProbe:
-            httpGet:
-              path: /healthz
-              port: http
-
-            initialDelaySeconds: 15
-            periodSeconds: 20
-            timeoutSeconds: 3
-            failureThreshold: 3
-
-          startupProbe:
-            httpGet:
-              path: /healthz
-              port: http
-
-            periodSeconds: 5
-            timeoutSeconds: 3
-            failureThreshold: 12
-
-          # --------------------------------------------------
-          # Resources
-          # --------------------------------------------------
-
-          resources:
-            requests:
-              cpu: 100m
-              memory: 128Mi
-
-            limits:
-              cpu: 500m
-              memory: 512Mi
-
-          # --------------------------------------------------
-          # Security
-          # --------------------------------------------------
-
-          securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            runAsNonRoot: true
-            capabilities:
-              drop:
-                - ALL
+{
+  "builds": [
+    {
+      "src": "app/main.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "app/main.py"
+    }
+  ],
+  "env": {
+    "ENV": "vercel"
+  }
+}
+⚠️ หมายเหตุ: Vercel รองรับ Python Serverless Functions แต่ไม่รองรับ WebSocket และ background tasks แบบ long-running
