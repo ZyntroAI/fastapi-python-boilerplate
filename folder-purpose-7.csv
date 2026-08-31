@@ -1,0 +1,8 @@
+﻿Folder,Purpose
+app/,FastAPI application core
+agent.py,LangGraph agent logic
+compose.yaml,Service orchestration
+helm/,Helm charts for deployment
+services/,"Stripe, compute, and AI services"
+tests/,Unit and integration tests
+docs/,Developer documentation
