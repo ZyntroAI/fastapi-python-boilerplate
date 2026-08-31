@@ -1,129 +1,115 @@
-# 🧠 SQL Agent with LangGraph
+# 🧠 FastAPI Python Boilerplate — AI‑Driven DevOps Stack
 
-This project demonstrates a **zero-config AI agent** that uses [LangGraph] to answer natural language
-questions by querying a SQL database — all orchestrated with [Docker Compose].
+### 🚀 Overview
+A **production‑ready FastAPI boilerplate** integrating:
+- 🧩 **LangGraph AI Agent** — query SQL databases using natural language  
+- 💳 **Stripe Payment Integration** — secure, scalable payment flow  
+- ⚙️ **Helm + Kubernetes CI/CD** — automated deployment and scaling  
+- 🌐 **Traefik Routing** — seamless microservice orchestration  
 
-> [!Tip]
-> ✨ No configuration needed — run it with a single command.
+---
 
-<p align="center">
-  <img src="demo.gif"
-       alt="Demo"
-       width="50%"
-       style="border: 1px solid #ccc; border-radius: 8px;" />
-</p>
+### ⚙️ Getting Started
 
-# 🚀 Getting Started
+#### Requirements
+- Python 3.11+
+- Docker Desktop 4.43+ or Docker Engine
+- Docker Compose 2.38.1+ (Linux)
+- Optional GPU for local inference
 
-### Requirements
-
-+ **[Docker Desktop] 4.43.0+ or [Docker Engine]** installed.
-+ **A laptop or workstation with a GPU** (e.g., a MacBook) for running open models locally. If you
-  don't have a GPU, you can alternatively use **[Docker Offload]**.
-+ If you're using [Docker Engine] on Linux or [Docker Desktop] on Windows, ensure that the
-  [Docker Model Runner requirements] are met (specifically that GPU
-  support is enabled) and the necessary drivers are installed.
-+ If you're using Docker Engine on Linux, ensure you have [Docker Compose] 2.38.1 or later installed.
-
-### Run the project
-
-```sh
+#### Quick Start
+```bash
+git clone https://github.com/ZyntroAI/fastapi-python-boilerplate.git
+cd fastapi-python-boilerplate
 docker compose up
 ```
 
-That’s all. The agent spins up automatically, sets up PostgreSQL, loads a pre-seeded database
-(`Chinook.db`), and starts answering your questions.
+---
 
-# 🧠 Inference Options
+### 🔑 Environment Variables
 
-By default, this project uses [Docker Model Runner] to handle LLM inference locally — no internet
-connection or external API key is required.
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@db:5432/chinook` |
+| `OPENAI_API_KEY` | API key for OpenAI inference | `sk-xxxx` |
+| `STRIPE_SECRET_KEY` | Stripe secret key | `sk_live_xxxx` |
+| `STRIPE_PUBLIC_KEY` | Stripe publishable key | `pk_live_xxxx` |
+| `APP_ENV` | Environment mode | `development` / `production` |
 
-If you’d prefer to use OpenAI instead:
+> Store secrets in `.env` or `secret.*` files. Never commit them to Git.
 
-1. Create a `secret.openai-api-key` file with your OpenAI API key:
+---
 
-    ```plaintext
-    sk-...
-    ```
-
-2. Restart the project with the OpenAI configuration:
-
-    ```sh
-    docker compose down -v
-    docker compose -f compose.yaml -f compose.openai.yaml up
-    ```
-
-# ❓ What Can It Do?
-
-The project lets you explore the [Chinkook database](https://github.com/lerocha/chinook-database) using
-natural language. This database represents a digital media store with information regarding artists,
-albums, media tracks, invoices, and customers.
-
-The agent will write the SQL for your natural language questions:
-
-+ “Who was the best-selling sales agent in 2010?”
-+ “List the top 3 albums by sales.”
-+ “How many customers are from Brazil?”
-
-You can **customize the initial question** asked by the agent — just edit the question in `compose.yaml`.
-
-Need to work with a **different dataset?** Simply swap out `Chinook.db` with your own SQLite file and
-update the mount path in `compose.yaml`.
-
-# 🧱 Project Structure
-
-| File/Folder    | Purpose                                                                   |
-| -------------- | ------------------------------------------------------------------------- |
-| `compose.yaml` | Defines service orchestration and database import (from SQLite).          |
-| `Dockerfile`   | Builds the container environment.                                         |
-| `agent.py`     | Contains the LangGraph agent and logic for forming and answering queries. |
-| `Chinook.db`   | Example SQLite database — can be replaced with your own.                  |
-
-# 🔧 Architecture Overview
-
-```mermaid
-
-flowchart TD
-    A[User] -->|Natural language query| B[Agent]
-
-    B --> C{Agent Flow}
-
-    C -->|Tool call| D[(Docker MCP Server)]
-    D -->|SQL Query| E[(PostgreSQL)]
-
-    C -->|LLM call| F[(Docker Model Runner)]
-
-    E -->|Results| D
-    D -->|Structured Output| B
-    F -->|Generated Answer| B
-
-    B -->|Response| A
-```
-
-+ The LangGraph-based agent transforms questions into SQL.
-+ PostgreSQL is populated from a SQLite dump at runtime.
-+ All components are fully containerized for plug-and-play usage.
-
-# 🧹 Cleanup
-
-To stop and remove containers and volumes:
-
-```sh
+### 🧠 Inference Options
+Default: local Docker model runner.  
+Switch to OpenAI:
+```bash
+echo "sk-..." > secret.openai-api-key
 docker compose down -v
+docker compose -f compose.yaml -f compose.openai.yaml up
 ```
 
-# 📎 Credits
+---
 
-+ [LangGraph]
-+ [PostgreSQL]
-+ [Docker Compose]
+### 🧪 Testing Guide
+Run unit tests:
+```bash
+pytest tests/
+```
 
-[LangGraph]: https://github.com/langchain-ai/langgraph
-[PostgreSQL]: https://postgresql.org
-[Docker Compose]: https://github.com/docker/compose
-[Docker Desktop]: https://www.docker.com/products/docker-desktop/
-[Docker Engine]: https://docs.docker.com/engine/
-[Docker Model Runner]: https://docs.docker.com/ai/model-runner/
-[Docker Model Runner requirements]: https://docs.docker.com/ai/model-runner/
-[Docker Offload]: https://www.docker.com/products/docker-offload/
+Run with coverage:
+```bash
+pytest --cov=app tests/
+```
+
+Integration tests (requires containers running):
+```bash
+docker compose exec backend pytest tests/integration
+```
+
+---
+
+### ☸️ Kubernetes Deployment (Helm)
+
+#### Install Helm Chart
+```bash
+helm install fastapi-boilerplate ./helm
+```
+
+#### Upgrade Release
+```bash
+helm upgrade fastapi-boilerplate ./helm
+```
+
+#### Values.yaml Highlights
+```yaml
+replicaCount: 3
+image:
+  repository: zyntroai/fastapi-boilerplate
+  tag: latest
+ingress:
+  enabled: true
+  hosts:
+    - host: fastapi.local
+      paths: ["/"]
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+```
+
+---
+
+### 📜 License
+MIT License © 2026 ZyntroAI
+
+---
+
+### 🧠 Credits
+- LangGraph  
+- FastAPI  
+- PostgreSQL  
+- Docker Compose  
+- Stripe  
+- Traefik  
+- Helm  
