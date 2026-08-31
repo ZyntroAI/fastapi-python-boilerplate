@@ -1,0 +1,4 @@
+﻿Component,Function
+Multi-Modal Input Processor,"Accepts Text, Voice, Images → NLU converts to structured intent"
+Omnichannel Interface,"Works via WhatsApp, Telegram — no separate app required"
+Real-Time Sync Engine,"Connects to Google Calendar, Apple Calendar, CalDAV + Web Search — always fresh data"

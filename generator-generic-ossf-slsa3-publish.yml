@@ -1,0 +1,121 @@
+Great — this is the **OpenSSF SLSA Level 3 Generic Provenance Generator Workflow Template**. Here's the complete, ready-to-use file based on the official OpenSSF/SLSA template:
+
+---
+
+## 📄 `.github/workflows/generator-generic-ossf-slsa3-publish.yml`
+
+```yaml
+# This workflow generates SLSA Level 3 provenance for release artifacts.
+# The generation satisfies level 3 for the provenance requirements - see https://slsa.dev/spec/v0.1/requirements
+# This project is an initiative of the OpenSSF (openssf.org) and is developed at
+# https://github.com/slsa-framework/slsa-github-generator.
+# The provenance file can be verified using the slsa-verifier tool.
+
+name: SLSA Generic Generator
+on:
+  release:
+    types: [created]  # Automatically run when a new Release is created
+
+jobs:
+  build:
+    outputs:
+      digests: ${{ steps.hash.outputs.digests }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # ==========================================
+      # 👇 YOUR BUILD STEPS HERE 👇
+      # ==========================================
+      # Example for npm:
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      # ==========================================
+
+      # Step 1: Generate SHA256 hashes of your release artifacts
+      - name: Generate subject for provenance
+        id: hash
+        run: |
+          set -euo pipefail
+
+          # List the artifacts the provenance will refer to (adjust pattern as needed)
+          files=$(ls dist/*)
+          # Generate the subjects (base64 encoded).
+          echo "digests=$(sha256sum $files | base64 -w0)" >> "${GITHUB_OUTPUT}"
+
+  provenance:
+    needs: [build]
+    permissions:
+      actions: read   # To read the workflow path
+      id-token: write # To sign the provenance (keyless via Sigstore)
+      contents: write # To upload provenance to the release
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.4.0
+    with:
+      base64-subjects: "${{ needs.build.outputs.digests }}"
+      upload-assets: true  # Attach provenance .intoto.jsonl file to your GitHub Release
+```
+
+---
+
+## 🧩 Key Components Explained
+
+| Part | Purpose |
+|---|---|
+| **`on: release: types: [created]`** | Triggers automatically when you publish a new Release |
+| **`build` job** | Your normal build + hash generation step |
+| **sha256sum + base64** | Creates a fingerprint of your artifacts for provenance |
+| **`provenance` job** | Calls the **trusted reusable workflow** from SLSA framework |
+| **`id-token: write`** | Required for **keyless signing** via Sigstore/Fulcio — no PKI needed |
+| **`upload-assets: true`** | Attaches `provenance.intoto.jsonl` to your Release assets |
+| **SLSA Level 3** | Provenance is **signed by GitHub's OIDC identity**, cannot be forged by the build job — satisfies SLSA Build L3 |
+
+---
+
+## ⚙️ Customization Points
+
+### 1. Match Your Artifact Path
+Change the `files=$(ls dist/*)` line to match **your actual output files**:
+```bash
+# For npm/frontend
+files=$(ls dist/*)
+
+# For binaries
+files=$(ls my-project-*.tar.gz)
+
+# For multiple files
+files=$(ls bin/*.zip dist/*.tar.gz)
+```
+
+### 2. Your Build Commands
+Replace the example `npm ci && npm run build` with **your actual build commands** (make, go build, cargo build, etc.).
+
+### 3. Version Tag
+The template uses `@v1.4.0` — check for the **latest version** at:
+👉 https://github.com/slsa-framework/slsa-github-generator/releases
+
+---
+
+## ✅ Permissions Required
+Go to your repo → **Settings → Actions → General** → Scroll down to **Workflow permissions**:
+- ✅ Set to **"Read and write permissions"** (or ensure your job explicitly has the 3 permissions listed)
+- ✅ **Allow GitHub Actions to create and approve pull requests** — not strictly needed here but good practice
+
+---
+
+## 🔐 How It Works (Security)
+1. Your **build job runs in an isolated environment** → produces artifacts + hashes
+2. The **provenance job runs separately** in a **trusted workflow** from the slsa-framework repo
+3. It **signs the attestation** using a **OIDC token from GitHub** → Fulcio certificate binds provenance to your repo identity
+4. Signature is **logged to Rekor** (Sigstore transparency log) → anyone can verify it hasn't been tampered
+5. Result: **SLSA Build Level 3** compliance — provenance is **non-falsifiable** by the build job
+
+---
+
+## 📌 Usage
+1. Save this file to `.github/workflows/generator-generic-ossf-slsa3-publish.yml`
+2. Commit to `main` / default branch
+3. Create a **new Release** → workflow runs automatically → provenance appears as an asset in the Release
+
+Want me to adapt this template specifically for **npm packages**, **Go binaries**, or **Docker images**? Or help you **verify the provenance** after it's generated?

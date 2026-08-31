@@ -1,0 +1,5 @@
+﻿Concept,Simple Explanation
+Premature Layer (earlier),"Captures grammar, syntax, sentence structure"
+Mature Layer (later/deeper),Contains deep semantic knowledge + facts
+Contrast Logits,"Subtract early-layer scores from late-layer scores → amplifies verified facts, suppresses guesses"
+Result,Answers become more truthful; TruthfulQA +12–17% shown in research

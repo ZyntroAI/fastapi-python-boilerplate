@@ -1,0 +1,5 @@
+﻿Concept,Purpose,Used In
+JWT,Authenticates as the App itself,"Getting installation tokens, listing installations"
+Installation Token,Authenticates as the App on a specific installation,"API calls to repositories (commenting, reading, etc.)"
+OAuth Token,Authenticates as a specific user,"User-specific actions, accessing user data"
+Webhook Secret,Verifies webhook requests really came from GitHub,/webhook/github endpoint
