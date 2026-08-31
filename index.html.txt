@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI Python Boilerplate — AI-Driven DevOps Stack</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --fg: #e2e8f0;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --code-bg: #1e293b;
+            --border: #334155;
+            --green: #4ade80;
+            --blue: #60a5fa;
+            --yellow: #facc15;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            line-height: 1.6;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 2rem 1.25rem;
+        }
+        header { margin-bottom: 2.5rem; }
+        h1 { font-size: 1.8rem; margin-bottom: 0.8rem; color: var(--accent); }
+        .badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0; }
+        .badges img { height: 22px; border-radius: 3px; }
+        hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+        h2 { font-size: 1.3rem; margin: 2rem 0 1rem; color: var(--green); }
+        h3 { font-size: 1.1rem; margin: 1.4rem 0 0.7rem; color: var(--blue); }
+        p { margin-bottom: 0.8rem; }
+        ul, ol { margin: 0 0 1rem 1.6rem; }
+        li { margin-bottom: 0.4rem; }
+        code, pre { background: var(--code-bg); border-radius: 6px; font-family: Consolas, Menlo, monospace; }
+        code { padding: 0.15rem 0.4rem; font-size: 0.95rem; }
+        pre { padding: 1rem; overflow-x: auto; margin: 1rem 0; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; border: 1px solid var(--border); }
+        th, td { padding: 0.6rem 0.9rem; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: var(--code-bg); color: var(--accent); }
+        tr:hover { background: rgba(56,189,248,0.05); }
+        .note { background: rgba(74,222,128,0.08); border-left: 3px solid var(--green); padding: 0.8rem 1rem; margin: 1rem 0; border-radius: 0 6px 6px 0; }
+        footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.9rem; }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🧠 FastAPI Python Boilerplate — AI‑Driven DevOps Stack</h1>
+    <div class="badges">
+        <a href="https://github.com/ZyntroAI/fastapi-python-boilerplate/actions/workflows/CICD_Pipeline.yaml"><img src="https://github.com/ZyntroAI/fastapi-python-boilerplate/actions/workflows/CICD_Pipeline.yaml/badge.svg" alt="CI/CD Pipeline"></a>
+        <a href="https://github.com/ZyntroAI/fastapi-python-boilerplate/actions/workflows/codeql.yml"><img src="https://github.com/ZyntroAI/fastapi-python-boilerplate/actions/workflows/codeql.yml/badge.svg?branch=main" alt="CodeQL Analysis"></a>
+        <a href="https://codecov.io/gh/ZyntroAI/fastapi-python-boilerplate"><img src="https://codecov.io/gh/ZyntroAI/fastapi-python-boilerplate/branch/main/graph/badge.svg" alt="codecov"></a>
+        <a href="https://github.com/ZyntroAI/fastapi-python-boilerplate/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"></a>
+        <img src="https://img.shields.io/badge/Python-3.11%2B-blue.svg" alt="Python 3.11+">
+        <img src="https://img.shields.io/badge/FastAPI-0.100%2B-green.svg" alt="FastAPI">
+        <img src="https://img.shields.io/badge/Docker%20Compose-2.38%2B-blue.svg" alt="Docker Compose">
+    </div>
+    <hr>
+</header>
+
+<section>
+    <h2>🚀 Overview</h2>
+    <p>A <strong>production‑ready FastAPI boilerplate</strong> integrating:</p>
+    <ul>
+        <li>🧩 <strong>LangGraph AI Agent</strong> — query SQL databases using natural language</li>
+        <li>💳 <strong>Stripe Payment Integration</strong> — secure, scalable payment flow</li>
+        <li>⚙️ <strong>Helm + Kubernetes CI/CD</strong> — automated deployment and scaling</li>
+        <li>🌐 <strong>Traefik Routing</strong> — seamless microservice orchestration</li>
+    </ul>
+
+    <h2>⚙️ Getting Started</h2>
+    <h3>Requirements</h3>
+    <ul>
+        <li>Python 3.11+</li>
+        <li>Docker Desktop 4.43+ or Docker Engine</li>
+        <li>Docker Compose 2.38.1+ (Linux)</li>
+        <li>Optional GPU for local inference</li>
+    </ul>
+
+    <h3>Quick Start</h3>
+<pre>git clone https://github.com/ZyntroAI/fastapi-python-boilerplate.git
+cd fastapi-python-boilerplate
+docker compose up</pre>
+
+    <h2>🔑 Environment Variables</h2>
+    <table>
+        <thead><tr><th>Variable</th><th>Description</th><th>Example</th></tr></thead>
+        <tbody>
+            <tr><td><code>DATABASE_URL</code></td><td>PostgreSQL connection string</td><td><code>postgresql://user:pass@db:5432/chinook</code></td></tr>
+            <tr><td><code>OPENAI_API_KEY</code></td><td>API key for OpenAI inference</td><td><code>sk-xxxx</code></td></tr>
+            <tr><td><code>STRIPE_SECRET_KEY</code></td><td>Stripe secret key</td><td><code>sk_live_xxxx</code></td></tr>
+            <tr><td><code>STRIPE_PUBLIC_KEY</code></td><td>Stripe publishable key</td><td><code>pk_live_xxxx</code></td></tr>
+            <tr><td><code>APP_ENV</code></td><td>Environment mode</td><td><code>development</code> / <code>production</code></td></tr>
+        </tbody>
+    </table>
+    <p class="note">Store secrets in <code>.env</code> or <code>secret.*</code> files. <strong>Never commit secrets to Git.</strong></p>
+
+    <h2>🧠 Inference Options</h2>
+    <p><strong>Default:</strong> Local Docker model runner.</p>
+    <p><strong>Switch to OpenAI:</strong></p>
+<pre>echo "sk-..." > secret.openai-api-key
+docker compose down -v
+docker compose -f compose.yaml -f compose.openai.yaml up</pre>
+
+    <h2>🧪 Testing Guide</h2>
+    <p>Run unit tests:</p>
+<pre>pytest tests/</pre>
+    <p>Run with coverage report:</p>
+<pre>pytest --cov=app --cov-report=xml tests/</pre>
+    <p>Integration tests (requires containers running):</p>
+<pre>docker compose exec backend pytest tests/integration</pre>
+
+    <div class="note">
+        <strong>Codecov Tip:</strong> Add this to your CI workflow to automatically upload coverage:
+<pre>- name: Upload Coverage to Codecov
+  uses: codecov/codecov-action@v4
+  with:
+    files: ./coverage.xml</pre>
+    </div>
+
+    <h2>☸️ Kubernetes Deployment (Helm)</h2>
+    <h3>Install Helm Chart</h3>
+<pre>helm install fastapi-boilerplate ./helm</pre>
+    <h3>Upgrade Release</h3>
+<pre>helm upgrade fastapi-boilerplate ./helm</pre>
+
+    <h3>values.yaml Highlights</h3>
+<pre>replicaCount: 3
+image:
+  repository: zyntroai/fastapi-boilerplate
+  tag: latest
+ingress:
+  enabled: true
+  hosts:
+    - host: fastapi.local
+      paths: ["/"]
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi</pre>
+
+    <h2>📁 Repository Structure</h2>
+<pre>├── .github/workflows/   # CI/CD pipelines (CI, Deployment, CodeQL)
+├── api/                 # API route definitions
+├── app/                 # Core application logic
+├── docker/              # Docker & container configs
+├── helm/                # Kubernetes Helm charts
+├── k8s/                 # Kubernetes manifests
+├── scripts/             # Utility & automation scripts
+├── services/            # Business logic & service layer
+├── tests/               # Unit & integration tests
+├── docker-compose.yml   # Local dev stack (Traefik + services)
+├── requirements.txt     # Python dependencies
+└── main.py / app.py     # Application entry points</pre>
+
+    <h2>📜 License</h2>
+    <p><strong>MIT License</strong> © 2026 ZyntroAI</p>
+
+    <h2>🧠 Credits</h2>
+    <ul>
+        <li><strong>LangGraph</strong> — AI agent orchestration</li>
+        <li><strong>FastAPI</strong> — modern Python web framework</li>
+        <li><strong>PostgreSQL</strong> — relational database</li>
+        <li><strong>Docker Compose</strong> — local development & container orchestration</li>
+        <li><strong>Stripe</strong> — payments & billing</li>
+        <li><strong>Traefik</strong> — reverse proxy & ingress controller</li>
+        <li><strong>Helm</strong> — Kubernetes package manager</li>
+    </ul>
+</section>
+
+<footer>
+    ✅ All badges included · ✅ Ready to deploy · ✅ Coverage & CI/CD examples included
+</footer>
+
+</body>
+</html>
