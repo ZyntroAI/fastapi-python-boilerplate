@@ -1,0 +1,50 @@
+name: CI/CD Deploy Payments Platform
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Setup Kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: v1.30.0
+
+      - name: Configure Kubeconfig
+        run: |
+          echo "${{ secrets.KUBECONFIG_CONTENT }}" > kubeconfig.yaml
+          export KUBECONFIG=$PWD/kubeconfig.yaml
+
+      - name: Build & Push API image
+        run: |
+          docker build -t ${{ secrets.REGISTRY }}/api:${{ github.sha }} ./api
+          echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY }} -u ${{ secrets.REGISTRY_USER }} --password-stdin
+          docker push ${{ secrets.REGISTRY }}/api:${{ github.sha }}
+
+      - name: Build & Push Skip-Payment image
+        run: |
+          docker build -t ${{ secrets.REGISTRY }}/skip-payment:${{ github.sha }} ./skip-payment
+          docker push ${{ secrets.REGISTRY }}/skip-payment:${{ github.sha }}
+
+      - name: Helm dependency update
+        run: helm dependency update ./payments-helm-chart
+
+      - name: Helm Upgrade/Install
+        run: |
+          helm upgrade --install payments-platform ./payments-helm-chart \
+            -f ./payments-helm-chart/values.yaml \
+            --set api.image.tag=${{ github.sha }} \
+            --set skip-payment.image.tag=${{ github.sha }}
