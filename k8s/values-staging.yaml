@@ -1,0 +1,10 @@
+image:
+  repository: your-registry/skip-payment
+  tag: staging
+
+secrets:
+  db:
+    name: payment-db-secret-staging
+
+cronjob:
+  schedule: "0 */6 * * *"   # รันทุก 6 ชั่วโมง
