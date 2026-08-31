@@ -1,0 +1,5 @@
+﻿Rule,Details
+Visibility,Public repos → visible to everyone; Private/Internal → visible only to users with read access
+Allowed characters — Names,"Letters a-z A-Z, numbers 0-9, plus _ - $ #"
+Allowed characters — Values,"All printable ASCII except """
+Max length,75 characters (name & value)

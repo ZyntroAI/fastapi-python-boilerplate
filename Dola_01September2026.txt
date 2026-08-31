@@ -1,0 +1,380 @@
+# 🚀 Push to Repository — Complete File Bundle
+
+Since I can't directly push commits to your repository, here's **everything ready to copy-paste directly into your files**, plus the exact commands to push them in minutes!
+
+---
+
+## 📁 Step 1: Create These Files in Your Repo
+
+### 📄 `.github/PULL_REQUEST_TEMPLATE/default.md`
+```markdown
+## 📌 Summary
+- Briefly describe the purpose of this Pull Request.
+- Link to related issue(s) or discussion.
+
+## 🛠 Changes Introduced
+- **Type:** Feature / Bugfix / Refactor / Docs / Infra / Chore / Style / Performance / Test / Security / Release / CI/CD
+- **Key modules/services affected:**
+
+## ✅ Checklist
+- [ ] Code builds locally
+- [ ] Tests added/updated
+- [ ] Documentation updated
+- [ ] Helm/K8s manifests validated (if applicable)
+- [ ] CI/CD pipeline passes
+
+## 🔍 Testing & Validation
+**Steps to verify:**
+  1. …
+  2. …
+- **Expected outcome:**
+- **Screenshots/logs (if applicable):**
+
+## 📂 Impacted Areas
+- Services/Modules affected:
+- Dependencies introduced/removed:
+
+## 📊 Governance & RACI
+- **Responsible:** Author
+- **Accountable:** Maintainer
+- **Consulted:** Reviewer(s)
+- **Informed:** Team/Stakeholders
+
+## 📎 Additional Notes
+- Known limitations:
+- Future improvements:
+```
+
+### 📄 `.github/PULL_REQUEST_TEMPLATE/feature.md`
+```markdown
+## ✨ Feature Summary
+- What new capability does this introduce?
+- User value / business impact:
+
+## 🛠 Changes Introduced
+- [ ] New API route / service
+- [ ] UI component / page
+- [ ] Database schema migration
+- [ ] Feature flag added
+- [ ] Other: ________
+
+## ✅ Checklist
+- [ ] Feature flag created in Unleash
+- [ ] Default = OFF (safe by default)
+- [ ] Documentation updated
+- [ ] Tests added
+- [ ] CI/CD passes
+- [ ] Rollback plan documented
+
+## 🔍 Testing & Validation
+- [ ] Flag OFF → existing behavior unchanged
+- [ ] Flag ON → new behavior works
+- [ ] Edge cases verified
+```
+
+### 📄 `.github/PULL_REQUEST_TEMPLATE/bugfix.md`
+```markdown
+## 🐛 Bug Summary
+- Describe the issue being fixed.
+- Link to related issue(s).
+
+## 🔧 Fix Details
+- **Root cause:**
+- **Fix applied:**
+- **Regression risk:** Low / Medium / High
+
+## ✅ Checklist
+- [ ] Code builds locally
+- [ ] Tests added/updated to cover the fix
+- [ ] Documentation updated
+- [ ] CI/CD pipeline passes
+
+## 🔍 Testing & Validation
+- **Steps to reproduce original bug:**
+  1. …
+  2. …
+- **Steps to confirm fix:**
+  1. …
+  2. …
+- **Expected outcome:**
+```
+
+### 📄 `.github/PULL_REQUEST_TEMPLATE/release.md`
+```markdown
+## 📦 Release Summary
+- **Version:** ________
+- **Why is this release important?**
+
+## 🛠 Changes Introduced
+- [ ] Version bump
+- [ ] Changelog updated
+- [ ] Release notes written
+- [ ] Deployment scripts validated
+- [ ] Other: ________
+
+## ✅ Checklist
+- [ ] Version updated in `package.json`, `pyproject.toml`, Helm charts
+- [ ] Changelog written
+- [ ] CI/CD pipeline passes
+- [ ] Artifacts built & validated
+- [ ] Deployment tested
+
+## 🔍 Validation
+- **Smoke tests pass:**
+- **Rollback path verified:**
+- **Monitoring healthy post-deploy:**
+```
+
+### 📄 `.github/PULL_REQUEST_TEMPLATE/docs.md`
+```markdown
+## 📚 Documentation Summary
+- What part of the documentation does this update?
+- Why is this change needed?
+
+## 🛠 Changes Introduced
+- [ ] README
+- [ ] API reference
+- [ ] Developer guide
+- [ ] User guide
+- [ ] Architecture / Design docs
+- [ ] Other: ________
+
+## ✅ Checklist
+- [ ] Grammar & clarity reviewed
+- [ ] Examples updated
+- [ ] Links verified
+- [ ] Diagrams/screenshots current
+- [ ] Preview rendered correctly
+```
+
+### 📄 `.github/PULL_REQUEST_TEMPLATE/infra-config.md`
+```markdown
+## ⚙️ Configuration / Infra Summary
+- What infrastructure/config does this PR update?
+- Why is this change necessary?
+
+## 🛠 Changes Introduced
+- [ ] Environment variables
+- [ ] Helm / K8s values
+- [ ] CI/CD workflow
+- [ ] Docker / Compose
+- [ ] Other: ________
+
+## ✅ Checklist
+- [ ] Changes documented
+- [ ] Secrets managed securely (no plaintext)
+- [ ] Works in staging
+- [ ] CI/CD pipeline passes
+- [ ] Rollback plan exists
+```
+
+### 📄 `.github/PULL_REQUEST_TEMPLATE/security.md`
+```markdown
+## 🔒 Security Summary
+- What vulnerability or risk does this PR address?
+- Why is it critical?
+
+## 🛠 Changes Introduced
+- [ ] Dependency upgrade (list versions)
+- [ ] Auth / RBAC improvement
+- [ ] Encryption / data protection
+- [ ] Secret management improvement
+- [ ] Input validation / sanitization
+- [ ] Other: ________
+
+## ✅ Checklist
+- [ ] Issue reproduced & confirmed
+- [ ] Fix applied & validated
+- [ ] Secrets stored securely
+- [ ] Compliance requirements met
+- [ ] CI/CD pipeline passes
+```
+
+### 📄 `.github/PULL_REQUEST_TEMPLATE/dependencies.md`
+```markdown
+## 📦 Dependency Summary
+- **Package:** ________ (from → to)
+- **Reason:** Security / Bugfix / Feature / Performance
+
+## 🛠 Changes Introduced
+- [ ] Major version upgrade ⚠️
+- [ ] Minor / Patch update ✅
+- [ ] New dependency added
+- [ ] Deprecated removed
+
+## ✅ Checklist
+- [ ] Version verified from official registry
+- [ ] Changelog reviewed
+- [ ] No breaking changes introduced
+- [ ] Code tested & builds
+- [ ] CI/CD passes
+```
+
+### 📄 `docs/STRIPE_ENTITLEMENTS.md`
+```markdown
+# 💰 Stripe Billing Entitlements — Integration Guide
+
+## 🎯 What Are Entitlements?
+> **Entitlements = Map Features → Products → Subscriptions** — control access without changing code.
+
+## How It Works
+```
+Stripe Dashboard ──Features──→ Products ──Subscriptions──→ Customers
+       │                                                        │
+       ▼                                                        ▼
+  Define Features                                        Stripe Webhooks:
+  • API Access                                         • Grant Access ✅
+  • AI Assistant                                       • Revoke Access ❌
+  • Premium Support                                     • What Features?
+  • Extended Retention                                  • Until When?
+```
+
+## Step-by-Step Setup
+1. **Create Features** in Stripe Dashboard → Product Catalog → Features
+   - **Name:** Display name
+   - **Lookup Key:** Unique identifier (e.g., `ai_assistant`) — use THIS in code!
+2. **Attach Features to Products** → Each plan inherits its features
+3. **Check in Code** → Query Stripe API: "What features does this customer have?"
+4. **Webhooks** → `customer.subscription.updated` → Auto-provision/revoke
+
+## Code Example
+```python
+import stripe
+stripe.api_key = "sk_..."
+
+def has_entitlement(customer_id: str, feature_key: str) -> bool:
+    entitlements = stripe.entitlements.ActiveEntitlement.list(
+        customer=customer_id, limit=100
+    )
+    return any(e.lookup_key == feature_key for e in entitlements.data)
+
+# Usage
+if has_entitlement("cus_xxx", "ai_assistant"):
+    enable_ai_assistant()
+else:
+    show_upgrade_prompt()
+```
+
+## Key Benefits
+- ✅ **Change features → no code deploy** — update in Dashboard only
+- ✅ **Auto-provisioning** — Webhooks notify your backend
+- ✅ **Cleaner code** — `if has_feature("priority_support")`
+- ✅ **Syncs automatically** with subscription changes
+
+## CLI / Plugin
+```bash
+npm install -g @stripe/cli
+stripe agent setup
+claude plugin install stripe@claude-plugins-official
+```
+```
+
+### 📄 `infrastructure/helm/payments-platform/Chart.yaml`
+```yaml
+apiVersion: v2
+name: payments-platform
+description: Umbrella chart — API + CronJob + PostgreSQL
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+dependencies:
+  - name: api
+    version: 0.1.0
+    repository: "file://charts/api"
+  - name: skip-payment
+    version: 0.1.0
+    repository: "file://charts/skip-payment"
+  - name: postgres
+    version: 10.3.17
+    repository: "https://charts.bitnami.com/bitnami"
+```
+
+### 📄 `infrastructure/helm/payments-platform/values.yaml`
+```yaml
+# Global — applies to ALL subcharts
+global:
+  imagePullSecrets: []
+  env:
+    LOG_LEVEL: info
+
+# API Service
+api:
+  image:
+    repository: your-registry/api
+    tag: v1.2.3
+  replicaCount: 2
+  service:
+    type: ClusterIP
+    port: 8080
+  env:
+    DATABASE_URL: "postgresql://postgres:password@payments-postgres:5432/payments"
+
+# Skip-Payment CronJob
+skip-payment:
+  image:
+    repository: your-registry/skip-payment
+    tag: latest
+  cron:
+    schedule: "0 0 * * *"  # Daily at midnight UTC
+  env:
+    DB_URL: "postgresql://postgres:password@payments-postgres:5432/payments"
+    # SUPABASE_KEY: managed via Kubernetes Secrets — NOT here!
+
+# PostgreSQL (Bitnami)
+postgres:
+  fullnameOverride: payments-postgres
+  auth:
+    username: postgres
+    password: password  # ⚠️ Use Secrets in production!
+    database: payments
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+```
+
+---
+
+## 🚀 Step 2: Run These Commands in Your Terminal
+
+```bash
+# 1. Clone repo (if not already)
+git clone https://github.com/Zyntro-Media-AI/new-crystalcastle.git
+cd new-crystalcastle
+
+# 2. Create directories
+mkdir -p .github/PULL_REQUEST_TEMPLATE
+mkdir -p docs
+mkdir -p infrastructure/helm/payments-platform/charts
+
+# 3. Copy all the content above into each file
+#    → Create each file listed and paste the content
+
+# 4. Stage all files
+git add .github/PULL_REQUEST_TEMPLATE/*.md
+git add docs/STRIPE_ENTITLEMENTS.md
+git add infrastructure/helm/payments-platform/*
+
+# 5. Commit
+git commit -m "🚀 Add: PR Templates, Stripe Entitlements Guide, Helm Umbrella Chart"
+
+# 6. Push to main
+git push origin main
+```
+
+---
+
+## ✅ Summary — What You're Adding
+
+| File | Purpose |
+|---|---|
+| 8× PR Templates | Standardize every code change → consistent review flow |
+| `STRIPE_ENTITLEMENTS.md` | Feature-based access control → decouple pricing from code |
+| Helm Chart + Values | Deploy full stack (API + DB + Cron) as single unit |
+
+---
+
+> 💡 **Tip**: After pushing, go to your repo → **Pull Requests** → you'll see the templates auto-appear when opening a new PR!
+
+Want me to also add the **Feature Flag Workflows** and **Rewards Page** files next? 🎉

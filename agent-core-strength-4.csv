@@ -1,0 +1,5 @@
+﻿Agent,Core strength,Execution model,Pricing / cost model,Reliability / control
+Manus,Research & multi‑step deliverables,"Autonomous workflows with web actions, code, and file outputs",Subscription + credit usage; credits for tasks,Strong for structured tasks; can drift on ambiguous goals.
+AutoGPT,Open-ended automation & experimentation,Agent chains that spawn subagents; heavy LLM use,Mostly self-hosted or cloud runs; compute costs vary,Very flexible but can go off‑rail; needs guardrails.
+Cursor,Developer workflows and code generation,IDE‑centric agent; integrates with local code and editor,Product tiers; usage-based for advanced features,Good for code tasks; predictable within dev context.
+Devin,Task orchestration and integrations,Focus on connectors and business automation,SaaS pricing; often per‑task or seat,Reliable for business flows; less exploratory.

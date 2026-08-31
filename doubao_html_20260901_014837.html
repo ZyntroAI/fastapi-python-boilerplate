@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PR #3 — Deno Workflow · gemini-cli</title>
+  <style>
+    :root {
+      --bg: #0d1117; --bg2: #161b22; --card: #1c2128;
+      --border: #30363d; --text: #f0f6fc; --muted: #8b949e;
+      --accent: #2f81f7; --success: #3fb950; --purple: #a371f7; --gold: #d4a72c;
+      --yaml-key: #79c0ff; --yaml-val: #a5d6ff; --yaml-comm: #8b949e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6; padding: 20px;
+      max-width: 960px; margin: 0 auto;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .summary-box {
+      border-left: 3px solid var(--accent); padding: 16px; margin-bottom: 20px;
+      background: rgba(47,129,247,0.05); border-radius: 0 10px 10px 0;
+    }
+    header, .card {
+      border: 1px solid var(--border); border-radius: 10px;
+      background: var(--bg2); padding: 24px; margin-bottom: 16px;
+    }
+    .badges { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 500;
+      background: var(--card); border: 1px solid var(--border);
+    }
+    .badge.success { border-color: var(--success); color: var(--success); }
+    .badge.purple { border-color: var(--purple); color: var(--purple); }
+    .badge.gold { border-color: var(--gold); color: var(--gold); }
+    .status-draft {
+      display: inline-block; background: var(--gold); color: #000;
+      font-weight: 600; padding: 2px 10px; border-radius: 20px; font-size: 13px;
+    }
+    h1 { font-size: 20px; }
+    h2 { font-size: 18px; margin: 0 0 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: var(--card); border-radius: 6px;
+    }
+    pre { padding: 16px; overflow-x: auto; font-size: 13px; margin: 10px 0; line-height: 1.55; }
+    code { padding: 2px 6px; font-size: 0.92em; }
+    .meta { color: var(--muted); font-size: 14px; margin: 6px 0; }
+    .branch { color: var(--accent); font-weight: 500; }
+    .checks { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+    .check-item { display: flex; align-items: center; gap: 4px; font-size: 14px; }
+    .check-item .ok { color: var(--success); }
+    ul { margin-left: 22px; }
+    li { padding: 3px 0; }
+    .label-tag {
+      display: inline-block; font-size: 12px; font-weight: 500;
+      padding: 1px 8px; border-radius: 2em; background: var(--card);
+      border: 1px solid var(--border); margin: 2px 4px 2px 0;
+    }
+    .label-size { border-color: var(--gold); color: var(--gold); }
+    .yaml-comm { color: var(--yaml-comm); }
+    .copy-btn {
+      float: right; background: var(--accent); color: #fff; border: none;
+      padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer;
+    }
+    .copy-btn:active { opacity: 0.85; }
+    .clearfix::after { content: ""; display: table; clear: both; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════ QUICK SUMMARY ═══════════ -->
+<div class="summary-box">
+  <h2>📋 PR #3 — Quick Summary</h2>
+  <p><strong>Title:</strong> Add Deno workflow for linting and testing</p>
+  <p><strong>Repo:</strong> <a href="https://github.com/ZyntroAI/gemini-cli" target="_blank">ZyntroAI/gemini-cli</a></p>
+  <p><strong>Status:</strong> Draft · Author: zyntromedia · Checks: 15 passed ✅</p>
+  <p><strong>Changes:</strong> +42 lines · 1 file · Size: S</p>
+  <p><strong>Branch:</strong> <span class="branch">zyntromedia-patch-3</span> → <span class="branch">main</span></p>
+  <p><strong>Commit:</strong> <code>eca96f9</code> · Signed & Verified</p>
+  <p><strong>Purpose:</strong> Install Deno → run lint + tests automatically on CI</p>
+</div>
+
+<!-- ═══════════ PR DETAILS ═══════════ -->
+<header>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+    <h1>Pull Request #3</h1>
+    <span class="status-draft">Draft</span>
+  </div>
+  <p style="font-size:18px;font-weight:600;margin:6px 0;">Add Deno workflow for linting and testing</p>
+  <div class="meta">
+    🔁 Forked from: <code>google-gemini/gemini-cli</code> &nbsp;|&nbsp;
+    👤 Author: <strong>zyntromedia</strong>
+  </div>
+  <div class="meta">
+    🔄 Merge into: <span class="branch">main</span> ← <span class="branch">zyntromedia-patch-3</span>
+  </div>
+  <div class="badges">
+    <span class="badge success">➕ +42 lines</span>
+    <span class="badge">📄 1 file changed</span>
+    <span class="badge purple">S: 10–49 lines</span>
+    <span class="badge gold">size/S</span>
+  </div>
+  <div class="checks">
+    <span class="check-item ok">✅ Checks: 15 passed</span>
+    <span class="check-item">🔒 Signed: <code>eca96f9</code> · GPG verified</span>
+  </div>
+  <div style="margin-top:8px;">
+    <span class="label-tag label-size">size/S</span>
+    <span class="label-tag">github-actions bot</span>
+  </div>
+</header>
+
+<!-- ═══════════ WORKFLOW FILE CONTENT ═══════════ -->
+<div class="card clearfix">
+  <h2>📄 Workflow File: <code>.github/workflows/deno.yml</code>
+    <button class="copy-btn" onclick="copyCode()">📋 Copy</button>
+  </h2>
+<pre id="codeblock">
+name: Deno
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Lint
+        run: deno lint
+
+      - name: Test
+        run: deno test --allow-all
+</pre>
+</div>
+
+<!-- ═══════════ DESCRIPTION ═══════════ -->
+<div class="card">
+  <h2>📝 PR Description</h2>
+  <p><strong>Purpose:</strong> This workflow installs Deno and runs linting and tests.</p>
+</div>
+
+<!-- ═══════════ COMMIT MESSAGE ═══════════ -->
+<div class="card">
+  <h2>💬 Commit Message</h2>
+<pre>Add Deno workflow for linting and testing
+
+This workflow installs Deno and runs linting and tests.
+</pre>
+</div>
+
+<!-- ═══════════ CHECKLIST ═══════════ -->
+<div class="card">
+  <h2>✅ Pre‑Merge Checklist</h2>
+  <ul>
+    <li>✅ macOS: <code>npm run</code> · <code>npx</code> · Docker · Podman · Seatbelt</li>
+    <li>✅ Windows: <code>npm run</code> · <code>npx</code> · Docker</li>
+    <li>✅ Linux: <code>npm run</code> · <code>npx</code> · Docker</li>
+    <li>✅ Documentation updated (if needed)</li>
+    <li>✅ Tests added/updated (if needed)</li>
+    <li>✅ Breaking changes reviewed</li>
+  </ul>
+</div>
+
+<!-- ═══════════ LINKS ═══════════ -->
+<div class="card">
+  <h2>🔗 Links</h2>
+  <ul>
+    <li><a href="https://github.com/ZyntroAI/gemini-cli/pull/3" target="_blank">View PR #3 on GitHub</a></li>
+    <li>File: <code>.github/workflows/deno.yml</code> (new file)</li>
+    <li>Branch: <code>zyntromedia-patch-3</code> → <code>main</code></li>
+    <li>Commit: <code>eca96f9</code> · Signed & Verified</li>
+  </ul>
+</div>
+
+<script>
+function copyCode() {
+  const code = document.getElementById('codeblock').innerText;
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    const orig = btn.innerText;
+    btn.innerText = '✅ Copied!';
+    setTimeout(() => btn.innerText = orig, 2000);
+  });
+}
+</script>
+</body>
+</html>
