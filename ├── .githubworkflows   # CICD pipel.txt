@@ -1,0 +1,12 @@
+├── .github/workflows/   # CI/CD pipelines (CI, Deployment, CodeQL)
+├── api/                 # API route definitions
+├── app/                 # Core application logic
+├── docker/              # Docker & container configs
+├── helm/                # Kubernetes Helm charts
+├── k8s/                 # Kubernetes manifests
+├── scripts/             # Utility & automation scripts
+├── services/            # Business logic & service layer
+├── tests/               # Unit & integration tests
+├── docker-compose.yml   # Local dev stack (Traefik + services)
+├── requirements.txt     # Python dependencies
+└── main.py / app.py     # Application entry points

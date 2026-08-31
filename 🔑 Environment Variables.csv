@@ -1,0 +1,6 @@
+﻿Variable,Description,Example
+DATABASE_URL,PostgreSQL connection string,postgresql://user:pass@db:5432/chinook
+OPENAI_API_KEY,API key for OpenAI inference,sk-xxxx
+STRIPE_SECRET_KEY,Stripe secret key,sk_live_xxxx
+STRIPE_PUBLIC_KEY,Stripe publishable key,pk_live_xxxx
+APP_ENV,Environment mode,development / production

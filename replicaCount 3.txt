@@ -1,0 +1,13 @@
+replicaCount: 3
+image:
+  repository: zyntroai/fastapi-boilerplate
+  tag: latest
+ingress:
+  enabled: true
+  hosts:
+    - host: fastapi.local
+      paths: ["/"]
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
