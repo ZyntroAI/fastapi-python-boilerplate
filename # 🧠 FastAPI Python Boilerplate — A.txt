@@ -1,0 +1,35 @@
+# 🧠 FastAPI Python Boilerplate — AI‑Driven DevOps Stack
+
+[![CI/CD Pipeline](https://github.com/ZyntroAI/fastapi-python-boilerplate/actions/workflows/CICD_Pipeline.yaml/badge.svg)](https://github.com/ZyntroAI/fastapi-python-boilerplate/actions/workflows/CICD_Pipeline.yaml)
+[![CodeQL Analysis](https://github.com/ZyntroAI/fastapi-python-boilerplate/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/ZyntroAI/fastapi-python-boilerplate/actions/workflows/codeql.yml)
+[![codecov](https://codecov.io/gh/ZyntroAI/fastapi-python-boilerplate/branch/main/graph/badge.svg)](https://codecov.io/gh/ZyntroAI/fastapi-python-boilerplate)
+[![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/ZyntroAI/fastapi-python-boilerplate/blob/main/LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-green.svg)](https://fastapi.tiangolo.com/)
+[![Docker Compose](https://img.shields.io/badge/Docker%20Compose-2.38%2B-blue.svg)](https://docs.docker.com/compose/)
+
+---
+
+### 🚀 Overview
+A **production‑ready FastAPI boilerplate** integrating:
+
+- 🧩 **LangGraph AI Agent** — query SQL databases using natural language
+- 💳 **Stripe Payment Integration** — secure, scalable payment flow
+- ⚙️ **Helm + Kubernetes CI/CD** — automated deployment and scaling
+- 🌐 **Traefik Routing** — seamless microservice orchestration
+
+---
+
+### ⚙️ Getting Started
+
+#### Requirements
+- Python 3.11+
+- Docker Desktop 4.43+ or Docker Engine
+- Docker Compose 2.38.1+ (Linux)
+- Optional GPU for local inference
+
+#### Quick Start
+```bash
+git clone https://github.com/ZyntroAI/fastapi-python-boilerplate.git
+cd fastapi-python-boilerplate
+docker compose up
