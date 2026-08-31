@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Payments Platform - Helm & CI/CD</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; margin: 20px; }
+    h1, h2, h3 { color: #2c3e50; }
+    pre { background: #f4f4f4; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    code { font-family: Consolas, monospace; }
+    .section { margin-bottom: 40px; }
+  </style>
+</head>
+<body>
+
+  <h1>Payments Platform - Umbrella Helm Chart & GitHub Actions CI/CD</h1>
+
+  <div class="section">
+    <h2>Umbrella Helm Chart Overview</h2>
+    <p>Umbrella chart ที่รวม <strong>api</strong>, <strong>skip-payment-cronjob</strong>, และ <strong>postgres</strong> (DB).</p>
+
+    <h3>Chart.yaml (umbrella)</h3>
+    <pre><code>apiVersion: v2
+name: payments-platform
+description: Umbrella chart for API, CronJob, and Postgres
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+dependencies:
+  - name: api
+    version: 0.1.0
+    repository: "file://charts/api"
+  - name: skip-payment
+    version: 0.1.0
+    repository: "file://charts/skip-payment"
+  - name: postgres
+    version: 10.3.17
+    repository: "https://charts.bitnami.com/bitnami"</code></pre>
+
+    <h3>values.yaml (umbrella level)</h3>
+    <pre><code>global:
+  imagePullSecrets: []
+  env:
+    LOG_LEVEL: info
+
+api:
+  image:
+    repository: your-registry/api
+    tag: v1.2.3
+  replicaCount: 2
+  service:
+    type: ClusterIP
+    port: 8080
+  env:
+    DATABASE_URL: "postgresql://postgres:password@payments-postgres:5432/payments"
+
+skip-payment:
+  image:
+    repository: your-registry/skip-payment
+    tag: latest
+  cron:
+    schedule: "0 0 * * *"
+  env:
+    DB_URL: "postgresql://postgres:password@payments-postgres:5432/payments"
+    SUPABASE_KEY: "REPLACE_ME"
+
+postgres:
+  fullnameOverride: payments-postgres
+  auth:
+    username: postgres
+    password: password
+    database: payments
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi</code></pre>
+  </div>
+
+  <div class="section">
+    <h2>GitHub Actions CI/CD Pipeline</h2>
+    <h3>.github/workflows/deploy.yml</h3>
+    <pre><code>name: CI/CD Deploy Payments Platform
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Setup Kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: v1.30.0
+
+      - name: Configure Kubeconfig
+        run: |
+          echo "${{ secrets.KUBECONFIG_CONTENT }}" > kubeconfig.yaml
+          export KUBECONFIG=$PWD/kubeconfig.yaml
+
+      - name: Build API image
+        run: |
+          docker build -t ${{ secrets.REGISTRY }}/api:${{ github.sha }} ./api
+          echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY }} -u ${{ secrets.REGISTRY_USER }} --password-stdin
+          docker push ${{ secrets.REGISTRY }}/api:${{ github.sha }}
+
+      - name: Build Skip-Payment image
+        run: |
+          docker build -t ${{ secrets.REGISTRY }}/skip-payment:${{ github.sha }} ./skip-payment
+          docker push ${{ secrets.REGISTRY }}/skip-payment:${{ github.sha }}
+
+      - name: Helm dependency update
+        run: |
+          helm dependency update ./payments-helm-chart
+
+      - name: Helm upgrade
+        run: |
+          helm upgrade --install payments-platform ./payments-helm-chart \
+            -f ./payments-helm-chart/values.yaml \
+            --set api.image.tag=${{ github.sha }} \
+            --set skip-payment.image.tag=${{ github.sha }}</code></pre>
+  </div>
+
+  <div class="section">
+    <h2>Staging Workflow Example</h2>
+    <pre><code>name: CI/CD Deploy Payments Platform (staging)
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy-staging:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Setup Kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: v1.30.0
+
+      - name: Configure Kubeconfig (staging)
+        run: |
+          echo "${{ secrets.KUBECONFIG_STAGING }}" > kubeconfig.staging.yaml
+          export KUBECONFIG=$PWD/kubeconfig.staging.yaml
+
+      - name: Login to registry
+        run: |
+          echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY }} -u ${{ secrets.REGISTRY_USER }} --password-stdin
+
+      - name: Build and push API image (staging tag)
+        run: |
+          docker build -t ${{ secrets.REGISTRY }}/api:staging-${{ github.sha }} ./api
+          docker push ${{ secrets.REGISTRY }}/api:staging-${{ github.sha }}
+
+      - name: Build and push Skip-Payment image (staging tag)
+        run: |
+          docker build -t ${{ secrets.REGISTRY }}/skip-payment:staging-${{ github.sha }} ./skip-payment
+          docker push ${{ secrets.REGISTRY }}/skip-payment:staging-${{ github.sha }}
+
+      - name: Helm dependency update
+        run: |
+          helm dependency update ./payments-helm-chart
+
+      - name: Helm upgrade/install (staging)
+        run: |
+          helm upgrade --install payments-platform-staging ./payments-helm-chart \
+            -n payments-staging --create-namespace \
+            -f ./payments-helm-chart/values-staging.yaml \
+            --set api.image.tag=staging-${{ github.sha }} \
+            --set skip-payment.image.tag=staging-${{ github.sha }}</code></pre>
+  </div>
+
+</body>
+</html>
