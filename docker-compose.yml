@@ -1,19 +1,245 @@
+# 🐳 `docker-compose.yml` — DevOps + AI Stack
+
+ไฟล์นี้ประกอบด้วยบริการหลักตามภาพ: **GitHub Actions Runner / Gitea**, **Kubernetes Dashboard (Helm)**, **TRAЕ AI Console**, **Stripe Mock API**, **PostgreSQL**, **Redis**, **MinIO** และ **Traefik (Reverse Proxy + SSO)**
+
+```yaml
 version: "3.8"
 
-services:
-  api:
-    build: .
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env
-    environment:
-      - ENV=local
-    volumes:
-      - ./app:/app/app  # Hot reload for dev
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+x-common-env: &common-env
+  TZ: Asia/Bangkok
+  DEFAULT_TZ: Asia/Bangkok
 
+services:
+  # ───────────────────────────────────────────
+  # 🗄️ Database
+  # ───────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: devai-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: devops
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-DevOpsPass2026}
+      POSTGRES_DB: devai_platform
+      <<: *common-env
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devops -d devai_platform"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - devai-network
+
+  # ───────────────────────────────────────────
+  # ⚡ Cache / Queue
+  # ───────────────────────────────────────────
   redis:
     image: redis:7-alpine
+    container_name: devai-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - devai-network
+
+  # ───────────────────────────────────────────
+  # 📦 Object Storage (like S3)
+  # ───────────────────────────────────────────
+  minio:
+    image: minio/minio:latest
+    container_name: devai-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD:-MinioPass2026}
+      <<: *common-env
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - devai-network
+
+  # ───────────────────────────────────────────
+  # 🐙 Git Repository (GitHub Self-Hosted Alternative)
+  # ───────────────────────────────────────────
+  gitea:
+    image: gitea/gitea:1.22
+    container_name: devai-gitea
+    restart: unless-stopped
+    environment:
+      USER_UID: 1000
+      USER_GID: 1000
+      GITEA__database__DB_TYPE: postgres
+      GITEA__database__HOST: postgres:5432
+      GITEA__database__NAME: devai_platform
+      GITEA__database__USER: devops
+      GITEA__database__PASSWD: ${DB_PASSWORD:-DevOpsPass2026}
+      <<: *common-env
+    volumes:
+      - gitea-data:/var/lib/gitea
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - devai-network
+
+  # ───────────────────────────────────────────
+  # 🤖 TRAE AI Console — Dashboard & AI Engine
+  # ───────────────────────────────────────────
+  trae-ai:
+    image: nginx:alpine
+    container_name: devai-trae-ai
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+    volumes:
+      - ./trae-ai/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./trae-ai/html:/usr/share/nginx/html:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - devai-network
+
+  # ───────────────────────────────────────────
+  # 💳 Stripe Mock — Payment Gateway
+  # ───────────────────────────────────────────
+  stripe-mock:
+    image: stripe/stripe-mock:latest
+    container_name: devai-stripe
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+    networks:
+      - devai-network
+
+  # ───────────────────────────────────────────
+  # 🔐 Traefik — Reverse Proxy + SSO + SSL
+  # ───────────────────────────────────────────
+  traefik:
+    image: traefik:v3.1
+    container_name: devai-traefik
+    restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "80:80"       # HTTP
+      - "443:443"     # HTTPS
+      - "8080:8080"   # Dashboard
+    environment:
+      <<: *common-env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/certs:/certs
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`traefik.localhost`)"
+      - "traefik.http.routers.api.service=api@internal"
+    networks:
+      - devai-network
+    command:
+      - --api=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+
+# ─────────────────────────────────────────────
+# 📦 Volumes
+# ─────────────────────────────────────────────
+volumes:
+  postgres-data:
+  redis-data:
+  minio-data:
+  gitea-data:
+
+# ─────────────────────────────────────────────
+# 🌐 Network
+# ─────────────────────────────────────────────
+networks:
+  devai-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+```
+
+---
+
+## 🚀 คำสั่งเริ่มใช้งาน
+
+```bash
+# สร้างไฟล์ .env สำหรับรหัสผ่าน
+cat > .env << 'EOF'
+DB_PASSWORD=DevOpsPass2026
+MINIO_PASSWORD=MinioPass2026
+EOF
+
+# สร้างโฟลเดอร์และไฟล์คอนฟิก
+mkdir -p traefik trae-ai/html
+
+# เริ่มทุกบริการ
+docker compose up -d
+
+# ตรวจสอบสถานะ
+docker compose ps
+
+# ดูบันทึก
+docker compose logs -f
+```
+
+## 📋 การเข้าถึงบริการ
+
+| บริการ | URL | ข้อมูลเข้าสู่ระบบ |
+|---|---|---|
+| **TRAЕ AI Console** | `https://trae-ai.localhost` | SSO / Admin |
+| **Git Repo** | `https://git.localhost` | Admin / สร้างบัญชีครั้งแรก |
+| **MinIO Storage** | `https://minio.localhost:9001` | admin / MinioPass2026 |
+| **Traefik Dashboard** | `http://traefik.localhost:8080` | ไม่มีรหัส (ภายใน) |
+| **Stripe Mock API** | `http://stripe.localhost:12111` | API Key: pk_test_123 |
+
+---
+
+## ⚙️ ตัวอย่างคอนฟิกเพิ่มเติม
+
+### `traefik/traefik.yml`
+```yaml
+http:
+  routers:
+    trae-ai:
+      rule: Host(`trae-ai.localhost`)
+      entryPoints: [websecure]
+      service: trae-ai
+    git:
+      rule: Host(`git.localhost`)
+      entryPoints: [websecure]
+      service: gitea
+
+  services:
+    trae-ai:
+      loadBalancer:
+        servers:
+          - url: "http://trae-ai:80"
+    gitea:
+      loadBalancer:
+        servers:
+          - url: "http://gitea:3000"
+```
+
+ต้องการให้เพิ่ม **Kubernetes Dashboard / Helm**, **GitHub Actions Runner**, หรือ **OIDC SSO** เข้าไปใน compose file นี้ไหมครับ? หรือตัวอย่างไฟล์ `.env` และโครงสร้างโฟลเดอร์ครบชุด?
