@@ -1,0 +1,36 @@
+global:
+  imagePullSecrets: []
+  env:
+    LOG_LEVEL: info
+
+api:
+  image:
+    repository: your-registry/api
+    tag: v1.2.3
+  replicaCount: 2
+  service:
+    type: ClusterIP
+    port: 8080
+  env:
+    DATABASE_URL: "postgresql://postgres:password@payments-postgres:5432/payments"
+
+skip-payment:
+  image:
+    repository: your-registry/skip-payment
+    tag: latest
+  cron:
+    schedule: "0 0 * * *"
+  env:
+    DB_URL: "postgresql://postgres:password@payments-postgres:5432/payments"
+    SUPABASE_KEY: "REPLACE_ME"
+
+postgres:
+  fullnameOverride: payments-postgres
+  auth:
+    username: postgres
+    password: password
+    database: payments
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
