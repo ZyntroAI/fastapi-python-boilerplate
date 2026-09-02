@@ -1,0 +1,262 @@
+📦 สคริปต์ติดตั้งเครื่องมืออัตโนมัติ — Windows & macOS
+ 
+เตรียมพร้อมสภาพแวดล้อมทำงานเต็มรูปแบบด้วยคำสั่งเดียว ✅ รวดเร็ว สะดวก ครบถ้วนตามโครงสร้าง Tools & Skills ก่อนหน้านี้
+ 
+ 
+ 
+🪟 Windows — PowerShell Script (แนะนำ)
+ 
+📄  setup-windows.ps1 
+ 
+powershell
+  
+<#
+.SYNOPSIS
+ติดตั้งชุดเครื่องมือพื้นฐานสำหรับเดสก์ท็อปทำงานอัตโนมัติ
+.REQUIRES
+- Run as Administrator
+- PowerShell 5.1+ / Winget (Windows 11 หรือติดตั้ง Winget ก่อน)
+#>
+
+# ==============================================
+# 🔧 ตัวแปรกำหนดค่า — ปรับแต่งได้ตามต้องการ
+# ==============================================
+$installTools = @(
+    # 🚀 Launcher & ค้นหา
+    "Microsoft.PowerToys",
+    "File-New-Project.Everything",
+
+    # 📋 คลิปบอร์ด & ประสิทธิภาพ
+    "Ditto.Ditto",
+    "QL-Win.QuickLook",
+
+    # 📂 เอกสาร & จัดการความรู้
+    "Obsidian.Obsidian",
+    "Notion.Notion",
+
+    # 💻 พัฒนา & เทอร์มินัล
+    "Microsoft.WindowsTerminal",
+    "Microsoft.VisualStudioCode",
+    "Git.Git",
+    "GitHub.GitHubDesktop",
+
+    # ☁️ คลาวด์ & ซิงค์
+    "Microsoft.OneDrive",
+    "Google.GoogleDrive",
+
+    # 🧰 ยูทิลิตี้เพิ่มเติม
+    "7zip.7zip",
+    "TranslucentTB.TranslucentTB"
+)
+
+$desktopFolders = @("01_Tools", "02_Projects", "03_Resources", "04_Skills", "05_Archives")
+
+# ==============================================
+# 🚀 เริ่มทำงาน
+# ==============================================
+Write-Host "`n======================================" -ForegroundColor Cyan
+Write-Host "  SETUP DESKTOP ENVIRONMENT — WINDOWS" -ForegroundColor Cyan
+Write-Host "======================================" -ForegroundColor Cyan
+
+# ✅ ตรวจสอบสิทธิ์ Admin
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Warning "⚠️  กรุณารันสคริปต์ด้วยสิทธิ์ Administrator (คลิกขวา > Run as Administrator)"
+    Start-Sleep 3
+    exit 1
+}
+
+# ✅ ตรวจสอบ Winget
+if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+    Write-Error "❌ ไม่พบ Winget! กรุณาติดตั้ง App Installer จาก Microsoft Store ก่อน"
+    exit 1
+}
+
+# 📁 สร้างโฟลเดอร์บนเดสก์ท็อป
+Write-Host "`n📁 กำลังสร้างโฟลเดอร์โครงสร้าง..." -ForegroundColor Yellow
+$desktopPath = [Environment]::GetFolderPath("Desktop")
+foreach ($folder in $desktopFolders) {
+    $fullPath = Join-Path $desktopPath $folder
+    if (-not (Test-Path $fullPath)) {
+        New-Item -ItemType Directory -Path $fullPath | Out-Null
+        Write-Host "  ✅ สร้าง: $folder" -ForegroundColor Green
+    } else {
+        Write-Host "  ⏭️  มีอยู่แล้ว: $folder" -ForegroundColor Gray
+    }
+}
+
+# 📦 ติดตั้งแอปพลิเคชัน
+Write-Host "`n📦 กำลังติดตั้งเครื่องมือทั้งหมด..." -ForegroundColor Yellow
+foreach ($tool in $installTools) {
+    Write-Host "`n🔧 ติดตั้ง: $tool" -ForegroundColor Cyan
+    winget install --id $tool --silent --accept-package-agreements --accept-source-agreements
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "  ✅ สำเร็จ" -ForegroundColor Green
+    } else {
+        Write-Host "  ⚠️  ข้าม/มีอยู่แล้ว" -ForegroundColor Gray
+    }
+}
+
+# 🎯 เสร็จสิ้น
+Write-Host "`n======================================" -ForegroundColor Green
+Write-Host "  ✅ ติดตั้งเสร็จสิ้น!" -ForegroundColor Green
+Write-Host "======================================" -ForegroundColor Green
+Write-Host "`n📂 โฟลเดอร์: $desktopPath"
+Write-Host "⚙️  แนะนำให้ Restart เครื่อง 1 ครั้งเพื่อให้การตั้งค่าครบถ้วน"
+Write-Host "`nใช้งาน PowerToys: กด Win+Shift+M เพื่อเปิดการตั้งค่า"
+ 
+ 
+▶️ วิธีใช้ Windows
+ 
+1. เปิด Notepad → คัดลอกโค้ดด้านบน → บันทึกชื่อ  setup-windows.ps1 
+2. คลิกขวาที่ไฟล์ → Run with PowerShell (หรือเปิด PowerShell as Admin →  .\setup-windows.ps1 )
+3. รอจนเสร็จ — เสร็จแล้ว Restart เครื่อง 1 ครั้ง
+ 
+ 
+ 
+🍎 macOS — Homebrew Script
+ 
+📄  setup-macos.sh 
+ 
+bash
+  
+#!/bin/bash
+set -e
+
+# ==============================================
+# 🔧 ตัวแปรกำหนดค่า — ปรับแต่งได้ตามต้องการ
+# ==============================================
+DESKTOP_FOLDERS=("01_Tools" "02_Projects" "03_Resources" "04_Skills" "05_Archives")
+
+# CLI Tools
+CLI_TOOLS=("git" "gh" "node" "python" "ripgrep" "fzf")
+
+# GUI Apps (Casks)
+GUI_APPS=(
+    "alt-tab"              # สลับหน้าต่างเหมือน Windows
+    "maccy"                # ประวัติคลิปบอร์ด
+    "obsidian"
+    "notion"
+    "visual-studio-code"
+    "iterm2"
+    "github"
+    "google-drive"
+    "raycast"              # Launcher แทน Spotlight
+    "keepingyouawake"      # ป้องกันเครื่องหลับ
+    "karabiner-elements"   # ปรับแต่งคีย์ลัด
+)
+
+# ==============================================
+# 🚀 เริ่มทำงาน
+# ==============================================
+echo "======================================"
+echo "  SETUP DESKTOP ENVIRONMENT — MACOS"
+echo "======================================"
+
+# ✅ ตรวจสอบ & ติดตั้ง Homebrew
+if ! command -v brew &> /dev/null; then
+    echo "🍺 กำลังติดตั้ง Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
+# 📁 สร้างโฟลเดอร์บนเดสก์ท็อป
+echo -e "\n📁 สร้างโฟลเดอร์โครงสร้าง..."
+DESKTOP="$HOME/Desktop"
+for folder in "${DESKTOP_FOLDERS[@]}"; do
+    mkdir -p "$DESKTOP/$folder"
+    echo "  ✅ $folder"
+done
+
+# 🔧 อัปเดต Homebrew
+echo -e "\n🔄 อัปเดตแพ็กเกจ..."
+brew update
+
+# 📦 ติดตั้ง CLI Tools
+echo -e "\n⚙️  ติดตั้งเครื่องมือ Command Line..."
+for tool in "${CLI_TOOLS[@]}"; do
+    echo "  🔧 $tool"
+    brew install "$tool"
+done
+
+# 🖥️ ติดตั้ง GUI Apps
+echo -e "\n🖥️  ติดตั้งแอปพลิเคชัน..."
+for app in "${GUI_APPS[@]}"; do
+    echo "  📦 $app"
+    brew install --cask "$app"
+done
+
+# 🧹 ทำความสะอาด
+echo -e "\n🧹 ทำความสะอาดระบบ..."
+brew cleanup
+
+# 🎯 เสร็จสิ้น
+echo -e "\n======================================"
+echo "  ✅ ติดตั้งเสร็จสิ้น!"
+echo "======================================"
+echo -e "\n📂 โฟลเดอร์: $DESKTOP"
+echo -e "\n💡 ขั้นตอนถัดไป:"
+echo "  1. เปิด Raycast (แทน Spotlight — Cmd+Space)"
+echo "  2. เปิด Maccy — ตั้งค่าเริ่มต้นที่แถบเมนู"
+echo "  3. ตั้งค่า iCloud/Google Drive สำหรับซิงค์ไฟล์"
+echo "  4. Restart เครื่อง 1 ครั้ง"
+ 
+ 
+▶️ วิธีใช้ macOS
+ 
+bash
+  
+# 1. บันทึกเป็นไฟล์
+nano setup-macos.sh
+# วางโค้ด → กด Ctrl+O → Enter → Ctrl+X
+
+# 2. ให้สิทธิ์รัน
+chmod +x setup-macos.sh
+
+# 3. รันสคริปต์
+./setup-macos.sh
+ 
+ 
+ 
+ 
+📋 รายการเครื่องมือที่ติดตั้ง — เปรียบเทียบ
+ 
+หมวดหมู่ Windows (Winget) macOS (Homebrew) 
+🚀 Launcher PowerToys Run (Alt+Space) Raycast (Cmd+Space) 
+📋 คลิปบอร์ด Ditto Maccy 
+🖼️ จัดการหน้าต่าง FancyZones (PowerToys) AltTab + Mission Control 
+📄 จัดการความรู้ Obsidian + Notion Obsidian + Notion 
+💻 พัฒนา VS Code + Git + Windows Terminal VS Code + Git + iTerm2 
+☁️ ซิงค์ไฟล์ OneDrive + Google Drive Google Drive / iCloud 
+🧰 ยูทิลิตี้ 7-Zip, QuickLook, TranslucentTB Karabiner, KeepingYouAwake 
+ 
+ 
+ 
+⚙️ ปรับแต่งเพิ่มเติม
+ 
+เพิ่ม/ลบรายการแอป
+ 
+- Windows: แก้ไขรายการในตัวแปร  $installTools  → ใช้ชื่อ ID จาก winget.run
+- macOS: แก้ไขรายการใน  CLI_TOOLS  หรือ  GUI_APPS  → ค้นหาชื่อจาก brew.sh
+ 
+เพิ่มสคริปต์ติดตั้งเฉพาะทาง
+ 
+powershell
+  
+# ตัวอย่าง: เพิ่มลงใน Windows Script
+"Docker.DockerDesktop",
+"OpenJS.NodeJS.LTS",
+"Python.Python.3.12"
+ 
+ 
+ 
+ 
+✅ สรุปการใช้งาน
+ 
+ขั้นตอน Windows macOS 
+บันทึกไฟล์  setup-windows.ps1   setup-macos.sh  
+รันคำสั่ง คลิกขวา > Run as Admin  chmod +x  →  ./setup-macos.sh  
+ตรวจสอบ เปิดแต่ละแอป ตั้งค่าครั้งแรก เปิดแต่ละแอป ตั้งค่าครั้งแรก 
+เสร็จสิ้น Restart เครื่อง Restart เครื่อง 
+ 
+ 
+ 
+ต้องการเพิ่มแอปเฉพาะทาง (เช่น Docker, WSL, Node.js, หรือเครื่องมือ DevSecOps) หรือปรับแต่งสคริปต์ให้ตรงกับสายงานเฉพาะไหม? บอกรายการได้เลยครับ! 🚀
