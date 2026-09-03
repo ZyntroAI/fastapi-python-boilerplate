@@ -7,7 +7,6 @@ DevSecOps Handbook DOCX Generator
 from docx import Document
 from docx.shared import Pt, RGBColor, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from datetime import datetime
 
 # ============== CONFIGURATION ==============
 TITLE = "DevSecOps Handbook"
