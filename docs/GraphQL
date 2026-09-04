@@ -1,0 +1,87 @@
+### สรุปหลักการทำงานของ Global Node IDs (REST ↔ GraphQL Bridge)
+
+GitHub ใช้ **Global Node ID** เป็นรหัสระบุตัวตนกลาง (Unique Identifier) ที่เชื่อมโยงออบเจกต์ข้ามระหว่าง **REST API** และ **GraphQL API** ช่วยให้คุณสามารถค้นหาทรัพยากรบน REST ก่อน แล้วนำรหัสดังกล่าวไปคิวรีหรือทำ Mutation ต่อบน GraphQL ได้ทันที
+
+---
+
+### ขั้นตอนการใช้งาน 3 สเต็ปหลัก
+
+#### 1. ดึง `node_id` จาก REST API
+
+เมื่อเรียก REST API Endpoint จะมีฟิลด์ `node_id` คืนค่ากลับมาในรูปแบบ Base64 string (เช่น `"MDQ6VXNlcjU4MzIzMQ=="`)
+
+* **REST Request:**
+```bash
+curl -i -H "Authorization: Bearer YOUR_TOKEN" https://api.github.com/user
+
+```
+
+
+* **REST Response (ตัวอย่าง):**
+```json
+{
+  "login": "octocat",
+  "id": 1,
+  "node_id": "MDQ6VXNlcjU4MzIzMQ==",
+  "type": "User"
+}
+
+```
+
+
+
+---
+
+#### 2. ตรวจสอบชนิดของออบเจกต์ (`__typename`) บน GraphQL
+
+หากไม่แน่ใจว่า `node_id` นั้นตรงกับ Type ใดใน GraphQL Schema สามารถใช้ **Direct Node Lookup** ร่วมกับ Meta-field `__typename` ได้:
+
+```graphql
+query {
+  node(id: "MDQ6VXNlcjU4MzIzMQ==") {
+    __typename
+  }
+}
+
+```
+
+**Response:**
+
+```json
+{
+  "data": {
+    "node": {
+      "__typename": "User"
+    }
+  }
+}
+
+```
+
+---
+
+#### 3. คิวรีข้อมูลเชิงลึกด้วย Inline Fragment (`... on Type`)
+
+เมื่อทราบ Type แล้ว สามารถใช้ **Inline Fragment** ดึงเฉพาะฟิลด์ที่ต้องการใน GraphQL ได้อย่างแม่นยำ:
+
+```graphql
+query {
+  node(id: "MDQ6VXNlcjU4MzIzMQ==") {
+    ... on User {
+      name
+      login
+      bio
+      createdAt
+    }
+  }
+}
+
+```
+
+---
+
+### ข้อดีและกรณีการใช้งานจริง (Use Cases)
+
+1. **Hybrid Architecture:** ใช้ REST API สำหรับงาน Fetch ข้อมูลทั่วไป และใช้ GraphQL สำหรับงานที่ต้องการลด Payload หรือต้องการทำ Complex Mutation
+2. **Migration:** ช่วยให้การย้ายโค้ดจาก REST ไปเป็น GraphQL ทำได้แบบทยอยทำ (Incremental Migration) โดยใช้ ID เดิมดึงข้อมูล
+3. **Cross-API Reference:** ใช้ `node_id` เป็น Primary Key ฝั่ง Database ตัวเองเพื่อใช้อ้างอิงทั้งสอง API ได้ในค่าเดียว
