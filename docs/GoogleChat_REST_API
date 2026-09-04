@@ -1,0 +1,261 @@
+📡 GitHub Actions — Complete Workflow Commands Reference Guide
+ 
+Source: GitHub Docs — Workflow Commands | Last Updated: 2026-09-04 | Platform: GitHub Actions Runners (Ubuntu, Windows, macOS)
+ 
+ 
+ 
+🎯 Overview
+ 
+Workflow commands let your steps communicate with the runner machine to set environment variables, outputs, logs, annotations, summaries, and more. Most use  ::command::  syntax via  stdout ; others write to environment files ( GITHUB_*  paths).
+ 
+ 
+ 
+📋 Quick Reference — All Commands
+ 
+Category Command / File Purpose Bash Example PowerShell Example 
+📝 Log Annotations  ::debug::  Debug message (visible with  ACTIONS_STEP_DEBUG=true )  echo "::debug::Message"   Write-Output "::debug::Message"  
+  ::notice::  Notice annotation (w/ file/line)  echo "::notice file=app.js,line=1::Note"   Write-Output "::notice file=app.js,line=1::Note"  
+  ::warning::  Warning annotation  echo "::warning file=app.js::Warning"   Write-Output "::warning file=app.js::Warning"  
+  ::error::  Error annotation  echo "::error file=app.js::Error!"   Write-Output "::error file=app.js::Error!"  
+📂 Log Grouping  ::group::  /  ::endgroup::  Collapsible log section  echo "::group::Title"  /  echo "::endgroup::"   Write-Output "::group::Title"  /  Write-Output "::endgroup::"  
+🔒 Secrets  ::add-mask::  Mask value in logs →  ***   echo "::add-mask::$SECRET"   Write-Output "::add-mask::$SECRET"  
+🌐 Env Vars  >> $GITHUB_ENV  Set env var for all subsequent steps  echo "NAME=val" >> $GITHUB_ENV   "NAME=val" >> $env:GITHUB_ENV  
+📤 Outputs  >> $GITHUB_OUTPUT  Set step output for use by later steps/jobs  echo "NAME=val" >> $GITHUB_OUTPUT   "NAME=val" >> $env:GITHUB_OUTPUT  
+📊 Job Summary  >> $GITHUB_STEP_SUMMARY  Markdown summary shown on workflow run page  echo "# Title" >> $GITHUB_STEP_SUMMARY   "# Title" >> $env:GITHUB_STEP_SUMMARY  
+🛤️ System Path  >> $GITHUB_PATH  Prepend directory to  $PATH   echo "$HOME/bin" >> $GITHUB_PATH   "$env:HOME/bin" >> $env:GITHUB_PATH  
+🔄 State  >> $GITHUB_STATE  Pass values to  pre:  /  post:  actions  echo "KEY=val" >> $GITHUB_STATE   "KEY=val" >> $env:GITHUB_STATE  
+🚫 Control  ::stop-commands::  /  ::token::  Temporarily disable all workflow commands  echo "::stop-commands::$TOKEN"   Write-Output "::stop-commands::$TOKEN"  
+📦 Artifacts  >> $GITHUB_ARTIFACTS  Declare workflow artifacts (files/OCI)  echo "dist/app" >> $GITHUB_ARTIFACTS   "dist/app" >> $env:GITHUB_ARTIFACTS  
+ 
+ 
+ 
+🔍 Detailed Usage — By Category
+ 
+📝 Log Annotations — Debug, Notice, Warning, Error
+ 
+Creates visual annotations in the GitHub UI, optionally linked to a file & line.
+ 
+Syntax:
+ 
+plaintext
+  
+::command file={name},line={N},col={N},title={Title}::{Message}
+ 
+ 
+-  ::debug::  — Only visible when secret  ACTIONS_STEP_DEBUG=true 
+bash
+  
+echo "::debug::Variable value is $MY_VAR"
+ 
+-  ::notice::  — Info-level annotation
+bash
+  
+echo "::notice file=src/app.js,line=42,title=Review Note::Consider refactoring this block"
+ 
+-  ::warning::  — Yellow warning
+bash
+  
+echo "::warning file=package.json,line=1::Deprecated dependency"
+ 
+-  ::error::  — Red error annotation (does NOT fail the step — use  exit 1  for that)
+bash
+  
+echo "::error file=app.js,line=10::Syntax error"
+ 
+ 
+ 
+ 
+📂 Grouping Log Lines
+ 
+Collapse/expand blocks of log output for cleaner readability.
+ 
+yaml
+  
+- name: Build process
+  run: |
+    echo "::group::🔨 Building application"
+    npm run build
+    echo "::endgroup::"
+ 
+ 
+ 
+ 
+🔒 Masking Secrets —  ::add-mask:: 
+ 
+Prevents secrets from appearing in logs — replaced with  *** . Must run before outputting the value.
+ 
+bash
+  
+echo "::add-mask::$API_KEY"  # Mask FIRST
+echo "Using key: $API_KEY"   # Logs: Using key: ***
+ 
+ 
+⚠️ Masked values cannot be used as outputs between jobs. Store in a secret store instead.
+ 
+ 
+ 
+🌐 Environment Variables —  GITHUB_ENV 
+ 
+Set variables available to all subsequent steps in the same job. Not available in the current step.
+ 
+bash
+  
+echo "BUILD_VERSION=1.2.0" >> $GITHUB_ENV
+echo "BUILD_TIMESTAMP=$(date -Iseconds)" >> $GITHUB_ENV
+ 
+ 
+Multiline values — use delimiter:
+ 
+bash
+  
+echo 'JSON_OUTPUT<<EOF' >> $GITHUB_ENV
+curl -s https://api.example.com/status
+echo 'EOF' >> $GITHUB_ENV
+ 
+ 
+❌ Cannot set  NODE_OPTIONS  or overwrite reserved  GITHUB_*  /  RUNNER_*  vars.
+ 
+ 
+ 
+📤 Step Outputs —  GITHUB_OUTPUT 
+ 
+Share values between steps and jobs. Must define  id  on the step to reference.
+ 
+yaml
+  
+- name: Generate version
+  id: version
+  run: echo "VERSION=v1.0.0-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+- name: Use output
+  run: echo "Deploying ${{ steps.version.outputs.VERSION }}"
+ 
+ 
+ 
+ 
+📊 Job Summary —  GITHUB_STEP_SUMMARY 
+ 
+Write Markdown displayed on the workflow run summary page. Great for test results, stats, release notes.
+ 
+bash
+  
+echo "## 📊 Build Summary" >> $GITHUB_STEP_SUMMARY
+echo "" >> $GITHUB_STEP_SUMMARY
+echo "- **Version:** $VERSION" >> $GITHUB_STEP_SUMMARY
+echo "- **Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
+echo "- **Tests:** 247 passed, 0 failed" >> $GITHUB_STEP_SUMMARY
+ 
+ 
+- Append:  >>  — Add content
+- Overwrite:  >  — Replace all content
+- Delete:  rm $GITHUB_STEP_SUMMARY  — Remove summary
+- Limit: 1 MiB per step; max 20 summaries per job
+ 
+ 
+ 
+🛤️ Add to System PATH —  GITHUB_PATH 
+ 
+Prepend directory to  $PATH  for all subsequent steps.
+ 
+bash
+  
+echo "$HOME/.local/bin" >> $GITHUB_PATH
+ 
+ 
+ 
+ 
+🔄 State —  GITHUB_STATE 
+ 
+Share data between  main:  and  post:  actions within a custom action. Accessed as  STATE_*  env vars.
+ 
+bash
+  
+echo "TEMP_FILES=/tmp/build" >> $GITHUB_STATE
+ 
+ 
+ 
+ 
+🚫 Disable Commands Temporarily —  ::stop-commands:: 
+ 
+Prevent accidental command parsing when outputting scripts or logs. Use a random unique token to resume.
+ 
+bash
+  
+TOKEN=$(uuidgen)
+echo "::stop-commands::$TOKEN"
+# Nothing below is parsed as a command
+echo "::warning::This is just text, not a command!"
+# Resume
+echo "::$TOKEN::"
+ 
+ 
+ 
+ 
+📦 Workflow Artifacts —  GITHUB_ARTIFACTS 
+ 
+Declare files or OCI images as artifacts for tracking.
+ 
+bash
+  
+# File
+echo "dist/myapp-linux-amd64.tar.gz" >> $GITHUB_ARTIFACTS
+
+# OCI image with digest
+echo "oci://ghcr.io/you/app:v1@sha256:abc123..." >> $GITHUB_ARTIFACTS
+ 
+ 
+Read aggregated list from  $GITHUB_ARTIFACTS_LIST  (JSON).
+ 
+ 
+ 
+⚙️ Bash vs. PowerShell — Key Differences
+ 
+Feature Bash (Ubuntu/macOS) PowerShell (Windows/pwsh) 
+Env var file  $GITHUB_ENV   $env:GITHUB_ENV  
+Output file  $GITHUB_OUTPUT   $env:GITHUB_OUTPUT  
+Summary file  $GITHUB_STEP_SUMMARY   $env:GITHUB_STEP_SUMMARY  
+Path file  $GITHUB_PATH   $env:GITHUB_PATH  
+Encoding UTF-8 default pwsh = UTF-8; 5.1 = specify  -Encoding utf8  
+Append syntax  >> file   >> env:VAR  
+ 
+ 
+ 
+🧠 Toolkit Equivalents (JavaScript Actions)
+ 
+If you're writing a JavaScript Action, these workflow commands map directly to  @actions/core  methods:
+ 
+JS Function Workflow Command 
+ core.debug()   ::debug::  
+ core.notice()   ::notice::  
+ core.warning()   ::warning::  
+ core.error()   ::error::  
+ core.startGroup()  /  core.endGroup()   ::group::  /  ::endgroup::  
+ core.setOutput()   GITHUB_OUTPUT  
+ core.exportVariable()   GITHUB_ENV  
+ core.addPath()   GITHUB_PATH  
+ core.setSecret()   ::add-mask::  
+ core.summary   GITHUB_STEP_SUMMARY  
+ 
+ 
+ 
+✅ Best Practices
+ 
+- ✅ Mask secrets FIRST — before printing or using in commands
+- ✅ Use step outputs for inter-job values; use secrets store for sensitive data
+- ✅ Write job summaries for key info — saves users from digging into logs
+- ✅ Set  ACTIONS_STEP_DEBUG=true  in repo Secrets to see  ::debug::  output
+- ✅ Use  idempotent  commands — appending to env files is safe
+- ❌ Don't put secrets in  GITHUB_OUTPUT  — they'll leak unless masked
+- ❌ Don't overwrite  GITHUB_*  /  RUNNER_*  variables
+ 
+ 
+ 
+📚 Resources
+ 
+- 🔗 Official Docs: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands
+- 🔗 Variables Reference: https://docs.github.com/en/actions/learn-github-actions/variables
+- 🔗 Job Summaries Guide: https://github.blog/changelog/2022-05-13-job-summaries-are-now-generally-available/
+ 
+ 
+ 
+💡 Want a reusable GitHub Action template, a complete CI workflow using these commands, or a Postman-style cheat sheet? Let me know! 🚀
