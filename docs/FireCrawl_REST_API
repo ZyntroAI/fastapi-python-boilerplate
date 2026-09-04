@@ -1,0 +1,300 @@
+🕸️ Firecrawl REST API — Complete Reference Guide
+ 
+Version: v2 (Current Stable) | Base URL:  https://api.firecrawl.dev/v2  | Protocol: REST + JSON | Auth: Bearer Token (API Key)
+ 
+ 
+ 
+🎯 Overview
+ 
+Firecrawl is a web intelligence & scraping API that turns websites into clean LLM-ready data (Markdown/JSON). Features:
+ 
+- ✅ JavaScript rendering (headless browser)
+- ✅ Single-page scrape / Bulk crawl / Site map
+- ✅ Browser automation (click, wait, scroll, execute JS) 
+- ✅ AI data extraction (structured JSON)
+- ✅ Search + retrieval
+- ✅ Webhooks / Async tasks
+- ✅ Open-source + MCP/CLI/SDKs 
+ 
+ 
+ 
+🔐 Authentication
+ 
+Method: Bearer Token (API Key)
+Header:  Authorization: Bearer YOUR_API_KEY 
+Get Key: Dashboard → API Keys (https://firecrawl.com/dashboard) 
+ 
+bash
+  
+# Standard request format
+curl -X POST https://api.firecrawl.dev/v2/scrape \
+  -H "Authorization: Bearer fc-..." \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com"}'
+ 
+ 
+ 
+ 
+🌐 Base URLs & Versions
+ 
+- v2 (Recommended):  https://api.firecrawl.dev/v2 
+- v1 (Legacy):  https://api.firecrawl.dev/v1 
+- OpenAPI Spec: https://docs.firecrawl.dev/api-reference/v2-openapi.json 
+ 
+ 
+ 
+📋 Core Endpoints
+ 
+📍 Scrape — Single Page
+ 
+ POST /scrape  — Scrape one URL, return clean content
+ 
+Request Body:
+ 
+json
+  
+{
+  "url": "https://example.com",
+  "formats": ["markdown", "html", "rawHtml", "screenshot", "pdf"],
+  "onlyMainContent": true,
+  "includeTags": [],
+  "excludeTags": ["nav", "footer"],
+  "headers": {},
+  "waitFor": 2000,
+  "actions": [
+    {"type": "click", "selector": "#load-more"},
+    {"type": "wait", "milliseconds": 1000},
+    {"type": "scroll", "direction": "down"}
+  ],
+  "location": {
+    "country": "US",
+    "languages": ["en-US"]
+  },
+  "mobile": false,
+  "removeBase64Images": true
+}
+```[[__LINK_ICON]](https://docs.firecrawl.dev/advanced-scraping-guide?f_link_type=f_linkinlinenote&flow_extra=eyJpbmxpbmVfZGlzcGxheV9wb3NpdGlvbiI6MCwiZG9jX3Bvc2l0aW9uIjowLCJkb2NfaWQiOiIxMTc3ZjU4YjM2OTQzNjZkLTliZGI5NmYyMzBlZjY1YjQifQ%3D%3D&inline_doc_id=1177f58b3694366d-9bdb96f230ef65b4)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "markdown": "...",
+    "html": "...",
+    "screenshot": "base64...",
+    "metadata": {
+      "title": "Example",
+      "description": "...",
+      "language": "en",
+      "sourceURL": "https://example.com",
+      "statusCode": 200
+    }
+  }
+}
+ 
+ 
+🕸️ Crawl — Multiple Pages
+ 
+ POST /crawl  — Start bulk crawl; returns job ID
+ 
+Request:
+ 
+json
+  
+{
+  "url": "https://example.com",
+  "maxDepth": 3,
+  "limit": 100,
+  "scrapeOptions": { "formats": ["markdown"] },
+  "allowExternalLinks": false,
+  "includePaths": ["/docs/*"],
+  "excludePaths": ["/blog/*"]
+}
+ 
+ 
+Response:
+ 
+json
+  
+{
+  "success": true,
+  "id": "crawl_abc123",
+  "url": "https://api.firecrawl.dev/v2/crawl/abc123"
+}
+ 
+ 
+📊 Check Crawl Status
+ 
+ GET /crawl/{id} 
+ 
+json
+  
+{
+  "status": "active" | "completed" | "failed",
+  "total": 120,
+  "completed": 45,
+  "creditsUsed": 45,
+  "data": [{ "url": "...", "markdown": "..." }]
+}
+ 
+ 
+🗺️ Map — Site Structure
+ 
+ POST /map  — Get all URLs on domain (fast, no full scrape)
+ 
+Request:
+ 
+json
+  
+{
+  "url": "https://example.com",
+  "search": "query",
+  "includeSubdomains": false,
+  "limit": 5000
+}
+ 
+ 
+Response:
+ 
+json
+  
+{
+  "success": true,
+  "links": [
+    "https://example.com/",
+    "https://example.com/about",
+    "https://example.com/docs"
+  ]
+}
+ 
+ 
+🧠 Extract — Structured Data
+ 
+ POST /extract  — AI-powered JSON extraction 
+ 
+Request:
+ 
+json
+  
+{
+  "urls": ["https://example.com/products"],
+  "schema": {
+    "type": "object",
+    "properties": {
+      "products": {
+        "type": "array",
+        "items": {
+          "name": "string",
+          "price": "number",
+          "inStock": "boolean"
+        }
+      }
+    }
+  },
+  "prompt": "Extract all product info"
+}
+ 
+ 
+Response:
+ 
+json
+  
+{
+  "success": true,
+  "data": { "products": [...] }
+}
+ 
+ 
+🔍 Search
+ 
+ POST /search  — Search web + scrape top results 
+ 
+Request:
+ 
+json
+  
+{
+  "query": "best AI tools",
+  "limit": 5,
+  "scrapeOptions": { "formats": ["markdown"] }
+}
+ 
+ 
+ 
+ 
+⚙️ Browser Actions (Scrape/Crawl)
+ 
+Use  actions  array to automate pages: 
+ 
+Action Params Purpose 
+ wait   ms ,  selector  Wait time or element 
+ click   selector ,  all?  Click element(s) 
+ write   text  Type into focused field 
+ press   key  Press key (Enter/Tab) 
+ scroll   direction ,  selector?  Scroll page/element 
+ screenshot   fullPage? ,  quality?  Capture screenshot 
+ executeJavascript   script  Run custom JS 
+ pdf   format ,  landscape  Generate PDF 
+ 
+ 
+ 
+📊 Rate Limits & Errors
+ 
+Status Codes
+ 
+- 200 OK: Success
+- 401 Unauthorized: Invalid/missing API key
+- 402 Payment Required: Insufficient credits
+- 429 Too Many Requests: Rate limit exceeded
+- 500/502/503: Server/upstream errors
+ 
+Limits
+ 
+- Rate: ~100–200 req/min
+- Crawl: Max 10k–100k pages/job (depends on plan)
+- Size: Page content up to ~10MB
+- Credits: 1 credit = 1 page scrape; crawl = 1 credit/page
+ 
+ 
+ 
+🛠️ SDKs & Tools
+ 
+- Official: Python, Node.js, Go, Rust, Java, Elixir 
+- CLI:  npm install -g firecrawl  /  pip install firecrawl-py  
+- MCP Server: For Cursor/Claude/Windsurf 
+- OpenAPI: https://docs.firecrawl.dev/api-reference/v2-openapi.json 
+ 
+ 
+ 
+📝 Example — Full Workflow
+ 
+bash
+  
+# 1. Map site
+MAP_ID=$(curl -X POST https://api.firecrawl.dev/v2/map \
+  -H "Authorization: Bearer fc-KEY" \
+  -d '{"url":"https://docs.example.com"}' | jq -r '.links[0]')
+
+# 2. Scrape page
+curl -X POST https://api.firecrawl.dev/v2/scrape \
+  -H "Authorization: Bearer fc-KEY" \
+  -d '{
+    "url": "'"$MAP_ID"'",
+    "formats": ["markdown"],
+    "onlyMainContent": true
+  }'
+ 
+ 
+ 
+ 
+📚 Resources
+ 
+- 🔗 Docs: https://docs.firecrawl.dev/ 
+- 🔗 Dashboard: https://firecrawl.com/dashboard 
+- 🔗 GitHub: https://github.com/mendableai/firecrawl
+- 🔗 Status: https://status.firecrawl.dev/
+ 
+ 
+ 
+Want me to generate ready-to-use snippets (cURL/Python/Node), Postman collection, or async webhook workflow for your use case? 🚀
