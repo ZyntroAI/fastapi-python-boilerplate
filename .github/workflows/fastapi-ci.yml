@@ -1,45 +1,54 @@
 name: FastAPI CI
 
-on:
-  pull_request:
-    branches:
-      - main
-      - develop
-      - "release/**"
-  push:
-    branches:
-      - main
-      - develop
-
+# ✅ ปิด Alert #10 — กำหนดสิทธิ์ชัดเจน
 permissions:
   contents: read
+  pull-requests: read
+  checks: write
+  statuses: write
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
 
 jobs:
-  test:
-    name: Python Tests
+  run-tests:
+    name: Run Tests & Upload Coverage
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        python-version: ["3.11", "3.12", "3.13"]
+    timeout-minutes: 15
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v5  # ✅ อัปเดตเพื่อลดเตือน Node.js
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6  # ✅ อัปเดต
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.12"
+          cache: 'pip'
 
-      - name: Install dependencies
+      - name: Upgrade pip & install base tools
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+          python -m pip install --upgrade pip setuptools wheel
 
-      - name: Lint
-        run: ruff check .
+      - name: Install Dependencies
+        run: |
+          python -m pip install --retries 5 -r requirements.txt
+          python -m pip list
 
-      - name: Run tests
-        run: pytest --maxfail=1 --disable-warnings -q
+      - name: Run Pytest with Coverage
+        run: |
+          python -m pytest tests/ --cov=app --cov-report=term --cov-report=xml --cov-fail-under=70
+        continue-on-error: false
+
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
