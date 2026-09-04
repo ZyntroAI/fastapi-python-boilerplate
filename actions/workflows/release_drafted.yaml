@@ -1,0 +1,32 @@
+name: Release Drafter
+
+# 🎯 Triggers
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: # Manual run
+
+# 🔑 Required Permissions (Most Common Fix!)
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+jobs:
+  release-drafter:
+    runs-on: ubuntu-latest
+    name: Draft Release
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Release Drafter
+        uses: release-drafter/release-drafter@v6 # ✅ Latest Stable
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          config-name: release-drafter.yml # Optional: config file
+          version: |
+            ${{ github.ref_name }}
