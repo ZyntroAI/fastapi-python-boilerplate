@@ -1,0 +1,16 @@
+# Path-to-label mapping for the FastAPI Python Boilerplate repo.
+# Splits backend, security/auth, CI, tests, and docs by real layout.
+backend:
+  - any: ['app/**', 'api/**', 'services/**', 'database/**']
+auth-security:
+  - any: ['app/api/auth*', 'app/api/callback*', 'app/core/**', '.env.example', 'SECURITY.md']
+tests:
+  - any: ['tests/**', 'pytest/**']
+ci-cd:
+  - any: ['.github/**', 'Makefile', 'Dockerfile*', 'docker/**', 'k8s/**', 'helm/**', 'workflows/**']
+documentation:
+  - any: ['docs/**', '*.md', 'Knowledge-Base/**']
+frontend:
+  - any: ['public/**', 'frontend/**', 'src/pages/**']
+dependencies:
+  - any: ['requirements*.txt', 'pyproject.toml', 'package.json', 'pnpm-lock.yaml']
