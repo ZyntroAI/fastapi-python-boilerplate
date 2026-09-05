@@ -1,0 +1,23 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Launch Extension",
+			"type": "extensionHost",
+			"request": "launch",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder}"
+			]
+		},
+		{
+			"name": "Launch Web Extension",
+			"type": "extensionHost",
+			"debugWebWorkerHost": true,
+			"request": "launch",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder}",
+				"--extensionDevelopmentKind=web"
+			]
+		}
+	]
+}
