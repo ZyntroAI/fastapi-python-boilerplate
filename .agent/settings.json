@@ -1,0 +1,81 @@
+{
+  "$schema": "https://copilot.github.com/schemas/settings.schema.json",
+  "version": 2,
+
+  "behavior": {
+    "enableAutoCompletions": true,
+    "enableChat": true,
+    "enableCodeIndexing": true,
+    "inlineSuggestions": {
+      "enabled": true,
+      "showTypeHints": true,
+      "showFunctionSignatures": true,
+      "delayMs": 120
+    },
+    "languageSpecific": {
+      "typescript": { "enabled": true, "model": "gpt-4o" },
+      "tsx": { "enabled": true, "model": "gpt-4o" },
+      "python": { "enabled": true, "model": "gpt-4o" },
+      "graphql": { "enabled": true },
+      "dockerfile": { "enabled": true },
+      "yaml": { "enabled": true },
+      "json": { "enabled": false }
+    }
+  },
+
+  "models": {
+    "chat": "gpt-4o",
+    "completion": "gpt-4o-mini",
+    "fastCompletion": "gpt-3.5-turbo"
+  },
+
+  "context": {
+    "includeFiles": [
+      "src/**/*.{ts,tsx}",
+      "backend/**/*.py",
+      "graphql/**/*.graphql",
+      "docker/**/*",
+      ".github/**/*",
+      "*.config.{js,ts}"
+    ],
+    "excludeFiles": [
+      "node_modules/**",
+      "dist/**",
+      "build/**",
+      ".git/**",
+      "**/*.min.js",
+      "**/*.lock",
+      "venv/**",
+      "__pycache__/**",
+      "*.pyc"
+    ],
+    "maxContextTokens": 14000,
+    "includeWorkspaceConfig": true
+  },
+
+  "prompts": {
+    "customInstructions": "You are a senior full-stack engineer. Stack: React (TypeScript, hooks, functional components), FastAPI (Python, Pydantic v2), GraphQL (Apollo/Strawberry), Docker, DevSecOps. Write clean, type-safe, secure code. Follow OWASP, input validation, least privilege. Use dark/cyber design language where relevant. Keep responses concise, production-ready, with brief comments.",
+    "disableSystemPrompts": false
+  },
+
+  "files": {
+    "maxFileSizeKB": 1024,
+    "watch": true
+  },
+
+  "logging": {
+    "level": "warn",
+    "telemetryEnabled": false
+  },
+
+  "advanced": {
+    "temperature": 0.2,
+    "topP": 0.92,
+    "timeoutMs": 60000,
+    "allowCommandExecution": false,
+    "mcpServers": {
+      "enabled": true,
+      "configPath": "./mcp/servers.json"
+    }
+  }
+}
