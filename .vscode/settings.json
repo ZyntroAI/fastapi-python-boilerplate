@@ -1,9 +1,44 @@
 {
-  "editor.formatOnSave": true,
-  "files.exclude": {
-    "**/.git": true,
-    "**/.DS_Store": true
+  // --- Interpreter & Environment ---
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.terminal.activateEnvInSelectedTerminal": true,
+  "terminal.integrated.env.linux": {
+    "PYTHONPATH": "${workspaceFolder}"
   },
-  "eslint.enable": true,
-  "eslint.run": "onSave"
+
+  // --- Linting & Static Analysis ---
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": true,
+  "python.linting.flake8Enabled": false,
+  
+  // --- Formatting (Black) ---
+  "editor.defaultFormatter": "ms-python.black-formatter",
+  "editor.formatOnSave": true,
+  "black-formatter.args": ["--line-length", "88"],
+
+  // --- FastAPI / Pydantic specific ---
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.autoImportCompletions": true,
+
+  // --- Testing ---
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": [
+    "tests"
+  ],
+  "python.testing.autoTestDiscoverOnSaveEnabled": true,
+
+  // --- File Exclusion ---
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/*.pyo": true,
+    "**/.git": true,
+    ".venv": false
+  },
+
+  // --- Organize Imports on Save ---
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  }
 }
