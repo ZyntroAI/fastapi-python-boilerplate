@@ -1,0 +1,15 @@
+apiVersion: helm.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kubecost
+  namespace: monitoring
+spec:
+  chart: kubecost/kubecost
+  values:
+    global:
+      orbit: { enabled: true, traceId: "$ORBIT_TRACE_ID" }
+    prometheus: enabled: true
+    grafana: enabled: true
+    costModel:
+      platformCost: { cpu: "0.05", memory: "0.01" }
+      idle: { enabled: true }
