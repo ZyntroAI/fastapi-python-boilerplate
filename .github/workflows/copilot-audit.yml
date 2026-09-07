@@ -1,0 +1,34 @@
+name: Copilot CLI Security Audit
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  copilot-audit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Copilot CLI
+        run: |
+          curl -fsSL https://gh.io/copilot-install | bash
+          echo "$HOME/.copilot/bin" >> $GITHUB_PATH
+
+      - name: Authenticate Copilot CLI
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+        run: copilot /login --with-token
+
+      - name: Audit FastAPI backend
+        run: copilot /workflow "scan backend for insecure configs"
+
+      - name: Audit React frontend
+        run: copilot /workflow "scan frontend for CSP and XSS risks"
+
+      - name: Audit Kubernetes manifests
+        run: copilot /workflow "check Helm charts for misconfigurations"
