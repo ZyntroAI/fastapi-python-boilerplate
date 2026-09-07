@@ -13,6 +13,12 @@ Here's your **final, polished, best-version README** — complete with all badge
 [![Docker Compose](https://img.shields.io/badge/Docker%20Compose-2.38%2B-blue.svg)](https://docs.docker.com/compose/)
 
 ---
+## 🛡️ Supabase Configuration
+- **Auth**: JWT (HS256) via `SUPABASE_JWT_SECRET`
+- **RLS**: Enabled on all tables
+- **Data API**: Disabled → ✅ Auto‑fixed missing schema:
+  - Migration `003` creates `pgrst_no_exposed_schemas`
+  - Prevents `schema "pg_pgrst_no_exposed_schemas" does not exist` log spam
 
 ### 🚀 Overview
 A **production‑ready FastAPI boilerplate** integrating:
