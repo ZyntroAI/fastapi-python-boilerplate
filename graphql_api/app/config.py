@@ -7,7 +7,8 @@ class Settings(BaseSettings):
     APP_NAME: str = "GraphQL API"
     DEBUG: bool = False
     DATABASE_URL: str = "sqlite+aiosqlite:///./graphql.db"  # dev default; override via env
-    REDIS_URL: str | None = None
+    REDIS_URL: str = "redis://localhost:6379/0"
+    REDIS_SUB_CHANNEL: str = "graphql:events"
     SECRET_KEY: str = "dev-only-change-me"   # MUST override in production env
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60

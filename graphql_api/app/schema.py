@@ -5,7 +5,10 @@ from typing import AsyncGenerator, List, Optional
 import strawberry
 
 from app.auth import create_access_token
+from app.config import settings
 from app import crud
+from app.errors import AuthenticationRequired, PermissionDenied
+from app.redis import redis_pubsub
 
 
 def _now() -> datetime:
@@ -50,7 +53,7 @@ class AuthPayload:
 def _require_user(context) -> dict:
     user = context.get("user")
     if not user:
-        raise Exception("Not authenticated")
+        raise AuthenticationRequired()
     return user
 
 
@@ -98,9 +101,12 @@ class Mutation:
                           password: str) -> User:
         current = _require_user(info.context)
         if current.get("role") != "admin":
-            raise Exception("Permission denied")
+            raise PermissionDenied()
         db = info.context["db"]
         row = await crud.create_user(db, email=email, name=name, password=password)
+        await redis_pubsub.publish(settings.REDIS_SUB_CHANNEL,
+                                   {"type": "user_created", "id": row.id,
+                                    "email": row.email, "name": row.name})
         return _orm_to_gql(row)
 
 
@@ -108,7 +114,10 @@ class Mutation:
 class Subscription:
     @strawberry.subscription
     async def user_created(self) -> AsyncGenerator[User, None]:
-        yield User(id=99, email="new@example.com", name="New User", role="user", created_at=_now())
+        async for msg in redis_pubsub.subscribe(settings.REDIS_SUB_CHANNEL):
+            if msg.get("type") == "user_created":
+                yield User(id=int(msg.get("id", 0)), email=msg.get("email", ""),
+                           name=msg.get("name", ""), role="user", created_at=_now())
 
 
 schema = strawberry.Schema(query=Query, mutation=Mutation, subscription=Subscription)
