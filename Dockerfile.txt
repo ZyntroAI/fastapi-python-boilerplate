@@ -1,4 +1,4 @@
-FROM alpine:3.22 AS importer
+FROM alpine:3.24 AS importer
 RUN apk add --no-cache pgloader
 COPY <<EOF /entrypoint.sh
 #!/bin/sh
