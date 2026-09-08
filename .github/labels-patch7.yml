@@ -1,0 +1,31 @@
+- name: feature
+  description: New feature or capability
+  color: a2eeef
+
+- name: claude
+  description: 🤖 Anthropic Claude API / LLM integration
+  color: 7c3aed
+
+- name: ai
+  description: 🧠 Artificial Intelligence / LLM / Agentic
+  color: 8b5cf6
+
+- name: api
+  description: 📡 REST API endpoints, routes, clients
+  color: 0ea5e9
+
+- name: cost-optimization
+  description: 💰 Cost tracking, caching, budget controls, savings
+  color: 10b981
+
+- name: observability
+  description: 📊 Logging, metrics, dashboards, monitoring, Loki/Grafana
+  color: f59e0b
+
+- name: documentation
+  description: 📚 Docs, guides, README, API references
+  color: 34d399
+
+- name: ready-to-merge
+  description: ✅ Tested, reviewed, ready to merge
+  color: 22c55e
