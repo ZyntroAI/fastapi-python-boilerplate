@@ -1,8 +1,3 @@
-# 🐳 `docker-compose.yml` — DevOps + AI Stack
-
-ไฟล์นี้ประกอบด้วยบริการหลักตามภาพ: **GitHub Actions Runner / Gitea**, **Kubernetes Dashboard (Helm)**, **TRAЕ AI Console**, **Stripe Mock API**, **PostgreSQL**, **Redis**, **MinIO** และ **Traefik (Reverse Proxy + SSO)**
-
-```yaml
 version: "3.8"
 
 x-common-env: &common-env
@@ -11,7 +6,7 @@ x-common-env: &common-env
 
 services:
   # ───────────────────────────────────────────
-  # 🗄️ Database
+  # 🗄️ Database — PostgreSQL
   # ───────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
@@ -33,7 +28,7 @@ services:
       - devai-network
 
   # ───────────────────────────────────────────
-  # ⚡ Cache / Queue
+  # ⚡ Cache / Queue — Redis
   # ───────────────────────────────────────────
   redis:
     image: redis:7-alpine
@@ -51,7 +46,7 @@ services:
       - devai-network
 
   # ───────────────────────────────────────────
-  # 📦 Object Storage (like S3)
+  # 📦 Object Storage — MinIO (S3-Compatible)
   # ───────────────────────────────────────────
   minio:
     image: minio/minio:latest
@@ -71,9 +66,14 @@ services:
       retries: 3
     networks:
       - devai-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.minio.rule=Host(`minio.localhost`)"
+      - "traefik.http.routers.minio.entrypoints=websecure"
+      - "traefik.http.services.minio.loadbalancer.server.port=9001"
 
   # ───────────────────────────────────────────
-  # 🐙 Git Repository (GitHub Self-Hosted Alternative)
+  # 🐙 Git Repository — Gitea
   # ───────────────────────────────────────────
   gitea:
     image: gitea/gitea:1.22
@@ -97,6 +97,11 @@ services:
         condition: service_healthy
     networks:
       - devai-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.git.rule=Host(`git.localhost`)"
+      - "traefik.http.routers.git.entrypoints=websecure"
+      - "traefik.http.services.git.loadbalancer.server.port=3000"
 
   # ───────────────────────────────────────────
   # 🤖 TRAE AI Console — Dashboard & AI Engine
@@ -117,9 +122,13 @@ services:
         condition: service_healthy
     networks:
       - devai-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traeai.rule=Host(`trae-ai.localhost`)"
+      - "traefik.http.routers.traeai.entrypoints=websecure"
 
   # ───────────────────────────────────────────
-  # 💳 Stripe Mock — Payment Gateway
+  # 💳 Stripe Mock — Payment API
   # ───────────────────────────────────────────
   stripe-mock:
     image: stripe/stripe-mock:latest
@@ -129,36 +138,81 @@ services:
       <<: *common-env
     networks:
       - devai-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.stripe.rule=Host(`stripe.localhost`)"
+      - "traefik.http.routers.stripe.entrypoints=websecure"
+      - "traefik.http.services.stripe.loadbalancer.server.port=12111"
 
   # ───────────────────────────────────────────
-  # 🔐 Traefik — Reverse Proxy + SSO + SSL
+  # 📊 Monitoring — Prometheus
+  # ───────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: devai-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - devai-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`)"
+      - "traefik.http.routers.prometheus.entrypoints=websecure"
+
+  # ───────────────────────────────────────────
+  # 📈 Visualization — Grafana
+  # ───────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: devai-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-Admin123!}
+      <<: *common-env
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - devai-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+
+  # ───────────────────────────────────────────
+  # 🔐 Traefik — Reverse Proxy + SSL + Dashboard
   # ───────────────────────────────────────────
   traefik:
     image: traefik:v3.1
     container_name: devai-traefik
     restart: unless-stopped
     ports:
-      - "80:80"       # HTTP
-      - "443:443"     # HTTPS
-      - "8080:8080"   # Dashboard
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
     environment:
       <<: *common-env
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
-      - ./traefik/certs:/certs
+      - ./traefik/certs:/certs:ro
+    networks:
+      - devai-network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api.rule=Host(`traefik.localhost`)"
+      - "traefik.http.routers.api.entrypoints=websecure"
       - "traefik.http.routers.api.service=api@internal"
-    networks:
-      - devai-network
     command:
       - --api=true
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
+      - --api.dashboard=true
 
 # ─────────────────────────────────────────────
 # 📦 Volumes
@@ -168,6 +222,8 @@ volumes:
   redis-data:
   minio-data:
   gitea-data:
+  prometheus-data:
+  grafana-data:
 
 # ─────────────────────────────────────────────
 # 🌐 Network
@@ -178,68 +234,3 @@ networks:
     ipam:
       config:
         - subnet: 172.28.0.0/16
-```
-
----
-
-## 🚀 คำสั่งเริ่มใช้งาน
-
-```bash
-# สร้างไฟล์ .env สำหรับรหัสผ่าน
-cat > .env << 'EOF'
-DB_PASSWORD=DevOpsPass2026
-MINIO_PASSWORD=MinioPass2026
-EOF
-
-# สร้างโฟลเดอร์และไฟล์คอนฟิก
-mkdir -p traefik trae-ai/html
-
-# เริ่มทุกบริการ
-docker compose up -d
-
-# ตรวจสอบสถานะ
-docker compose ps
-
-# ดูบันทึก
-docker compose logs -f
-```
-
-## 📋 การเข้าถึงบริการ
-
-| บริการ | URL | ข้อมูลเข้าสู่ระบบ |
-|---|---|---|
-| **TRAЕ AI Console** | `https://trae-ai.localhost` | SSO / Admin |
-| **Git Repo** | `https://git.localhost` | Admin / สร้างบัญชีครั้งแรก |
-| **MinIO Storage** | `https://minio.localhost:9001` | admin / MinioPass2026 |
-| **Traefik Dashboard** | `http://traefik.localhost:8080` | ไม่มีรหัส (ภายใน) |
-| **Stripe Mock API** | `http://stripe.localhost:12111` | API Key: pk_test_123 |
-
----
-
-## ⚙️ ตัวอย่างคอนฟิกเพิ่มเติม
-
-### `traefik/traefik.yml`
-```yaml
-http:
-  routers:
-    trae-ai:
-      rule: Host(`trae-ai.localhost`)
-      entryPoints: [websecure]
-      service: trae-ai
-    git:
-      rule: Host(`git.localhost`)
-      entryPoints: [websecure]
-      service: gitea
-
-  services:
-    trae-ai:
-      loadBalancer:
-        servers:
-          - url: "http://trae-ai:80"
-    gitea:
-      loadBalancer:
-        servers:
-          - url: "http://gitea:3000"
-```
-
-ต้องการให้เพิ่ม **Kubernetes Dashboard / Helm**, **GitHub Actions Runner**, หรือ **OIDC SSO** เข้าไปใน compose file นี้ไหมครับ? หรือตัวอย่างไฟล์ `.env` และโครงสร้างโฟลเดอร์ครบชุด?
