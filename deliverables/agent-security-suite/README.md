@@ -9,6 +9,8 @@ ISO-27001-style audit log + JSON schema validation + Slack alert.
   generic `validate_against`) that audits every outcome and alerts on failure.
 - `agent_security_suite/slack_alert.py` — stdlib-only (urllib) alert; no-op when
   `SLACK_WEBHOOK_URL` is unset (safe for local/CI).
+- `agent_security_suite/recovery.py` — LangGraph time-travel recovery (lazy import): validator->approver->execute graph + `rollback_and_fix()`.
+- `agent_security_suite/mcp_client.py` — minimal MCP client over stdio (lazy import).
 
 ## Usage
 ```python
@@ -23,5 +25,8 @@ res = validate_crm_data({"customer_name": "Acme", "deal_value": 250}, "sess1", "
 
 ## Run tests
 ```bash
-python -m pytest tests/ -q    # 7 passed
+python -m pytest tests/ -q    # 11 passed
 ```
+
+Optional modules (`recovery`, `mcp_client`) lazy-import langgraph/mcp — the
+core suite runs without them.
