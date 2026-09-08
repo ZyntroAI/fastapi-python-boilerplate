@@ -10,6 +10,8 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from .clients.http import HTTPClient
+from .clients.graphql import GraphQLClient
+from .clients.websocket import WebSocketClient
 from .reliability.cache import Cache
 from .security.ssrf import check as ssrf_check
 from .sources.github import GitHubSource
@@ -18,6 +20,8 @@ from .sources.github import GitHubSource
 class FetchingSkill:
     def __init__(self) -> None:
         self.http = HTTPClient()
+        self.graphql = GraphQLClient()
+        self.websocket = WebSocketClient()
         self.cache = Cache()
         self.github = GitHubSource(self.http)
 
@@ -40,6 +44,24 @@ class FetchingSkill:
         data = await self.url(url, **kw)
         self.cache.set(key, data, ttl)
         return data
+
+
+
+    async def gql(self, endpoint: str, query: str, **kw: Any):
+        return await self.graphql.execute(endpoint, query, **kw)
+
+    async def ws_connect(self, url: str, **kw: Any):
+        return await self.websocket.connect(url, **kw)
+
+    async def ws_send(self, msg: Any):
+        return await self.websocket.send(msg)
+
+    async def ws_receive(self):
+        async for m in self.websocket.receive():
+            yield m
+
+    async def ws_close(self):
+        return await self.websocket.close()
 
 
 fetch = FetchingSkill()
