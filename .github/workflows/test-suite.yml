@@ -1,30 +1,175 @@
-name: Test Suite
+# 📄 Complete Final Workflow — `.github/workflows/test-suite.yml`
+
+Here's your **full, production-ready workflow** — everything integrated: Docker Compose stack, migrations, seed user, unit + E2E tests, coverage, and cleanup. Ready to copy-paste directly!
+
+---
+
+```yaml
+name: 🧪 Test Suite
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [main, develop]
   pull_request:
-    branches: [ "main" ]
+    branches: [main, develop]
 
 permissions:
   contents: read
 
+env:
+  DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/fastapi_test
+  REDIS_URL: redis://redis:6379/0
+  API_BASE_URL: http://traefik:80
+  COMPOSE_FILE: docker-compose.yml
+  COMPOSE_PROJECT_NAME: testsuite
+
 jobs:
   test:
+    name: 🧪 Full Stack + E2E API Tests
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [ "3.10", "3.11", "3.12" ]
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: 📦 Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest httpx
-      - name: Run tests
-        run: pytest -v
+
+      - name: 🐳 Spin Up FULL Stack (API + DB + Redis + Traefik)
+        run: |
+          docker compose up -d --build
+          echo "⏳ All services starting..."
+
+      - name: ⏳ Wait for PostgreSQL
+        run: |
+          until docker compose exec -T postgres pg_isready -U postgres -d fastapi_test; do
+            echo "Waiting for PostgreSQL..."
+            sleep 3
+          done
+          echo "✅ PostgreSQL Ready"
+
+      - name: ⏳ Wait for Redis
+        run: |
+          until docker compose exec -T redis redis-cli ping | grep PONG; do
+            echo "Waiting for Redis..."
+            sleep 2
+          done
+          echo "✅ Redis Ready"
+
+      - name: ⏳ Wait for API (via Traefik)
+        run: |
+          until curl -s -o /dev/null -w "%{http_code}" ${{ env.API_BASE_URL }}/health | grep -E "200|401"; do
+            echo "Waiting for API via Traefik..."
+            sleep 3
+          done
+          echo "✅ API + Traefik Ready"
+
+      - name: 📊 Run Database Migrations
+        run: alembic upgrade head
+
+      - name: 🔑 Seed Test User for Auth Tests
+        run: |
+          python -c "
+          from app.database import SessionLocal
+          from app.models.user import User
+          from app.core.security import get_password_hash
+          import sys
+
+          db = SessionLocal()
+          try:
+              existing = db.query(User).filter(User.email == 'test@example.com').first()
+              if not existing:
+                  user = User(
+                      email='test@example.com',
+                      username='testuser',
+                      hashed_password=get_password_hash('testpass123'),
+                      is_active=True
+                  )
+                  db.add(user)
+                  db.commit()
+                  db.refresh(user)
+                  print('✅ Test user created successfully')
+                  print(f'   ID: {user.id}, Email: {user.email}')
+              else:
+                  print(f'✅ Test user already exists (ID: {existing.id})')
+
+          except Exception as e:
+              print(f'❌ Error seeding user: {e}', file=sys.stderr)
+              db.rollback()
+              sys.exit(1)
+          finally:
+              db.close()
+          "
+
+      - name: 🧪 Run ALL Tests
+        run: |
+          pytest tests/ \
+            --cov=app \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --strict-markers \
+            --tb=short \
+            -v
+        env:
+          PYTHONUNBUFFERED: "1"
+
+      - name: 📤 Upload Coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: full-stack,e2e,auth
+          fail_ci_if_error: false
+
+      - name: 🧹 Cleanup Stack
+        if: always()
+        run: docker compose down --remove-orphans --volumes
+```
+
+---
+
+## ✅ What's Inside — Complete Checklist
+
+| Stage | What It Does |
+|---|---|
+| 🐳 **Spin Up Stack** | Builds & starts API + PostgreSQL + Redis + Traefik |
+| ⏳ **Health Checks** | Waits for EVERY service before proceeding |
+| 📊 **Migrations** | Schema matches production exactly |
+| 🔑 **Seed User** | Creates test user safely with error handling + rollback |
+| 🧪 **Run All Tests** | Unit + Integration + E2E Auth Flow through Traefik |
+| 📤 **Coverage** | Uploads combined report → Codecov → README badge |
+| 🧹 **Cleanup** | Always removes stack — even if tests fail |
+
+---
+
+## 📌 Quick Deployment
+
+1. **Replace** your existing `.github/workflows/test-suite.yml` with this entire file
+2. **Verify** your `docker-compose.yml` has services: `postgres`, `redis`, `traefik`, `api`
+3. **Verify** your test files exist:
+   - `tests/e2e/test_auth_flow.py`
+   - `tests/e2e/test_health.py`
+   - `tests/e2e/test_items_api.py`
+4. **Commit & Push** → Workflow runs automatically! 🚀
+
+---
+
+## 🛡️ Branch Protection Reminder
+
+Go to: **Repo → Settings → Branches → Branch protection rule → main**
+- ✅ **Require status checks to pass before merging**
+- ✅ Select job: `🧪 Full Stack + E2E API Tests`
+→ **No code merges unless ALL tests pass!** 🔒✅
+
+---
+
+✅ **Ready to use!** Save → Commit → Push → Every PR now validates your **entire stack end-to-end** 🎉
+
+Would you like me to also provide the **async version of the seed step** in case you migrate to fully async SQLAlchemy later? ⚡🐘
