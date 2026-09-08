@@ -1,11 +1,11 @@
 dockerfile
-FROM node:22-alpine AS deps
+FROM node:26-alpine AS deps
 COPY package*.json ./
 RUN npm ci
 
 ...
 
-FROM node:22-alpine AS production
+FROM node:26-alpine AS production
 ...
 RUN npm ci --omit=dev && npm cache clean --force
 
