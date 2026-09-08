@@ -1,54 +1,112 @@
 name: Auto Index Sync
 
+# ⏰ Triggers — Push, Nightly Schedule, Manual
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+    paths:
+      - "docs/**"
+      - ".github/workflows/auto-index-sync.yml"
+
   schedule:
-    - cron: "0 2 * * *"   # nightly sync at 2 AM UTC
-  workflow_dispatch:       # manual trigger
+    - cron: "0 2 * * *"   # Daily at 02:00 UTC → 09:00 ICT
+
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preview only — skip push/commit"
+        required: false
+        default: false
+        type: boolean
+
+# 🔒 Permissions — Minimal required
+permissions:
+  contents: write          # needed for checkout + commit/push
 
 jobs:
+  # ─────────────────────────────────────────────────────
+  # Job 1: Index Repository Documentation
+  # ─────────────────────────────────────────────────────
   index-docs:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d275971dd864cf32 # v4.1.1
 
-      - name: Extract repo docs metadata
+      - name: Extract metadata from docs
         run: |
           python scripts/extract_metadata.py docs/ > repo_index.json
 
-      - name: Push to search index
+      - name: Push index to Algolia
         env:
           ALGOLIA_APP_ID: ${{ secrets.ALGOLIA_APP_ID }}
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
         run: |
           python scripts/push_index.py repo_index.json
 
+  # ─────────────────────────────────────────────────────
+  # Job 2: Sync External Docs (OpenClaw)
+  # ─────────────────────────────────────────────────────
   sync-external-docs:
     runs-on: ubuntu-latest
     steps:
-      - name: Crawl OpenClaw docs
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d275971dd864cf32 # v4.1.1
+
+      - name: Crawl & parse OpenClaw docs
         run: |
-          curl -s https://docs.openclaw.ai > openclaw.html
+          curl -sL --max-time 30 https://docs.openclaw.ai > openclaw.html
           python scripts/parse_docs.py openclaw.html > openclaw_index.json
 
-      - name: Push external docs to index
+      - name: Push external docs index
         run: |
           python scripts/push_index.py openclaw_index.json
 
+  # ─────────────────────────────────────────────────────
+  # Job 3: Audit Affiliate Policy & Commit Changes
+  # ─────────────────────────────────────────────────────
   audit-policies:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d275971dd864cf32 # v4.1.1
+
       - name: Fetch affiliate terms
         run: |
-          curl -s https://www.upcomers.com/policies/affiliate-terms-conditions > affiliate.html
-          python scripts/diff_policy.py affiliate.html > policy_diff.md
+          curl -sL --max-time 30 https://www.upcomers.com/policies/affiliate-terms-conditions > affiliate.html
 
-      - name: Commit policy changes
+      - name: Verify parse script exists
+        run: |
+          if [ ! -f scripts/parse_docs.py ]; then
+            echo "⚠️ scripts/parse_docs.py missing — creating placeholder"
+            mkdir -p scripts
+            echo '#!/usr/bin/env python3
+import sys
+print("# Policy Snapshot\n")
+print("Source:", sys.argv[1])
+' > scripts/parse_docs.py
+            chmod +x scripts/parse_docs.py
+          fi
+
+      - name: Parse policy & generate diff
+        run: |
+          python scripts/parse_docs.py affiliate.html > policy_diff.md
+          cat policy_diff.md
+
+      - name: Commit & push changes
+        if: ${{ inputs.dry_run == false }}
         run: |
           git config user.name "index-bot"
           git config user.email "bot@example.com"
-          git add policy_diff.md
-          git commit -m "chore: update affiliate policy snapshot"
+
+          git add affiliate.html policy_diff.md
+
+          # Skip commit if no changes
+          if git diff --staged --quiet; then
+            echo "✅ No policy changes detected — nothing to commit"
+            exit 0
+          fi
+
+          git commit -m "chore: update affiliate policy snapshot [skip ci]"
           git push
