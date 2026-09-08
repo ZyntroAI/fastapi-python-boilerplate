@@ -1,8 +1,8 @@
-"""Agent Security Suite — runnable core.
+"""Agent Security Suite — full runnable stack.
 
-audit log (ISO-27001-style) + JSON schema validation + Slack alert.
-Stdlib-first: audit & alert use only the standard library; validation uses
-the `jsonschema` package.
+Core (no extra deps): audit log (ISO-27001-style) + JSON schema validation +
+Slack alert (stdlib-only). Optional (lazy-import): LangGraph time-travel
+recovery + MCP client — only needed when those packages are installed.
 
 Example:
     from agent_security_suite import validate_crm_data
