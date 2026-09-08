@@ -1,6 +1,6 @@
 # NotebookLM Access + Artifact Intelligence — Core P0
 
-Runnable core (link-resolver + access-check + artifact-router), pure stdlib.
+Runnable suite (resolver/access/artifact + validate/guide/security/provenance/verify/knowledge), pure stdlib.
 
 ## Usage
 ```python
@@ -15,5 +15,5 @@ classify_access(["login_redirect"])  # -> RESTRICTED (evidence-based)
 
 ## Test
 ```bash
-python -m pytest notebooklm_access/tests/ -q    # 12 passed
+python -m pytest notebooklm_access/tests/ -q    # 22 passed
 ```
