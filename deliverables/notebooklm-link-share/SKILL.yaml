@@ -1,0 +1,10 @@
+skill:
+  id: notebooklm-link-share-v1
+  name: NotebookLM Link & Sharing Mastery
+  version: "1.0.0"
+  description: Normalize private/artifact NotebookLM links to clean public URLs,
+    generate share templates (short/detailed/formal), validate link structure.
+  visibility: public
+  tags: [notebooklm, link-management, sharing, access-control, url-normalization]
+  dependencies: []
+  provides: [normalize_link, public_skill, generate_share_text, validate_link, is_valid_uuid]
