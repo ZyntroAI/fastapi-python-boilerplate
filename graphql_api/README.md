@@ -34,3 +34,23 @@ tests/             auth + schema execution tests
 - `login` is a demo stub (any creds -> token); add passlib/bcrypt + real lookup.
 - Subscription `user_created` is a template (Redis pub/sub not wired).
 - Timezone-aware datetimes (UTC) used throughout.
+
+## Database migrations (Alembic)
+
+```bash
+# Apply migrations (creates schema from alembic/versions)
+cd graphql_api
+alembic upgrade head
+
+# After changing app/models.py, generate a new migration
+alembic revision --autogenerate -m "describe change"
+
+# Rollback one step
+alembic downgrade -1
+```
+
+## DB-backed resolvers
+- `login` verifies against the `users` table (bcrypt password hash).
+- `me` / `users` query the DB through async SQLAlchemy sessions.
+- `create_user` inserts a real row (admin-gated).
+- Tests run against an in-memory SQLite DB (`tests/test_schema_db.py`).
