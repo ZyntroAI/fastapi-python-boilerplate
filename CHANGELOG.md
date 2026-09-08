@@ -5,6 +5,7 @@ All notable changes to this repository. Dates are UTC.
 ## [2026-09-09]
 
 ### Added
+- **PR #114** — `skills/fetching/`: SSRF-safe async HTTP fetch skill (httpx) with retry + TTL cache + provenance; SSRF guard blocks private/local/metadata hosts; GitHub source. 9 tests.
 - **PR #112** — Reference deliverables under `deliverables/`: GitHub DevOps Toolkit (PR templates, SHA-pinned gatekeeper workflows, externalized branch-protection config, Terraform module) + AI Agents Decision Pack (comparison matrix, Notion/Figma/Miro assets). Docs/config only.
 
 ## [2026-09-08] — Skill-native architecture, secrets cleanup, and GraphQL API
