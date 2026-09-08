@@ -15,6 +15,8 @@ from app.core import logging as app_logging
 from app.core.security import auth_router
 from app.db.session import close_db, init_db
 from app.routes import items_router, users_router
+from core.origin_middleware import OriginValidationMiddleware
+from core.config import settings
 
 
 # ============================================================
@@ -557,3 +559,15 @@ async def readyz(
     return {
         "ready": True,
     }
+    
+# ============================================================
+# ✅ เพิ่มส่วนนี้หลังสร้าง app
+# ============================================================
+app.add_middleware(
+    OriginValidationMiddleware,
+    allowed_origins=settings.ALLOWED_ORIGINS,
+    protected_routes=settings.PROTECTED_ROUTES,
+    exempt_routes=settings.EXEMPT_ROUTES,
+    allow_null_origin=False,
+    enable_referrer_check=True,
+)
