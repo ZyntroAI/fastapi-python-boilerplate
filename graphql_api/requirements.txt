@@ -14,3 +14,4 @@ passlib[bcrypt]==1.7.4
 bcrypt==4.0.1
 alembic>=1.13.0
 aiosqlite>=0.20.0
+strawberry-graphql[redis]>=0.229.0
