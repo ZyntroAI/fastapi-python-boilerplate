@@ -1,0 +1,20 @@
+{
+  "id": "notebooklm-access-artifact-suite-v1",
+  "name": "NotebookLM Access + Artifact Intelligence",
+  "version": "1.0.0",
+  "tags": [
+    "url",
+    "sharing",
+    "access-control",
+    "artifact"
+  ],
+  "status": "stable",
+  "input": [
+    "url"
+  ],
+  "output": [
+    "access_report",
+    "canonical_url",
+    "remediation_guide"
+  ]
+}
