@@ -1,7 +1,7 @@
 version: 2
 updates:
   # ============================================
-  # Backend (NestJS + Prisma) - ตำแหน่งหลัก
+  # Backend (NestJS + Prisma) — Primary Dependencies
   # ============================================
   - package-ecosystem: "npm"
     directory: "/backend"
@@ -11,7 +11,8 @@ updates:
       time: "09:00"
       timezone: "Asia/Bangkok"
     open-pull-requests-limit: 10
-    # แยก PR ตามประเภท
+
+    # 🧩 Group Updates by Type
     groups:
       nestjs:
         patterns:
@@ -19,6 +20,7 @@ updates:
         update-types:
           - "minor"
           - "patch"
+
       prisma:
         patterns:
           - "@prisma/*"
@@ -26,6 +28,7 @@ updates:
         update-types:
           - "minor"
           - "patch"
+
       production-deps:
         dependency-type: "production"
         exclude-patterns:
@@ -35,28 +38,33 @@ updates:
         update-types:
           - "minor"
           - "patch"
+
       development-deps:
         dependency-type: "development"
         update-types:
           - "minor"
           - "patch"
-    # ไม่ให้ major version กระโดดอัตโนมัติ (กันพัง)
+
+    # 🛡️ Block ALL major version auto-updates (prevent breaking changes)
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+
     labels:
       - "dependencies"
       - "backend"
+
     commit-message:
       prefix: "chore(deps)"
       include: "scope"
+
     reviewers:
-      - "zyntromedia"          # เปลี่ยนเป็น username จริงได้
-    # ถ้ามี private registry หรือต้องการ rebase อัตโนมัติ
+      - "zyntromedia"
+
     rebase-strategy: "auto"
 
   # ============================================
-  # Root (เผื่อมี package.json ในอนาคต)
+  # Root — Future package.json (if added)
   # ============================================
   - package-ecosystem: "npm"
     directory: "/"
@@ -66,29 +74,36 @@ updates:
       time: "09:00"
       timezone: "Asia/Bangkok"
     open-pull-requests-limit: 5
+
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+
     labels:
       - "dependencies"
+
     commit-message:
       prefix: "chore(deps)"
 
   # ============================================
-  # GitHub Actions (อัปเดต actions อัตโนมัติ)
+  # GitHub Actions — Workflow Updates
   # ============================================
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
+
     open-pull-requests-limit: 5
+
     groups:
       actions:
         patterns:
           - "*"
+
     labels:
       - "dependencies"
       - "github-actions"
+
     commit-message:
       prefix: "chore(ci)"
