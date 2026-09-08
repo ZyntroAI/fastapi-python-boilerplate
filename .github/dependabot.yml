@@ -1,109 +1,82 @@
 version: 2
 updates:
-  # ============================================
-  # Backend (NestJS + Prisma) — Primary Dependencies
-  # ============================================
-  - package-ecosystem: "npm"
-    directory: "/backend"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "Asia/Bangkok"
-    open-pull-requests-limit: 10
-
-    # 🧩 Group Updates by Type
-    groups:
-      nestjs:
-        patterns:
-          - "@nestjs/*"
-        update-types:
-          - "minor"
-          - "patch"
-
-      prisma:
-        patterns:
-          - "@prisma/*"
-          - "prisma"
-        update-types:
-          - "minor"
-          - "patch"
-
-      production-deps:
-        dependency-type: "production"
-        exclude-patterns:
-          - "@nestjs/*"
-          - "@prisma/*"
-          - "prisma"
-        update-types:
-          - "minor"
-          - "patch"
-
-      development-deps:
-        dependency-type: "development"
-        update-types:
-          - "minor"
-          - "patch"
-
-    # 🛡️ Block ALL major version auto-updates (prevent breaking changes)
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
-
-    labels:
-      - "dependencies"
-      - "backend"
-
-    commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
-
-    reviewers:
-      - "zyntromedia"
-
-    rebase-strategy: "auto"
-
-  # ============================================
-  # Root — Future package.json (if added)
-  # ============================================
-  - package-ecosystem: "npm"
+  # Python / pip — production deps in root requirements.txt (used by CI)
+  - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
-      time: "09:00"
+      day: "saturday"
+      time: "03:00"
       timezone: "Asia/Bangkok"
     open-pull-requests-limit: 5
-
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
-
-    labels:
-      - "dependencies"
-
+    labels: ["dependencies", "python", "pip", "auto-merge"]
+    reviewers: ["zyntromedia"]
+    assignees: ["zyntromedia"]
     commit-message:
-      prefix: "chore(deps)"
+      prefix: "deps(pip)"
+      include: "scope"
+    groups:
+      production-deps: { dependency-type: "production" }
+      dev-deps: { dependency-type: "development" }
 
-  # ============================================
-  # GitHub Actions — Workflow Updates
-  # ============================================
+  # pytest dev/test deps
+  - package-ecosystem: "pip"
+    directory: "/pytest"
+    schedule:
+      interval: "weekly"
+      day: "saturday"
+      time: "03:00"
+      timezone: "Asia/Bangkok"
+    open-pull-requests-limit: 3
+    labels: ["dependencies", "python", "pip", "auto-merge"]
+    reviewers: ["zyntromedia"]
+    assignees: ["zyntromedia"]
+    commit-message:
+      prefix: "deps(pip)"
+      include: "scope"
+
+  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
-
-    open-pull-requests-limit: 5
-
-    groups:
-      actions:
-        patterns:
-          - "*"
-
-    labels:
-      - "dependencies"
-      - "github-actions"
-
+      day: "saturday"
+      time: "03:00"
+      timezone: "Asia/Bangkok"
+    open-pull-requests-limit: 10
+    labels: ["dependencies", "github-actions", "auto-merge"]
+    reviewers: ["zyntromedia"]
+    assignees: ["zyntromedia"]
     commit-message:
-      prefix: "chore(ci)"
+      prefix: "ci(actions)"
+      include: "scope"
+
+  # npm / JS — root package.json
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "saturday"
+      time: "03:00"
+      timezone: "Asia/Bangkok"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "javascript", "npm", "auto-merge"]
+    reviewers: ["zyntromedia"]
+    assignees: ["zyntromedia"]
+    commit-message:
+      prefix: "deps(npm)"
+      include: "scope"
+    groups:
+      production-deps: { dependency-type: "production" }
+      dev-deps: { dependency-type: "development" }
+
+  # Docker — no auto-merge (safer default)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "saturday"
+    open-pull-requests-limit: 3
+    labels: ["dependencies", "docker"]
+    commit-message:
+      prefix: "chore(docker)"
