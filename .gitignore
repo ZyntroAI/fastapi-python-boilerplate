@@ -1,3 +1,117 @@
 *skills
 *.py
 *docker
+# ──────────────────────────────────────────────
+# 📦 Node / JavaScript
+# ──────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ──────────────────────────────────────────────
+# ⚡ Vite + React Build Output & Cache
+# ──────────────────────────────────────────────
+dist/
+build/
+.vite/
+.vite-inspect/
+vite.config.ts.timestamp-*.mjs
+vite.config.js.timestamp-*.mjs
+vite-plugin-ssr/
+*.local
+
+# ──────────────────────────────────────────────
+# 🔐 Environment & Secrets
+# ──────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.production.local
+.env.test.local
+
+# ──────────────────────────────────────────────
+# 🧪 Testing & Coverage
+# ──────────────────────────────────────────────
+coverage/
+*.lcov
+.nyc_output/
+cypress/videos/
+cypress/screenshots/
+playwright-report/
+test-results/
+.coverage
+
+# ──────────────────────────────────────────────
+# 🤖 GitHub Actions — Workflow Specific
+# ──────────────────────────────────────────────
+# Runner & workflow artifacts
+.github/workflows/*.log
+.github/workflows/build-*/
+.github/workflows/test-results/
+.github/artifacts/
+.github/cache/
+
+# Action runtime files
+.github/actions/*/node_modules/
+.github/actions/*/dist/
+
+# Workflow run & temp files
+*.run
+*.workflow.tmp
+step-summary-*.md
+
+# Self-hosted runner working directories
+_actions/
+runner/
+
+# ──────────────────────────────────────────────
+# ☁️ Deployment Platforms
+# ──────────────────────────────────────────────
+.vercel/
+.netlify/
+firebase.json
+.firebaserc
+firebase-debug.log
+supabase/functions/node_modules/
+
+# ──────────────────────────────────────────────
+# 🧠 AI & Agent Artifacts
+# ──────────────────────────────────────────────
+Ai-studio/output/
+Azure-AI/temp/
+Final-Report/*.pdf
+*.handoff.json
+.permission-request.json
+.dola/state/*.json
+.fig/handoff/*.json
+
+# ──────────────────────────────────────────────
+# 💻 IDE & OS Artifacts
+# ──────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ──────────────────────────────────────────────
+# 📝 Logs & Temporary Files
+# ──────────────────────────────────────────────
+*.log
+*.tmp
+*.swp
+*.swo
+*~
+.bak
+.orig
