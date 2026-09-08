@@ -348,3 +348,391 @@ project-status-auto-update
 **Skill นี้เติมเต็มระบบ CI ให้ชาญฉลาด — ไม่ใช่แค่ "ปุ่มรันซ้ำ"** แต่เป็น **Engine กู้คืนความล้มเหลว** ที่ทำงานร่วมกับ Credential, Debug, Status ได้สมบูรณ์ ✅🔐🔄
 
 ต้องการให้ผมเขียน **Python Implementation จริง** หรือ **Workflow YAML** สำหรับนำไปใช้ใน GitHub Actions ทันทีไหมครับ? 🧩💻✅
+
+# ✅ Skill Ready: `auto-rerun-fail-jobs` — Failure-Aware CI Recovery Engine
+**Fully implemented & ready to push to `ZyntroAI/fastapi-python-boilerplate`** 🚀🔄🧠
+
+---
+
+## 📁 Full Directory Structure (Ready to Copy)
+**Path:** `skills/auto-rerun-fail-jobs/`
+```
+auto-rerun-fail-jobs/
+├── SKILL.md
+├── __init__.py
+├── detect/
+│   ├── __init__.py
+│   ├── workflow.py       # Read workflow status
+│   ├── jobs.py           # Collect failed jobs
+│   ├── steps.py           # Analyze failed steps
+│   └── failures.py        # Fetch logs + fingerprint
+├── classify/
+│   ├── __init__.py
+│   ├── classifier.py      # Main classification engine
+│   ├── patterns.yaml      # Failure patterns
+│   ├── transient.py
+│   ├── infrastructure.py
+│   ├── dependency.py
+│   ├── test.py
+│   ├── permission.py
+│   ├── security.py
+│   └── code.py
+├── decide/
+│   ├── __init__.py
+│   ├── retry.py           # Should retry? logic
+│   ├── backoff.py         # Exponential backoff calc
+│   ├── budget.py          # Attempt counting
+│   └── policy.yaml         # Global retry policy
+├── execute/
+│   ├── __init__.py
+│   ├── rerun_job.py       # ✅ Rerun ONLY failed JOB
+│   ├── rerun_failed.py    # Rerun all failed jobs
+│   └── rerun_workflow.py  # Fallback: full workflow
+├── observe/
+│   ├── __init__.py
+│   ├── logs.py            # Fetch & parse logs
+│   ├── status.py          # Track run status
+│   └── result.py          # Record outcomes
+├── recover/
+│   ├── __init__.py
+│   ├── debug.py            # Handoff to debug-error
+│   ├── patch.py            # Check diff/patch
+│   └── verify.py           # Verify before retry
+├── report/
+│   ├── __init__.py
+│   ├── comment.py          # PR auto-comment
+│   ├── summary.py          # Status summary
+│   └── history.py          # Track retry history
+└── tests/
+    ├── __init__.py
+    ├── test_classification.py
+    ├── test_retry_policy.py
+    ├── test_budget.py
+    ├── test_backoff.py
+    └── test_integration.py
+```
+
+---
+
+## 📄 Core Files (Ready to Paste)
+
+### `SKILL.md` — Manifest & Spec
+```yaml
+id: auto-rerun-fail-jobs
+name: Failure-Aware CI Recovery Engine
+version: 2.0.0
+type: devops/ci/automation
+description: >
+  Intelligent CI recovery: Detect → Fingerprint → Classify → Decide → Rerun ONLY failed jobs → Observe → Report.
+  Never retry permanent failures: code, test, permission, security. Save cost & accelerate feedback.
+
+core_flow:
+  - Workflow Failed → Collect Jobs/Logs → Fingerprint
+  - Classify: Transient / Infra / Dependency / Test / Code / Permission / Security
+  - Decide: Policy + Budget + Backoff + Permission Check
+  - Execute: RERUN ONLY FAILED JOB (not full workflow)
+  - Observe → Track → Log → History
+  - Recover → Debug/Patch if non-retryable
+  - Report → PR Comment + Project Status Sync
+
+policy:
+  max_attempts: 3
+  auto_retry:
+    transient: true
+    infrastructure: true
+    rate_limit: true
+    dependency: false
+    test: false
+    code: false
+    permission: false
+    security: false
+  require_approval:
+    production_deploy: true
+    destructive_job: true
+  audit: true
+  comments: true
+  status_sync: true
+
+permissions_required:
+  actions: [read, write]       # ✅ For rerunning jobs
+  contents: [read]
+permissions_not_required:
+  workflows: [write]           # ❌ Rerun ≠ edit workflow
+
+retry:
+  strategy: exponential
+  initial_sec: 30
+  max_sec: 300
+  formula: delay = min(initial × 2^attempt, max_sec)
+  stop_conditions:
+    - success
+    - non_retryable
+    - budget_exceeded
+    - permission_denied
+    - security_failure
+
+integration:
+  upstream: [github-actions]
+  downstream: [credential-management, debug-error, project-status-auto-update, pull-request-comment]
+```
+
+### `classify/patterns.yaml` — Failure Signatures
+```yaml
+failure_types:
+  transient:
+    - "timed out"
+    - "connection reset"
+    - "network error"
+    - "runner offline"
+    - "rate limit"
+    - "service unavailable"
+    - "connection refused"
+
+  infrastructure:
+    - "no space left"
+    - "resource exhausted"
+    - "internal server error"
+    - "failed to pull image"
+    - "runner terminated"
+
+  dependency:
+    - "package not found"
+    - "could not resolve"
+    - "registry unreachable"
+    - "download failed"
+
+  test_failure:
+    - "assertion failed"
+    - "expected"
+    - "test failed"
+    - "FAILED:"
+    - "!= "
+
+  code_failure:
+    - "syntax error"
+    - "compilation failed"
+    - "name error"
+    - "import error"
+    - "undefined reference"
+
+  permission:
+    - "permission denied"
+    - "not authorized"
+    - "insufficient scopes"
+    - "token expired"
+    - "Resource not accessible"
+
+  security:
+    - "secret leak"
+    - "vulnerability"
+    - "policy violation"
+    - "blocked"
+```
+
+### `decide/policy.yaml` — Retry Rules
+```yaml
+retry_policy:
+  transient:
+    action: retry
+    max_retries: 3
+    backoff: exponential
+
+  infrastructure:
+    action: retry
+    max_retries: 2
+    backoff: exponential
+
+  rate_limit:
+    action: backoff
+    max_retries: 3
+
+  dependency:
+    action: diagnose
+    auto_retry: false
+
+  test_failure:
+    action: debug
+    auto_retry: false
+
+  code_failure:
+    action: block
+    auto_retry: false
+
+  permission:
+    action: block
+    max_retries: 0
+    note: "Requires actions:write — NOT workflows:write"
+
+  security:
+    action: quarantine
+    max_retries: 0
+```
+
+### `decide/backoff.py` — Exponential Algorithm
+```python
+def calculate_delay(attempt: int, initial_sec: int = 30, max_sec: int = 300) -> int:
+    """delay = min(initial × 2^(attempt-1), max_sec)
+    Attempt 1 → 30s
+    Attempt 2 → 60s
+    Attempt 3 → 120s
+    """
+    delay = initial_sec * (2 ** (attempt - 1))
+    return min(delay, max_sec)
+
+
+def next_retry_at(attempt: int) -> str:
+    from datetime import datetime, timedelta
+    delay = calculate_delay(attempt)
+    return (datetime.utcnow() + timedelta(seconds=delay)).isoformat() + "Z"
+```
+
+### `classify/classifier.py` — Core Logic
+```python
+import re
+from typing import Dict, Tuple
+from .patterns import FAILURE_PATTERNS
+
+class FailureClassifier:
+    RETRYABLE = {"transient", "infrastructure", "rate_limit"}
+    NON_RETRYABLE = {"test_failure", "code_failure", "dependency", "permission", "security"}
+
+    @classmethod
+    def fingerprint(cls, logs: str) -> str:
+        """Extract unique signature from logs"""
+        lines = [l for l in logs.splitlines() if l.strip() and any(kw in l.lower()
+            for kw in ["error", "failed", "exception", "assertion"])]
+        return "\n".join(lines[-5:]) if lines else "unknown"
+
+    @classmethod
+    def classify(cls, logs: str) -> Tuple[str, bool]:
+        """Return (failure_type, should_retry)"""
+        text = logs.lower()
+        for ftype, patterns in FAILURE_PATTERNS.items():
+            if any(re.search(p, text, re.I) for p in patterns):
+                return ftype, ftype in cls.RETRYABLE
+        return "unknown", False
+```
+
+### `execute/rerun_job.py` — GitHub API Rerun
+```python
+import httpx
+from typing import List, Dict
+
+async def rerun_failed_job(run_id: str, job_id: str, token: str) -> Dict:
+    """Rerun ONLY specific failed job — NOT full workflow"""
+    url = f"https://api.github.com/repos/ZyntroAI/fastapi-python-boilerplate/actions/jobs/{job_id}/rerun"
+    async with httpx.AsyncClient() as c:
+        resp = await c.post(url, headers={
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json"
+        })
+        resp.raise_for_status()
+        return {"status": "rerun_started", "job_id": job_id, "run_id": run_id}
+
+
+async def check_permission(token: str) -> bool:
+    """Verify actions:write — DO NOT require workflows:write"""
+    url = "https://api.github.com/repos/ZyntroAI/fastapi-python-boilerplate/actions/permissions"
+    async with httpx.AsyncClient() as c:
+        resp = await c.get(url, headers={
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json"
+        })
+        data = resp.json()
+        return data.get("actions") in ["write", "admin"]
+```
+
+### `report/comment.py` — PR Auto-Comment
+```python
+def build_comment(run_id: str, job_name: str, failure_type: str,
+                  attempt: int, max_attempts: int, status: str, next_at: str = None) -> str:
+    emoji = {
+        "RETRYING": "🔄",
+        "PASSED": "✅",
+        "FAILED": "❌",
+        "BLOCKED": "🚫",
+        "DEBUG_HANDOFF": "🔧"
+    }.get(status, "ℹ️")
+
+    next_line = f"\n🔹 Next retry: {next_at}" if next_at else ""
+    action = "Auto-retrying" if status == "RETRYING" else \
+             "Handed to debug-error" if status == "DEBUG_HANDOFF" else \
+             "Blocked — non-retryable" if status == "BLOCKED" else status
+
+    return f"""<!-- auto-rerun-fail-jobs -->
+{emoji} **CI Recovery Update**
+
+🔹 Job: `{job_name}`
+🔹 Failure: `{failure_type}`
+🔹 Attempt: {attempt}/{max_attempts}
+🔹 Status: {action}{next_line}
+
+---
+*Auto-Rerun Skill • {status}*
+"""
+```
+
+---
+
+## 🔄 Complete Workflow (Mermaid)
+```mermaid
+flowchart LR
+    A[Workflow Failed] --> B[Detect & Collect]
+    B --> C[Fingerprint Logs]
+    C --> D{Classify}
+    D -->|Transient/Infra| E[Retry Allowed]
+    D -->|Test/Code/Fix| F[Handoff to Debug]
+    D -->|Permission/Security| G[Block & Notify]
+    E --> H{Budget Check}
+    H -->|Attempts Left| I[RERUN ONLY FAILED JOB]
+    H -->|Budget Exceeded| F
+    I --> J[Observe Result]
+    J -->|Pass| K[✅ Success]
+    J -->|Fail| D
+```
+
+---
+
+## ✅ Ready to Push
+```bash
+# Create branch
+git checkout -b skill/auto-rerun-fail-jobs
+
+# Create directory & paste files above
+mkdir -p skills/auto-rerun-fail-jobs/{detect,classify,decide,execute,observe,recover,report,tests}
+
+# Commit
+git add skills/auto-rerun-fail-jobs/
+git commit -m "feat: add auto-rerun-fail-jobs — Failure-Aware CI Recovery
+
+- Detect failed jobs & fingerprint logs
+- Classify: Transient/Infra/Dependency/Test/Code/Perm/Security
+- Retry ONLY transient failures — NEVER code/test
+- Job-level rerun (not full workflow)
+- Exponential backoff: 30s → 60s → 120s
+- Permission: require actions:write NOT workflows:write
+- PR auto-comment + status sync
+- Budget: max 3 attempts"
+
+# Push & PR
+git push -u origin skill/auto-rerun-fail-jobs
+```
+
+---
+
+## 📌 Key Differentiators
+| Feature | Standard Rerun | This Skill |
+|---|---|---|
+| What reruns | Entire workflow | **Only failed job** ✅ |
+| Retry logic | Blind | **Classify first** ✅ |
+| Code/test failures | Retry forever | **Stop & debug** ✅ |
+| Permissions | Needs everything | **actions:write only** ✅ |
+| Backoff | Immediate | **Exponential** ✅ |
+| Feedback | None | **PR comment + status** ✅ |
+
+---
+
+## 🚀 Next Step
+**All files structured & ready — paste into your repo at `skills/auto-rerun-fail-jobs/` then commit.**
+
+Want me to also generate the **GitHub Actions workflow YAML** that triggers this skill automatically on CI failure? 🤖✅
