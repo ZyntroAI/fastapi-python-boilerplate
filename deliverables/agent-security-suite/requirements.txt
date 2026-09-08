@@ -4,3 +4,4 @@ jsonschema>=4.23
 # Optional modules (lazy-imported — only needed to enable these features)
 # langgraph>=0.2   # recovery.py — LangGraph time-travel
 # mcp>=0.4         # mcp_client.py — MCP client
+# runpod>=1.5.0   # runpod_client.py (lazy import)
