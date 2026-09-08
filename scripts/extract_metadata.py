@@ -5,9 +5,8 @@ Usage: python scripts/extract_metadata.py docs/ > repo_index.json
 """
 
 import json
-import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 def extract_frontmatter(content: str):
@@ -22,6 +21,16 @@ def extract_frontmatter(content: str):
                 k, v = line.split(":", 1)
                 meta[k.strip()] = v.strip()
     return meta
+
+
+def split_tags(value):
+    """Parse a tags value that may be space-, comma-, or flow-list-delimited."""
+    if not value:
+        return []
+    cleaned = value.strip().strip("[]").strip()
+    if "," in cleaned:
+        return [t.strip() for t in cleaned.split(",") if t.strip()]
+    return cleaned.split()
 
 def main():
     if len(sys.argv) < 2:
@@ -45,18 +54,17 @@ def main():
                 "title": meta.get("title", path.stem.replace("-", " ").title()),
                 "path": str(path.relative_to(docs_dir)),
                 "relative_path": str(path.relative_to(docs_dir.parent)),
-                "last_modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
-                "created": datetime.fromtimestamp(stat.st_ctime).isoformat(),
+                "last_modified": datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat(),
                 "size_bytes": stat.st_size,
                 "summary": content[:200].replace("\n", " ").strip() + "..." if len(content) > 200 else content.strip(),
-                "tags": meta.get("tags", "").split() if meta.get("tags") else [],
+                "tags": split_tags(meta.get("tags", "")),
             })
         except Exception as e:
             print(f"⚠️ Skipping {path}: {e}", file=sys.stderr)
 
     print(json.dumps({
         "source": "repo-docs",
-        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
         "count": len(index),
         "items": index,
     }, ensure_ascii=False, indent=2))
