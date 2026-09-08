@@ -1,7 +1,12 @@
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
-
+ALLOWED_ORIGINS = {
+    "https://yourdomain.com",
+    "http://localhost:3000",
+}
+PROTECTED_ROUTES = {"/api/", "/auth/"}
+EXEMPT_ROUTES = {"/health", "/docs", "/redoc"}
 class Settings(BaseSettings):
     ENV: str = "local"  # local | vercel | production
     
