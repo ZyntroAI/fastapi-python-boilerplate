@@ -2,6 +2,11 @@
 
 All notable changes to this repository. Dates are UTC.
 
+## [2026-09-09]
+
+### Added
+- **PR #112** — Reference deliverables under `deliverables/`: GitHub DevOps Toolkit (PR templates, SHA-pinned gatekeeper workflows, externalized branch-protection config, Terraform module) + AI Agents Decision Pack (comparison matrix, Notion/Figma/Miro assets). Docs/config only.
+
 ## [2026-09-08] — Skill-native architecture, secrets cleanup, and GraphQL API
 
 ### Added — GraphQL API (`graphql_api/`, self-contained subproject)
