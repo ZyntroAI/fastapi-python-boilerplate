@@ -1,0 +1,270 @@
+# 📄 claude-rest-api.md — Complete REST API Guide
+
+```markdown
+# 🤖 Claude REST API — Complete Developer Guide
+**API Version:** 2026-01-01 · **Models:** Claude 3.5+ · **Base URL:** `https://api.anthropic.com`
+
+---
+
+## 📋 Overview
+
+The Claude REST API enables you to integrate Claude directly into your applications using standard HTTP requests — no SDK required. This guide covers authentication, endpoints, request/response formats, and best practices.
+
+---
+
+## 🔑 Authentication
+
+### Headers (Required on Every Request)
+```http
+x-api-key: YOUR_API_KEY_HERE
+anthropic-version: 2026-01-01
+content-type: application/json
+```
+
+> Get your API key from: **console.anthropic.com** → API Keys → Create Key  
+> Keep it secure — never commit to code, use environment variables.
+
+---
+
+## 🧠 Models
+
+| Model ID | Best For | Context Window |
+|---|---|---|
+| `claude-opus-4-6` | Deep reasoning, coding, complex analysis | 200K+ |
+| `claude-sonnet-4-6` | Balance of speed & intelligence (production) | 200K+ |
+| `claude-haiku-4-5` | Fast, high-volume, latency-sensitive | 200K+ |
+
+---
+
+## 📤 Core Endpoint: Messages API
+
+### POST `/v1/messages` — Send a Message
+
+```bash
+curl https://api.anthropic.com/v1/messages \
+  -H "x-api-key: $ANTHROPIC_API_KEY" \
+  -H "anthropic-version: 2026-01-01" \
+  -H "content-type: application/json" \
+  -d '{
+    "model": "claude-sonnet-4-6",
+    "max_tokens": 1024,
+    "messages": [
+      {"role": "user", "content": "Hello, Claude"}
+    ]
+  }'
+```
+
+### Request Body Schema
+```json
+{
+  "model": "claude-sonnet-4-6",
+  "max_tokens": 1024,
+  "messages": [
+    {"role": "user" | "assistant", "content": "string | array"}
+  ],
+  "system": "string",
+  "temperature": 0.0,
+  "top_p": 1.0,
+  "top_k": 40,
+  "stop_sequences": [],
+  "stream": false,
+  "metadata": {"user_id": "string"}
+}
+```
+
+### Response
+```json
+{
+  "id": "msg_01...",
+  "type": "message",
+  "role": "assistant",
+  "content": [{"type": "text", "text": "Hello! How can I help?"}],
+  "model": "claude-sonnet-4-6",
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 8,
+    "output_tokens": 12
+  }
+}
+```
+
+---
+
+## 🛠️ Advanced Features
+
+### System Prompt
+```json
+{
+  "model": "claude-sonnet-4-6",
+  "system": "You are a helpful assistant. Answer concisely.",
+  "messages": [{"role": "user", "content": "Hi"}]
+}
+```
+
+### Streaming
+```json
+{"stream": true, ...}
+```
+→ Server-Sent Events (SSE) stream — `data: { ... }` per chunk.
+
+### Vision (Images)
+```json
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {"type": "image", "source": {
+          "type": "base64",
+          "media_type": "image/png",
+          "data": "iVBORw0KGgo..."
+        }},
+        {"type": "text", "text": "Describe this image"}
+      ]
+    }
+  ]
+}
+```
+
+### Tool Use / Function Calling
+```json
+{
+  "tools": [{
+    "name": "get_weather",
+    "description": "Get weather forecast",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "city": {"type": "string"}
+      },
+      "required": ["city"]
+    }
+  }],
+  "tool_choice": "auto"
+}
+```
+
+### Prompt Caching
+Include a **system prompt marked as cacheable** — subsequent calls reuse it at ~10% cost:
+```json
+{
+  "system": [
+    {"type": "text", "text": "LONG SYSTEM PROMPT...", "cache_control": {"type": "ephemeral"}}
+  ]
+}
+```
+
+### Structured Outputs
+```json
+{
+  "response_format": {
+    "type": "json_schema",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "answer": {"type": "string"},
+        "confidence": {"type": "number"}
+      }
+    }
+  }
+}
+```
+
+---
+
+## 📊 Token Usage & Cost
+
+- **Input Tokens:** Your prompts (system + messages)
+- **Output Tokens:** Claude's responses
+- **Cache Read:** ~10% of input cost
+- **Pricing:** See **console.anthropic.com/pricing**
+
+---
+
+## ⚠️ Error Handling
+
+| Status | Meaning | Action |
+|---|---|---|
+| `400` | Invalid request | Check params/model |
+| `401` | Unauthorized | Check API key |
+| `403` | Forbidden | Key permissions / region |
+| `429` | Rate limit | Retry with backoff |
+| `5xx` | Server error | Retry later |
+
+**Rate Limit Headers:**
+```http
+x-ratelimit-limit-requests: 50
+x-ratelimit-remaining-requests: 45
+retry-after: 1
+```
+
+---
+
+## 🐍 Python Example (Raw Requests — No SDK)
+```python
+import os
+import requests
+
+API_KEY = os.getenv("ANTHROPIC_API_KEY")
+BASE_URL = "https://api.anthropic.com"
+
+headers = {
+    "x-api-key": API_KEY,
+    "anthropic-version": "2026-01-01",
+    "content-type": "application/json"
+}
+
+payload = {
+    "model": "claude-sonnet-4-6",
+    "max_tokens": 1024,
+    "messages": [{"role": "user", "content": "Hello, Claude"}]
+}
+
+resp = requests.post(
+    f"{BASE_URL}/v1/messages",
+    headers=headers,
+    json=payload,
+    timeout=60
+)
+resp.raise_for_status()
+data = resp.json()
+
+print(data["content"][0]["text"])
+print(f"Tokens: {data['usage']}")
+```
+
+---
+
+## ✅ Best Practices
+- ✅ Use environment variables for API keys — never hardcode
+- ✅ Set reasonable `max_tokens` — avoid paying for unused output
+- ✅ Use **Prompt Caching** for long system prompts
+- ✅ Implement **exponential backoff** on 429 errors
+- ✅ Validate inputs — Claude pays per token
+- ✅ Use **Sonnet** for production — best balance of speed/cost
+- ✅ Store `id` and `usage` from responses for observability
+
+---
+
+## 🔗 Related Skills
+- **url-learning** → Pull latest docs
+- **text-to-skills** → Convert API specs → Skill
+- **debug-error** → Diagnose API failures
+- **observability** → Track token usage & latency
+- **asset-management** → Store schemas/examples
+
+---
+
+*Source: docs.anthropic.com · Updated: 2026-09-08*
+```
+
+---
+
+## 📂 Save Path
+- **Repo:** `ZyntroAI/fastapi-python-boilerplate`
+- **Location:** `docs/claude-rest-api.md`
+- **Also:** `knowledge/api-guides/claude-rest-api.md`
+
+---
+
+Would you like me to add this file directly to your repository structure, or generate a **Python API client module** you can drop into `app/claude_client.py`? 📦✅
