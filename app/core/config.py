@@ -50,6 +50,11 @@ class Settings(BaseSettings):
     # Redis (optional - for token storage)
     REDIS_URL: str | None = None
     
+
+    # Central Credential Broker (metadata-only; no raw secrets here)
+    CREDENTIAL_BROKER_URL: str | None = None
+    BROKER_TOKEN: str | None = None
+
     class Config:
         env_file = ".env"
         case_sensitive = True
