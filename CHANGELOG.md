@@ -6,6 +6,7 @@ All notable changes to this repository. Dates are UTC.
 
 ### Added
 - **PR #114** — `skills/fetching/`: SSRF-safe async HTTP fetch skill (httpx) with retry + TTL cache + provenance; SSRF guard blocks private/local/metadata hosts; GitHub source. 9 tests.
+- **PR #116** — `skills/fetching/` extended with async GraphQL (`clients/graphql.py`, TTL cache) and WebSocket (`clients/websocket.py`, wss/ws, lazy `websockets`) clients; `ssrf.check_ws()`. Now 17 tests.
 - **PR #112** — Reference deliverables under `deliverables/`: GitHub DevOps Toolkit (PR templates, SHA-pinned gatekeeper workflows, externalized branch-protection config, Terraform module) + AI Agents Decision Pack (comparison matrix, Notion/Figma/Miro assets). Docs/config only.
 
 ## [2026-09-08] — Skill-native architecture, secrets cleanup, and GraphQL API
