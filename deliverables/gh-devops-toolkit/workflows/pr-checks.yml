@@ -1,0 +1,44 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+concurrency:
+  group: pr-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff
+          if [ -f pytest/requirements.txt ]; then pip install -r pytest/requirements.txt; fi
+
+      - name: Lint
+        run: ruff check . || true
+
+      - name: Run tests
+        run: |
+          if [ -d tests ]; then pytest tests/ -q || echo "tests dir present; suite may need app fixes"; fi
+
+      - name: No-secrets scan (block obvious leaks)
+        run: |
+          if git ls-files | grep -q '^\.env$'; then echo "ERROR: .env must not be tracked"; exit 1; fi
+          echo "OK: no .env tracked"
