@@ -10,6 +10,7 @@ Example:
 """
 from .audit import init_db, log_event, verify_row
 from .validation import CRM_SCHEMA, validate_against, validate_crm_data
+from . import ci_ops  # permission-aware + SHA-pin scan + CI fingerprint
 
 __all__ = ["init_db", "log_event", "verify_row", "validate_crm_data",
-           "validate_against", "CRM_SCHEMA"]
+           "validate_against", "CRM_SCHEMA", "ci_ops"]
