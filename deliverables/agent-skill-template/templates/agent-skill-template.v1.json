@@ -1,0 +1,78 @@
+{
+  "agent_skill": {
+    "metadata": {
+      "id": "skill-[NAME]-v[X.Y.Z]",
+      "name": "[skill-name]",
+      "version": "1.0.0",
+      "description": "Specialist skill.",
+      "standards": [
+        "Open Standard",
+        "Claude",
+        "OpenAI",
+        "Gemini"
+      ],
+      "tags": [
+        "agent",
+        "modular",
+        "progressive-load",
+        "secure"
+      ]
+    },
+    "core": {
+      "framework": "standard-agent-v1",
+      "interface": {
+        "input": [
+          "prompt",
+          "context",
+          "credentials?"
+        ],
+        "output": [
+          "result",
+          "audit_log",
+          "usage"
+        ]
+      }
+    },
+    "loading_model": {
+      "strategy": "Progressive Disclosure",
+      "layers": [
+        {
+          "level": 1,
+          "name": "core",
+          "always_loaded": true
+        },
+        {
+          "level": 2,
+          "name": "essential",
+          "load_condition": "on-demand"
+        },
+        {
+          "level": 3,
+          "name": "situational",
+          "load_condition": "context-needed"
+        }
+      ]
+    },
+    "execution": {
+      "evolution": "prompt -> agent-skill",
+      "components": [
+        "scripts",
+        "resources",
+        "tools"
+      ]
+    },
+    "security": {
+      "risk_baseline": "26% of skills have vulnerabilities",
+      "verification_gates": [
+        "structure-valid",
+        "vuln-scan",
+        "permission-check",
+        "output-verify"
+      ],
+      "compliance": [
+        "Vulnerability Check",
+        "Audit Ready"
+      ]
+    }
+  }
+}
