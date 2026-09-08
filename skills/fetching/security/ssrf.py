@@ -29,3 +29,13 @@ def check(url: str) -> None:
         raise PermissionError(f"Fetching: blocked host {host!r} (SSRF)")
     if _is_private(host):
         raise PermissionError(f"Fetching: private/link-local host {host!r} (SSRF)")
+
+
+def check_ws(url: str) -> None:
+    """WebSocket guard — allow only wss:// or ws:// and block SSRF hosts."""
+    u = urlparse(url)
+    if u.scheme not in ("wss", "ws"):
+        raise ValueError(f"Fetching WS: scheme must be wss:// or ws:// (got {u.scheme!r})")
+    host = (u.hostname or "").lower()
+    if host in BLOCKED_HOSTS or _is_private(host):
+        raise PermissionError(f"Fetching WS: blocked host {host!r} (SSRF)")
