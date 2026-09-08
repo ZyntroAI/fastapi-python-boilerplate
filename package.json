@@ -12,7 +12,7 @@
     "release": "semantic-release"
   },
   "dependencies": {
-    "vercel": "^33.0.0"
+    "vercel": "^59.11.7"
   },
   "devDependencies": {
     "eslint": "^9.0.0",
