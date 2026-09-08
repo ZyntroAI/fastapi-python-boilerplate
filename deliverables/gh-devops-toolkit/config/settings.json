@@ -1,0 +1,16 @@
+{
+  "branch_protection": {
+    "main": {
+      "required_reviews": 1,
+      "require_status_checks": true,
+      "required_status_checks": ["pr-checks", "gitleaks"],
+      "enforce_admins": false,
+      "require_conversation_resolution": true
+    }
+  },
+  "workflows": {
+    "pr_checks": "deliverables/gh-devops-toolkit/workflows/pr-checks.yml",
+    "gitleaks": "deliverables/gh-devops-toolkit/workflows/gitleaks.yml",
+    "release_drafter": "deliverables/gh-devops-toolkit/workflows/release-drafter.yml"
+  }
+}
