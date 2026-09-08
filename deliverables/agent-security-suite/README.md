@@ -11,6 +11,7 @@ ISO-27001-style audit log + JSON schema validation + Slack alert.
   `SLACK_WEBHOOK_URL` is unset (safe for local/CI).
 - `agent_security_suite/recovery.py` — LangGraph time-travel recovery (lazy import): validator->approver->execute graph + `rollback_and_fix()`.
 - `agent_security_suite/mcp_client.py` — minimal MCP client over stdio (lazy import).
+- `agent_security_suite/runpod_client.py` — RunPod client (lazy import): action schema validation, audit hook, `connect_runpod()`.
 - `agent_security_suite/ci_ops.py` — permission-aware checks (contents:write ≠ workflows:write), SHA-pin scan, CI root-cause fingerprint (pure Python, no API).
 
 ## Usage
@@ -26,7 +27,7 @@ res = validate_crm_data({"customer_name": "Acme", "deal_value": 250}, "sess1", "
 
 ## Run tests
 ```bash
-python -m pytest tests/ -q    # 21 passed
+python -m pytest tests/ -q    # 28 passed
 ```
 
 Optional modules (`recovery`, `mcp_client`) lazy-import langgraph/mcp — the
