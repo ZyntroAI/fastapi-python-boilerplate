@@ -1,4 +1,4 @@
-"""FastAPI entry — mounts Strawberry GraphQL at /graphql."""
+"""FastAPI entry — mounts Strawberry GraphQL at /graphql with a DB session."""
 from typing import Optional
 
 from fastapi import FastAPI
@@ -7,15 +7,19 @@ from strawberry.fastapi import GraphQLRouter
 
 from app.auth import AuthError, decode_token
 from app.config import settings
+from app.database import AsyncSessionLocal
 from app.schema import schema
 
 
-async def get_context(token: Optional[str] = None):
-    context: dict = {"user": None}
+async def get_context(token: Optional[str] = None, db=None):
+    context: dict = {"user": None, "db": None}
+    # Strawberry context_getter may be called without db in some paths; open a session.
+    if db is None:
+        db = AsyncSessionLocal()
+    context["db"] = db
     if token:
         try:
-            payload = decode_token(token)
-            context["user"] = payload
+            context["user"] = decode_token(token)
         except AuthError:
             context["user"] = None
     return context
