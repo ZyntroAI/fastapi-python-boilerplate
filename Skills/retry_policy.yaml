@@ -1,0 +1,11 @@
+retry_policy:
+  permission_denied:
+    max_retries: 0
+    reason: "Permanent — requires admin approval"
+  network_error:
+    max_retries: 3
+    backoff: "exponential"
+  rate_limit:
+    max_retries: 5
+  transient_server_error:
+    max_retries: 3
