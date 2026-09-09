@@ -5,6 +5,7 @@ All notable changes to this repository. Dates are UTC.
 ## [2026-09-09]
 
 ### Added
+- **PR #155** — scaffold: added the ZyntroAI merged monorepo scaffold as additive (no-clobber) new files — FastAPI/SQLModel async backend (JWT auth, Alembic, Item CRUD, 6 passing tests), React+Vite+TS frontend, Obsidian↔Algolia knowledge indexer, k8s manifests, 6 typed PR templates, and spec docs. No existing main file modified.
 - **PR #160** — docs: rewrote `README.md` to reflect the actual repo structure (OAuth2 PKCE FastAPI core, `graphql_api/`, `skills/`, `deliverables/`, `docs/`, `helm/` + `k8s/`, `tests/`), replacing the stale self-referential comparison doc.
 - **PR #158** — docs: added root `RELEASE.md` release guide (semantic-versioning policy, release flow, release-drafter auto-label mapping, verification checklist, rollback guidance).
 - **PR #156** — docs: filled `SECURITY.md` with a real security policy (supported versions, private-advisory reporting flow, expected-response SLA by severity, repo security practices); added default `.github/PULL_REQUEST_TEMPLATE.md` pointing typed changes to the 6 specialized templates.
