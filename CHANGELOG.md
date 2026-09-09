@@ -5,6 +5,7 @@ All notable changes to this repository. Dates are UTC.
 ## [2026-09-09]
 
 ### Added
+- **PR #160** — docs: rewrote `README.md` to reflect the actual repo structure (OAuth2 PKCE FastAPI core, `graphql_api/`, `skills/`, `deliverables/`, `docs/`, `helm/` + `k8s/`, `tests/`), replacing the stale self-referential comparison doc.
 - **PR #158** — docs: added root `RELEASE.md` release guide (semantic-versioning policy, release flow, release-drafter auto-label mapping, verification checklist, rollback guidance).
 - **PR #156** — docs: filled `SECURITY.md` with a real security policy (supported versions, private-advisory reporting flow, expected-response SLA by severity, repo security practices); added default `.github/PULL_REQUEST_TEMPLATE.md` pointing typed changes to the 6 specialized templates.
 - **PR #150** — docs: added `deliverables/gemini-cli-skills/`: research brief on google-gemini/gemini-cli docs & skills architecture, `AGENTS.md` + `SKILLS.md` overlay index, `@zyntroai` skill overlay templates (github/pull-request, coding/typescript, devops/ci-cd, security/secret-scan), canonical `templates/skill-template.ts`.
