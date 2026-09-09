@@ -10,9 +10,7 @@ Run by the `index-sync` CI job before a push to Algolia. Exit code 0 = pass.
 from __future__ import annotations
 
 import argparse
-import os
 import re
-import sys
 from pathlib import Path
 
 VAULT_DIR = Path(__file__).resolve().parents[1] / "vault"
