@@ -1,0 +1,72 @@
+# แผนที่ป้ายกำกับ → หมวดหมู่ CHANGELOG
+# แหล่งที่มา: PR Labels → ข้อความคอมมิต → ค่าเริ่มต้น
+
+label_mapping:
+  # ✅ เพิ่มความสามารถ
+  feature: Added
+  enhancement: Added
+  
+  # 🐛 แก้ไขข้อผิดพลาด
+  bug: Fixed
+  bugfix: Fixed
+  
+  # 🔒 ความปลอดภัย
+  security: Security
+  
+  ⚡ ประสิทธิภาพ
+  performance: Performance
+  
+  ⚠️ เปลี่ยนแปลงที่ส่งผล
+  breaking: Breaking Changes
+  breaking-change: Breaking Changes
+  
+  📄 เอกสาร
+  documentation: Documentation
+  docs: Documentation
+  
+  📦 การอ้างอิง
+  dependencies: Dependencies
+  deps: Dependencies
+  
+  🔧 ปรับปรุงอื่นๆ
+  refactor: Changed
+  chore: Changed
+  build: Changed
+  ci: Changed
+  test: Changed
+  deprecation: Deprecated
+
+# คำนำหน้าข้อความคอมมิต (สำรองเมื่อไม่มีป้ายกำกับ)
+commit_prefix_mapping:
+  feat: Added
+  feature: Added
+  fix: Fixed
+  bug: Fixed
+  sec: Security
+  security: Security
+  perf: Performance
+  docs: Documentation
+  doc: Documentation
+  refactor: Changed
+  chore: Changed
+  build: Changed
+  ci: Changed
+  dep: Dependencies
+  deps: Dependencies
+  break: Breaking Changes
+  breaking: Breaking Changes
+  deprecate: Deprecated
+
+# ลำดับแสดงใน CHANGELOG
+display_order:
+  - Added
+  - Changed
+  - Fixed
+  - Security
+  - Performance
+  - Dependencies
+  - Deprecated
+  - Breaking Changes
+
+# หมวดหมู่เริ่มต้น เมื่อไม่ระบุประเภท
+default_category: Changed
