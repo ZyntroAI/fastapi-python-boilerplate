@@ -1,0 +1,17 @@
+{
+  "id": "cwe1321-protection-suite-v1.0.0",
+  "name": "CWE-1321 Prototype Pollution Protection Suite",
+  "version": "1.0.0",
+  "type": "security-module",
+  "description": "Detection rules (ESLint/Semgrep/CodeQL/Bandit) + runtime sanitization (JS/Python) eliminating CWE-1321 Prototype Pollution.",
+  "cwe": ["CWE-1321"],
+  "tags": ["cwe-1321", "prototype-pollution", "security", "semgrep", "bandit", "eslint", "codeql"],
+  "severity": "P0",
+  "format": "skill-md-v1",
+  "importable": true,
+  "visibility": "public",
+  "compatibility": ["dola", "claude-code", "github-skill"],
+  "security": "verified",
+  "integrates": ["notebooklm-link-resolver", "artifact-router", "link-to-knowledge", "link-security"],
+  "verified": { "python_tests": 9, "javascript_tests": 8, "status": "passing" }
+}
