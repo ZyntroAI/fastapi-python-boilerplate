@@ -1,0 +1,23 @@
+// ──────────────────────────────────────────────
+// 🔑 คีย์ API สำหรับเรียกใช้บริการ
+// ──────────────────────────────────────────────
+model ApiKey {
+  id          String    @id @default(uuid())
+  userId      String
+  name        String    // เช่น "Production Key", "CI/CD Key"
+  keyHash     String    @unique // เก็บแค่ค่าแฮช SHA-256 ❌ ไม่เก็บข้อความตรง
+  prefix      String    // แสดงตัวอย่าง: "sk_abc...xyz"
+  scopes      String[]  @default(["read"]) // สิทธิ์: read, write, admin
+  expiresAt   DateTime? // ไม่ระบุ = ไม่หมดอายุ
+  lastUsedAt  DateTime?
+  ipAllowlist String[]  @default([]) // จำกัด IP: ว่าง = ไม่จำกัด
+  isRevoked   Boolean   @default(false)
+  createdAt   DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamp(6)
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRevoked])
+  @@index([keyHash])
+  @@map("api_keys")
+}
