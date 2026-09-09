@@ -1,4 +1,13 @@
+# 🧠 FastAPI Python Boilerplate — AI‑Driven DevOps Stack
+
 [![Test & Coverage](https://github.com/ZyntroAI/fastapi-python-boilerplate/actions/workflows/test-and-coverage.yaml/badge.svg?branch=main)](https://github.com/ZyntroAI/fastapi-python-boilerplate/actions/workflows/test-and-coverage.yaml?query=branch%3Amain)
+[![CI/CD Pipeline](https://github.com/ZyntroAI/fastapi-python-boilerplate/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ZyntroAI/fastapi-python-boilerplate/actions/workflows/ci.yml?query=branch%3Amain)
+[![CodeQL Analysis](https://github.com/ZyntroAI/fastapi-python-boilerplate/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/ZyntroAI/fastapi-python-boilerplate/actions/workflows/codeql.yml?query=branch%3Amain)
+[![Codecov Coverage](https://codecov.io/gh/ZyntroAI/fastapi-python-boilerplate/branch/main/graph/badge.svg)](https://codecov.io/gh/ZyntroAI/fastapi-python-boilerplate)
+[![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/ZyntroAI/fastapi-python-boilerplate/blob/main/LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI 0.100+](https://img.shields.io/badge/FastAPI-0.100%2B-green.svg)](https://fastapi.tiangolo.com/)
+[![Docker Compose 2.38+](https://img.shields.io/badge/Docker%20Compose-2.38%2B-blue.svg)](https://docs.docker.com/compose/)
 
 # 📊 เปรียบเทียบ: ร่างเบื้องต้น ↔ README ฉบับจริงบน Repo
 
