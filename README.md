@@ -1,3 +1,5 @@
+[![Test & Coverage](https://github.com/ZyntroAI/fastapi-python-boilerplate/actions/workflows/test-and-coverage.yaml/badge.svg?branch=main)](https://github.com/ZyntroAI/fastapi-python-boilerplate/actions/workflows/test-and-coverage.yaml?query=branch%3Amain)
+
 # 📊 เปรียบเทียบ: ร่างเบื้องต้น ↔ README ฉบับจริงบน Repo
 
 ---
