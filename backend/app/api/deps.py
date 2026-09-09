@@ -5,7 +5,8 @@ returns the `sub` (username). Overridable in tests via dependency_overrides.
 """
 from __future__ import annotations
 
-from typing import Annotated, AsyncGenerator
+from collections.abc import AsyncGenerator
+from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -30,7 +31,9 @@ async def get_current_user(
     payload = decode_token(credentials.credentials)
     username = payload.get("sub") if payload else None
     if not username:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token"
+        )
     return username
 
 

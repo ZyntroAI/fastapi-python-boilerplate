@@ -17,7 +17,6 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine  # no
 from sqlmodel import SQLModel  # noqa: E402
 
 from app.api import deps  # noqa: E402
-from app.api.v1 import models  # noqa: E402  (register metadata)
 from app.main import app  # noqa: E402
 
 

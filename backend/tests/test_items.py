@@ -1,8 +1,6 @@
 """Integration tests for the Item CRUD API + health + JWT auth."""
 from __future__ import annotations
 
-import pytest
-
 from app.core.security import create_access_token
 
 

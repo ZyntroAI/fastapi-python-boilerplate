@@ -6,15 +6,14 @@ data path. Add further models alongside it.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 from sqlalchemy import func
 from sqlmodel import Field, SQLModel
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class Item(SQLModel, table=True):
@@ -22,10 +21,12 @@ class Item(SQLModel, table=True):
 
     __tablename__ = "items"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     name: str = Field(index=True, max_length=200)
-    description: Optional[str] = Field(default=None, max_length=2000)
-    created_at: datetime = Field(default_factory=_utcnow, sa_column_kwargs={"server_default": func.now()})
+    description: str | None = Field(default=None, max_length=2000)
+    created_at: datetime = Field(
+        default_factory=_utcnow, sa_column_kwargs={"server_default": func.now()}
+    )
     updated_at: datetime = Field(
         default_factory=_utcnow,
         sa_column_kwargs={"server_default": func.now(), "onupdate": func.now()},
