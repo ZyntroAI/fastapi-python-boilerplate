@@ -1,0 +1,31 @@
+{
+"$schema": "https://json-schema.org/draft/2020-12/schema",
+"title": "AgentTask",
+"type": "object",
+"required": [
+"task_id",
+"action"
+],
+"properties": {
+"task_id": {
+"type": "string",
+"minLength": 1
+},
+"action": {
+"type": "string",
+"enum": [
+"list_instances",
+"start_instance",
+"stop_instance",
+"reboot_instance"
+]
+},
+"instance_id": {
+"type": [
+"string",
+"null"
+]
+}
+},
+"additionalProperties": false
+}
