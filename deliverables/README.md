@@ -6,6 +6,7 @@
 
 | โฟลเดอร์ | คำอธิบาย |
 |----------|----------|
+| `gemini-cli-skills/` | [Gemini CLI — docs & skills architecture](./gemini-cli-skills/README.md) — research brief, AGENTS/SKILLS index, ZyntroAI skill overlay templates |
 | `azure-cli-2026/` | [Azure CLI 2026 — บัตรคำ & ชีทสรุป](./azure-cli-2026/azure-cli-2026.md) — คำสั่ง CLI, Bicep/IaC, GitHub Actions workflow commands |
 | `agent-security-suite/` | ชุด security rules/CI สำหรับ AI agent (CWE-1321, ci_ops, permission-aware checks) |
 | `agent-skill-template/` | เทมเพลตมาตรฐานสำหรับสร้าง agent skill (`agent-skill-template.v1.yaml/.json`) |
