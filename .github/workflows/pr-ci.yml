@@ -1,0 +1,85 @@
+name: PR Quality & Build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------- classify
+  detect-type:
+    runs-on: ubuntu-latest
+    outputs:
+      pr-type: ${{ steps.classify.outputs.type }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: classify
+        run: |
+          BODY="${{ github.event.pull_request.body }}"
+          TYPE="✨ Feature"
+          if echo "$BODY" | grep -q "## 🔒 Security"; then TYPE="🔒 Security"
+          elif echo "$BODY" | grep -q "## 📦 Release"; then TYPE="📦 Release"
+          elif echo "$BODY" | grep -q "## ⚙️ Configuration"; then TYPE="⚙️ Infra/Config"
+          elif echo "$BODY" | grep -q "## 📚 Documentation"; then TYPE="📚 Docs"
+          elif echo "$BODY" | grep -q "## 📦 Dependency"; then TYPE="📦 Dependencies"
+          elif echo "$BODY" | grep -q "## 🐛 Bug"; then TYPE="🐛 Bugfix"
+          fi
+          echo "type=$TYPE" >> "$GITHUB_OUTPUT"
+
+  # ------------------------------------------------------------- validate PR
+  validate:
+    needs: detect-type
+    uses: ./.github/workflows/pr-validation.yml
+    with:
+      pr_title: ${{ github.event.pull_request.title }}
+      pr_body: ${{ github.event.pull_request.body }}
+      pr_type: ${{ needs.detect-type.outputs.pr-type }}
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
+
+  # -------------------------------------------------------------- test backend
+  test-backend:
+    runs-on: ubuntu-latest
+    needs: validate
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install backend deps
+        run: pip install -e ".[dev]"
+      - name: Lint (Ruff)
+        run: ruff check app/
+      - name: Tests (Pytest)
+        run: pytest tests/ -v
+
+  # ------------------------------------------------------------- index sync
+  index-sync:
+    if: needs.detect-type.outputs.pr-type == '📚 Docs' || github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Check index policy
+        run: python knowledge/scripts/diff_policy.py
+      - name: Push to Algolia
+        env:
+          ALGOLIA_APP_ID: ${{ secrets.ALGOLIA_APP_ID }}
+          ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
+          OBSIDIAN_API_TOKEN: ${{ secrets.OBSIDIAN_API_TOKEN }}
+          OBSIDIAN_API_URL: ${{ secrets.OBSIDIAN_API_URL }}
+        run: python knowledge/scripts/push_index.py --index notes

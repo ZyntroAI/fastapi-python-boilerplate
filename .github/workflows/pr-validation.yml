@@ -1,0 +1,122 @@
+name: PR Validation (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      pr_title:
+        required: true
+        type: string
+      pr_body:
+        required: false
+        type: string
+        default: ""
+      pr_type:
+        required: false
+        type: string
+        default: "✨ Feature"
+    secrets:
+      token:
+        required: true
+    outputs:
+      validation_result:
+        value: ${{ jobs.validate.outputs.result }}
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.summary.outputs.result }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1 -- Conventional Commit title format
+      - name: Title format (Conventional Commits)
+        id: title
+        run: |
+          TITLE="${{ inputs.pr_title }}"
+          if echo "$TITLE" | grep -qE '^(feat|fix|docs|ci|chore|refactor|test|perf|build|revert|security)(\([a-z0-9-]+\))?!?: '; then
+            echo "ok" > /tmp/title_ok
+            echo "PASS"
+          else
+            echo "Title '$TITLE' is not Conventional Commits (e.g. 'feat: ...')"
+            echo "fail" > /tmp/title_ok
+          fi
+
+      # 2 -- PR template completeness (body contains the detected type header)
+      - name: Template completeness
+        id: template
+        run: |
+          BODY="${{ inputs.pr_body }}"
+          HDR="${{ inputs.pr_type }}"
+          if echo "$BODY" | grep -q "$HDR"; then
+            echo "PASS"
+          else
+            echo "PR body missing section '$HDR'"
+            echo "fail" > /tmp/template_ok
+          fi
+
+      # 3 -- Checklist fully answered (no blank / stale boxes)
+      - name: Checklist scan
+        id: checklist
+        run: |
+          BODY="${{ inputs.pr_body }}"
+          BLANK=$(echo "$BODY" | grep -c '\- \[ \]' || true)
+          if [ "$BLANK" = "0" ]; then
+            echo "PASS"
+          else
+            echo "Found $BLANK unchecked checklist item(s)"
+            echo "fail" > /tmp/checklist_ok
+          fi
+
+      # 4 -- Secrets scan (Gitleaks)
+      - name: Secrets scan (Gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.token }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        continue-on-error: false
+
+      # 5 -- Backend code quality gate
+      - name: Python quality (Pyflakes-style, ruff)
+        working-directory: backend
+        run: |
+          pip install ruff >/dev/null 2>&1 || true
+          if [ -d app ]; then ruff check app/ --output-format=concise || echo "fail" > /tmp/py_ok; else echo "PASS (no backend/app)"; fi
+
+      # 6 -- TypeScript strict + build (frontend)
+      - name: Frontend typecheck
+        working-directory: frontend
+        continue-on-error: true
+        run: |
+          if [ -f package.json ]; then npm ci --silent && npm run build || echo "fail" > /tmp/ts_ok; else echo "PASS (no frontend)"; fi
+
+      # 7 -- Type-based gates
+      - name: Dependency review (📦)
+        if: inputs.pr_type == '📦 Dependencies'
+        uses: actions/dependency-review-action@v4
+        with:
+          token: ${{ secrets.token }}
+
+      - name: Markdown lint (📚 / ⚙️)
+        if: inputs.pr_type == '📚 Docs' || inputs.pr_type == '⚙️ Infra/Config'
+        run: |
+          pip install markdownlint-cli2 >/dev/null 2>&1 || true
+          markdownlint-cli2 '**/*.md' 2>/dev/null || echo "warn"
+
+      - name: Release guard (📦 Release)
+        if: inputs.pr_type == '📦 Release'
+        run: |
+          echo "::warning::Release PR — confirm CHANGELOG + tag before merge"
+          grep -q "## " CHANGELOG.md 2>/dev/null || echo "warn: no CHANGELOG entry found"
+
+      # Summary
+      - name: Aggregate result
+        id: summary
+        run: |
+          for f in /tmp/title_ok /tmp/template_ok /tmp/checklist_ok /tmp/py_ok /tmp/ts_ok; do
+            if [ -f "$f" ] && grep -q fail "$f"; then
+              echo "result=fail" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+          echo "result=pass" >> "$GITHUB_OUTPUT"
