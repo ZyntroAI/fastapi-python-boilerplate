@@ -1,0 +1,32 @@
+# กฎการจัดหมวดหมู่และความสำคัญ
+classification:
+  priority: "label-first"  # ตรวจป้ายกำกับก่อนเสมอ
+  fallback_to_commit_prefix: true
+  fallback_to_default: true
+  
+  # ถ้ามีหลายป้ายกำกับ → เลือกตามลำดับความสำคัญนี้
+  label_priority_order:
+    - Breaking Changes
+    - Security
+    - Fixed
+    - Added
+    - Performance
+    - Dependencies
+    - Deprecated
+    - Documentation
+    - Changed
+
+# ป้ายกำกับที่ห้ามบันทึกลง CHANGELOG
+exclude_labels:
+  - ignore-in-changelog
+  - skip-changelog
+  - internal
+  - tests-only
+  - wip
+  - do-not-merge
+
+# ข้อความที่ไม่ต้องบันทึก
+exclude_patterns:
+  - "^wip:"
+  - "\\[skip changelog\\]"
+  - "^test:"
