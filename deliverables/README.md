@@ -13,6 +13,7 @@
 | `ai-agents-decision-pack/` | ชุด decision pack สำหรับงาน AI agents |
 | `gh-devops-toolkit/` | ชุดเครื่องมือ DevOps บน GitHub CLI |
 | `notebooklm-access-suite/` | ชุดทักษะเข้าถึง NotebookLM (link share, artifact normalization) |
+| `ai-gateway-architecture-review/` | [AI Gateway Architecture Review — resilience & cost control](./ai-gateway-architecture-review/README.md) — Risk Register 32 จุดอ่อน, สถาปัตยกรรมที่ปรับปรุง (M1–M21), rollout 6 ระยะ |
 | `notebooklm-link-share/` | ทักษะแยก share ลิงก์ NotebookLM |
 
 ## ไฟล์อ้างอิงที่เกี่ยวข้อง
