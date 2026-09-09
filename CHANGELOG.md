@@ -5,6 +5,7 @@ All notable changes to this repository. Dates are UTC.
 ## [2026-09-09]
 
 ### Added
+- **PR #150** — docs: added `deliverables/gemini-cli-skills/`: research brief on google-gemini/gemini-cli docs & skills architecture, `AGENTS.md` + `SKILLS.md` overlay index, `@zyntroai` skill overlay templates (github/pull-request, coding/typescript, devops/ci-cd, security/secret-scan), canonical `templates/skill-template.ts`.
 - **PR #147** — docs: added dev/prod `.bicepparam` examples (F1 / P1v2) under `deliverables/azure-cli-2026/examples/bicepparam/`.
 - **PR #146** — docs: added full Bicep/IaC appendix to `deliverables/azure-cli-2026/azure-cli-2026.md` (`az bicep` build/decompile/lint/publish, standard file structure, sample templates, CLI deploy + what-if + security, GitHub Actions workflow commands); new `docs/README.md` + `deliverables/README.md` indexes; new `docs/github-actions/workflow-commands-reference.md`; new example workflow `deliverables/azure-cli-2026/examples/azure-bicep-deploy.yml`.
 - **PR #114** — `skills/fetching/`: SSRF-safe async HTTP fetch skill (httpx) with retry + TTL cache + provenance; SSRF guard blocks private/local/metadata hosts; GitHub source. 9 tests.
