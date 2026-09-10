@@ -1,3 +1,50 @@
+นี่คือสรุปประเด็นหลักของโฟลเดอร์ **`k8s/`** ใน repo `fastapi-python-boilerplate` ที่คุณเปิดอยู่ครับ   
+
+---
+
+## 📂 โครงสร้างไฟล์ใน `k8s/`
+- **`deployment.yaml`** → กำหนดการ deploy ของ FastAPI app (replicas, container image, ports, env vars)  
+- **`service.yaml`** → สร้าง Kubernetes Service เพื่อ expose app ภายใน cluster  
+- **`ingress.yaml`** → กำหนด ingress rules สำหรับ external access (เช่น `/api`, `/graphql`)  
+- **`configmap.yaml`** → เก็บค่า config เช่น environment variables ที่ไม่ใช่ secret  
+- **`secret.yaml`** → เก็บข้อมูลที่ต้องการความปลอดภัย เช่น API keys, DB credentials  
+- **`namespace.yaml`** → แยก environment/project ออกเป็น namespace  
+
+---
+
+## 🔑 จุดสำคัญ
+- ใช้ **namespace isolation** เพื่อแยก dev/staging/prod  
+- มีการแยก **ConfigMap/Secret** ออกจาก deployment → ทำให้ pipeline สามารถจัดการค่า config ได้ง่าย  
+- **Ingress** รองรับการ expose API หลาย endpoint (FastAPI + GraphQL)  
+- รองรับการ scale ผ่าน **replicas** ใน deployment  
+- ออกแบบให้เชื่อมโยงกับ Helm chart (`helm/`) เพื่อใช้ template automation  
+
+---
+
+## 🚀 การใช้งาน
+1. Apply namespace ก่อน:  
+   ```bash
+   kubectl apply -f k8s/namespace.yaml
+   ```
+2. Apply secrets และ config:  
+   ```bash
+   kubectl apply -f k8s/secret.yaml
+   kubectl apply -f k8s/configmap.yaml
+   ```
+3. Deploy app:  
+   ```bash
+   kubectl apply -f k8s/deployment.yaml
+   kubectl apply -f k8s/service.yaml
+   kubectl apply -f k8s/ingress.yaml
+   ```
+
+---
+
+สรุปสั้น ๆ: โฟลเดอร์ `k8s/` คือ **blueprint สำหรับ deploy FastAPI + GraphQL app บน Kubernetes** โดยใช้ namespace isolation, config separation, และ ingress rules เพื่อให้ CI/CD pipeline สามารถจัดการได้อย่างยืดหยุ่นครับ  
+
+คุณอยากให้ผมทำ **diagram แสดง flow ตั้งแต่ CI/CD → kubectl → cluster → ingress/service → pod** เพื่อเห็นภาพรวมการ deploy ไหมครับ?
+
+
 K8s / Infrastructure Code Guide
 
 ถ้าจะจัด repo ให้ Kubernetes + Infrastructure + CI/CD + Security + Observability ทำงานเป็นระบบ ผมแนะนำให้แยก application code, K8s manifests, และ infrastructure provisioning ออกจากกันชัดเจน ไม่อย่างนั้นสุดท้าย YAML จะกลายเป็นระบบนิเวศที่วิวัฒนาการเองครับ
