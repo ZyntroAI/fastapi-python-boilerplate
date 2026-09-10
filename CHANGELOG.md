@@ -19,6 +19,7 @@ Open problems and known blockers are tracked separately in
 - **PR #180** — docs: recorded PR #178 and #179 in this changelog.
 - **PR #181** — docs: added `PROBLEMS.md` as the companion to this file, tracking open issues and blockers in the same date sections.
 - **PR #182** — tasks: closed `TASK-20260910-005` (→ `done/`) with its Completion summary citing both `CHANGELOG.md` and `PROBLEMS.md` P-004. Also corrected two stale records: `TASK-20260910-004` was renamed to match its id and its validation table filled with measured numbers, and `TASK-20260910-003` gained a re-check showing its fix is still not on remote.
+- **PR #183** — docs: recorded PR #180–#182 here, added `PROBLEMS.md` P-007 (new-crystalcastle CI reads a `requirements.txt` that does not exist at the root) and P-008 (the `example-task.md` naming bug), and opened `TASK-20260910-006` to own P-007.
 
 ### Fixed
 - **Issue #63 closed** — the `pure-agent-dev` implementation merged to `main` via PR #169 (squash `590b8615`); the issue was closed by the PR's `Closes #63` reference. No `.github/workflows/` files were touched, so the merge was not blocked by the App's `workflows` restriction.
