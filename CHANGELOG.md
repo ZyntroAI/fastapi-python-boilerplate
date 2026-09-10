@@ -2,6 +2,11 @@
 
 All notable changes to this repository. Dates are UTC.
 
+## [2026-09-10]
+
+### Added
+- **PR #169** — deliverables: added `deliverables/pure-agent-dev/` (Issue #63 reference implementation — provider-agnostic Agent on FastAPI; `ComputeProvider` ABC with mock + BytePlus ECS adapters, planner/executor split, DI-based provider selection via `COMPUTE_PROVIDER`, external JSON Schema contract, Docker + compose, 47 tests). The guide's core rule — the Agent must not depend on the BytePlus SDK — is enforced by `tests/test_architecture.py` walking the real import graph, not by convention. All tests run on the mock provider; no cloud credentials needed.
+
 ## [2026-09-09]
 
 ### Added
