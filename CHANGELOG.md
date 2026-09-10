@@ -2,6 +2,9 @@
 
 All notable changes to this repository. Dates are UTC.
 
+Open problems and known blockers are tracked separately in
+[`PROBLEMS.md`](./PROBLEMS.md), using the same date sections.
+
 ## [2026-09-10]
 
 ### Added
