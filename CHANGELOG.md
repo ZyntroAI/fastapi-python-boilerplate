@@ -7,6 +7,7 @@ All notable changes to this repository. Dates are UTC.
 ### Added
 - **PR #169** — deliverables: added `deliverables/pure-agent-dev/` (Issue #63 reference implementation — provider-agnostic Agent on FastAPI; `ComputeProvider` ABC with mock + BytePlus ECS adapters, planner/executor split, DI-based provider selection via `COMPUTE_PROVIDER`, external JSON Schema contract, Docker + compose, 47 tests). The guide's core rule — the Agent must not depend on the BytePlus SDK — is enforced by `tests/test_architecture.py` walking the real import graph, not by convention. All tests run on the mock provider; no cloud credentials needed.
 - **PR #170** — docs: recorded PR #169 in this changelog.
+- **PR #175** — tasks: added an `archive/` status to the task tracker (`new.inprogress.done/`) as a terminal folder for work closed without shipping (superseded, abandoned, or duplicate), kept outside the `new -> inprogress -> done` flow. `tools/tasks.py` gains the status plus an `ACTIVE_STATUSES` split, and `archive <id> "<reason>"` moves a task and records the reason in its Completion summary.
 
 ### Fixed
 - **Issue #63 closed** — the `pure-agent-dev` implementation merged to `main` via PR #169 (squash `590b8615`); the issue was closed by the PR's `Closes #63` reference. No `.github/workflows/` files were touched, so the merge was not blocked by the App's `workflows` restriction.
