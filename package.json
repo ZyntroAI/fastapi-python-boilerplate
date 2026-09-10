@@ -9,7 +9,8 @@
     "format": "prettier --write .",
     "test": "jest",
     "prepare": "husky install",
-    "release": "semantic-release"
+    "release": "semantic-release",
+    "vite": ">=6.4.3"
   },
   "dependencies": {
     "vercel": "^59.11.7"
@@ -23,7 +24,8 @@
     "jest": "^30.5.1",
     "semantic-release": "^25.0.9",
     "@semantic-release/changelog": "^7.0.0",
-    "@semantic-release/git": "^11.0.1"
+    "@semantic-release/git": "^11.0.1",
+    "vite": ">=6.4.3"
   },
   "lint-staged": {
     "*.{js,ts,json,md}": [
