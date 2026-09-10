@@ -1,0 +1,28 @@
+# Declarative configuration for pure-agent-dev.
+# Provider selection lives HERE, not hard-coded inside the Agent.
+name: pure-agent
+version: "1.0"
+
+runtime:
+  language: python
+  framework: fastapi
+
+agent:
+  planner: pure_agent.agents.planner.AgentPlanner
+  executor: pure_agent.agents.executor.AgentExecutor
+
+providers:
+  compute:
+    default: mock          # mock | byteplus — override with COMPUTE_PROVIDER
+    byteplus:
+      type: ecs
+      region: ${BYTEPLUS_REGION}
+    mock:
+      type: in-memory
+
+tasks:
+  allowed_actions:
+    - list_instances
+    - start_instance
+    - stop_instance
+    - reboot_instance
