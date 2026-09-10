@@ -8,8 +8,8 @@ updated: 2026-09-10
 owner: fig-agent
 repo: ZyntroAI/fastapi-python-boilerplate
 issue:
-prs: []
-blocked_by: write access to .github/workflows/ (the automation App lacks the workflows permission)
+prs: [168]
+blocked_by: write access to .github/workflows/ (the automation App lacks the workflows permission) — PROBLEMS.md P-003
 tokens: 0
 ---
 
@@ -38,16 +38,18 @@ on this repository can show a green check — even when its own tests pass.
 
 - [x] Inspect the repository and measure the real state (do not assume).
 - [x] Confirm the failure cause from an actual run log.
-- [ ] Move non-workflow files out of `.github/workflows/` into `archive/`.
-- [ ] Pin all action refs to full SHAs, resolving each against GitHub.
-- [ ] Re-validate every workflow as YAML.
-- [ ] Open a PR.
+- [x] Move non-workflow files out of `.github/workflows/` — shipped in
+      **PR #168** (7 files moved to `archive/workflows-junk/`).
+- [x] Pin all action refs to full SHAs, resolving each against GitHub —
+      prepared and verified; **cannot push** (see Blockers).
+- [x] Re-validate every workflow as YAML — prepared and verified; cannot push.
+- [ ] Open a PR — **blocked**.
 
 ## Acceptance criteria
 
 - [ ] All workflow files parse as YAML (measured: 5 of 12 currently do not).
 - [ ] No `uses:` reference uses a mutable tag such as `@v4`.
-- [ ] `.github/workflows/` contains only workflow YAML.
+- [x] `.github/workflows/` contains only workflow YAML — done in PR #168.
 - [ ] No workflow's behaviour changes.
 - [ ] A PR whose own tests pass shows green checks.
 
@@ -56,39 +58,42 @@ on this repository can show a green check — even when its own tests pass.
 **Blocked.** Writing `.github/workflows/` requires the App's `workflows`
 permission, which is not granted; pushes are rejected with
 `refusing to allow a GitHub App to create or update workflow ... without
-workflows permission`. A maintainer must apply this, or the permission must be
-raised. Work done earlier in a sandbox was also reclaimed before it could be
-committed, so this restarts from current `main`.
+workflows permission`. Isolated by a control push: a branch touching no
+workflow file pushes fine in the same session.
+
+Recorded as **PROBLEMS.md P-003** (the permission block), **P-001** (the five
+files that do not parse) and **P-002** (the unpinned refs).
 
 ## Files changed
 
 | File | Change |
 | --- | --- |
-| *none yet — blocked before commit* | |
+| `archive/workflows-junk/` (7 files) | moved out of `.github/workflows/` — **PR #168, merged** |
+| `.github/workflows/` (11 files) | prepared: 5 YAML repairs + 76 refs pinned to full SHAs — **not yet pushed** |
 
 ## Validation
 
 | Command | Result |
 | --- | --- |
-| YAML parse across `.github/workflows/*.y*ml` | **not run yet** — 5 files known broken |
-| Count of `uses:` refs still on a tag | **not measured yet** |
-
-## Token usage
-
-Estimated with `len(text) // 4` over the files above: **0**. Not started.
+| `yaml.safe_load` across every workflow-shaped file | **5 of 12 FAIL** (names + parser error in P-001) |
+| count of `uses:` refs still on a tag | **66** on current `main` |
+| prepared fix — re-validate YAML | 11/11 parse |
+| prepared fix — pinned refs | 76 total, **0 unpinned** |
+| prepared fix — `ci.yml` line endings | 106 CRLF preserved |
+| prepared fix — `git apply --check` on current `main` | applies cleanly |
 
 ## Notes
 
-Measured on 2026-09-10, `main` still mixes pinned SHAs with mutable tags:
-`actions/checkout@v4` (17 refs), `actions/setup-python@v5` (7),
-`actions/upload-artifact@v4` (6), `subosito/flutter-action@v2` (5),
-`somaz94/compress-decompress@v1` (5), and others.
-
 The five files that do not parse each fail differently: one is wrapped in a
 Markdown ```yaml fence, one has a multi-line heredoc inside a `run: |` block,
-one has ~87 lines of GitHub documentation appended to the end, one uses a `;`
-where a `:` belongs, and one has a flow mapping whose braces nest.
+one has ~86 lines of GitHub documentation appended, one uses a `;` where a `:`
+belongs, and one has a flow mapping whose braces nest.
+
+Do not confuse this task with the CI being *fixed*. Measured on 2026-09-10,
+`main` is still red; the repairs exist as a verified patch but are not on the
+remote.
 
 ## Completion summary
 
-*Not complete.*
+*Not complete.* One step shipped (PR #168). The rest is blocked and is now
+owned by `PROBLEMS.md` **P-001**, **P-002** and **P-003**.
