@@ -1,0 +1,29 @@
+[project]
+name = "pure-agent-dev"
+version = "1.0.0"
+description = "Provider-agnostic Agent + FastAPI skeleton (Issue #63 reference implementation)"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115,<1.0",
+    "uvicorn[standard]>=0.32,<1.0",
+    "pydantic>=2.9,<3.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-q"
+markers = [
+    "provider: provider contract tests",
+    "architecture: dependency-direction guards",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "S102"]
+# B008: `Depends(...)` in a default argument is FastAPI's documented dependency
+#       injection pattern, not the mutable-default bug the rule targets.
+ignore = ["E501", "B008"]
