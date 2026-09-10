@@ -16,6 +16,7 @@
 | `ai-gateway-architecture-review/` | [AI Gateway Architecture Review — resilience & cost control](./ai-gateway-architecture-review/README.md) — Risk Register 32 จุดอ่อน, สถาปัตยกรรมที่ปรับปรุง (M1–M21), rollout 6 ระยะ |
 | `notebooklm-link-share/` | ทักษะแยก share ลิงก์ NotebookLM |
 | `pm-backend/` | [Program Management Backend](./pm-backend/README.md) — FastAPI app 4 modules: PM CSV template, provider-neutral billing (stub/Stripe/Chargebee/Paddle), tool switcher, opt-in encryption at rest |
+| `agent-core/` | [Agent Core](./agent-core/README.md) — provider-agnostic agent task backend: async httpx client, bounded retry + polling, Supabase task store with RLS, FastAPI routes (25 tests) |
 
 ## ไฟล์อ้างอิงที่เกี่ยวข้อง
 
