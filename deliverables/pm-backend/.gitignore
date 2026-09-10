@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.pytest_cache/
+
+# Generated at runtime — not part of the deliverable
+pm_backend.db
+pm_backend.db-wal
+pm_backend.db-shm
+tool_state.json
