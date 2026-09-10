@@ -9,7 +9,7 @@ __pycache__/
 *.egg
 *.manifest
 *.spec
-
+.env
 # Virtual environments
 .venv/
 env/
