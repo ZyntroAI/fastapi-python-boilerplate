@@ -53,3 +53,21 @@ CI ล้มทุก run ที่ขั้น *Set up job* ด้วย `Unabl
 - **ติดสิทธิ์เขียน repo** — ขอ `grant_write_access` แล้ว รออนุมัติ
 - ยังมีอีก 2 ไฟล์ที่ YAML พังแบบเดิม (คนละสาเหตุ) ต้องซ่อมต่อ
 - ยังไม่เปิด PR
+
+## ตรวจซ้ำ 2026-09-10 (รอบปิดงาน)
+
+ยืนยันว่า **fix ยังไม่ขึ้น remote** — `codeql.yml` บน `main` ของ
+`new-crystalcastle` ยังใช้ SHA ที่ไม่มีอยู่จริง:
+
+| ref | ผล `GET /repos/<owner>/<repo>/commits/<sha>` |
+| --- | --- |
+| `actions/checkout@11bd71903bbe` | **HTTP 422** — ไม่มีอยู่ |
+| `github/codeql-action@c549b93d13d2` | **HTTP 422** — ไม่มีอยู่ |
+| *(control)* `actions/checkout@11d5960a3267` | HTTP 200 — มีอยู่ |
+
+**ยังมี CI แดงที่สาเหตุอื่นด้วย (คนละเรื่องกับ SHA):** workflow 5 ตัว
+(`FastAPI_CI.yaml`, `Python-CI.yml`, `crystalcastle-coderabbit-test.yml`,
+`errorlog-generator.yml`, `test.yml`) อ้าง `requirements.txt` ที่ root แต่ repo
+มีอยู่แค่ `scripts/errorlog-generator/requirements.txt` → ล้มด้วย
+`Could not open requirements file: No such file or directory`.
+นี่ไม่ใช่ขอบเขตของ task นี้ (ไม่ได้แก้ที่ SHA) — ต้องเป็น task ใหม่
