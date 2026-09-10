@@ -11,6 +11,8 @@ All notable changes to this repository. Dates are UTC.
 - **PR #176** — docs: recorded PR #175 in this changelog.
 - **PR #168** — chore(workflows): moved 7 non-workflow files (markdown notes and `.yml.txt`) out of `.github/workflows/` into `archive/workflows-junk/`, leaving the directory holding only real workflows.
 - **PR #174** — deliverables: added `deliverables/pm-backend/` — a FastAPI app with provider-neutral billing (Stripe / Chargebee / Paddle adapters behind one interface), CSV reconciliation, and sandbox integration tests (58 passed, 15 skipped).
+- **PR #178** — deliverables: added `deliverables/agent-core/` — a runnable, tested FastAPI backend for provider-agnostic agent tasks (async `httpx` client, bounded retry + polling, Supabase task store with RLS, `schema.sql`). Ported from the single-file "Dola Core" draft and renamed Dola → Agent. Fixes that made it actually start: lazy settings (import no longer needs credentials), async I/O instead of blocking `requests`, retry that preserves the original error, bounded polling, and a real persistence layer. 25 offline tests.
+- **PR #179** — tasks: added `TASK-20260910-005` recording the five things PR #178 could not prove (placeholder base URL, unverified response field names, unapplied Supabase schema, untested RLS, never-run CI example). Also fixed a tracker bug: `TASK_TEMPLATE.md`'s `status:` comment was copied verbatim by `cmd_new`, breaking three tests that read the template.
 
 ### Fixed
 - **Issue #63 closed** — the `pure-agent-dev` implementation merged to `main` via PR #169 (squash `590b8615`); the issue was closed by the PR's `Closes #63` reference. No `.github/workflows/` files were touched, so the merge was not blocked by the App's `workflows` restriction.
