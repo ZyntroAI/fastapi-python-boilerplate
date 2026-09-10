@@ -43,6 +43,12 @@ mv new/TASK-20260910-004-example.md inprogress/
 python3 tools/tasks.py move TASK-20260910-004 inprogress
 ```
 
+Any of the four statuses can be passed as the target, including `archive`:
+
+```bash
+python3 tools/tasks.py move TASK-20260910-004 archive
+```
+
 Other commands:
 
 ```bash

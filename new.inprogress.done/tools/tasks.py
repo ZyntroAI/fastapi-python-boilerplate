@@ -19,7 +19,11 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-STATUSES = ("new", "inprogress", "done")
+# Active statuses are the working lifecycle. "archive" is a terminal holding
+# area for tasks that were closed WITHOUT shipping (superseded, abandoned,
+# duplicate) — it is deliberately outside the new -> inprogress -> done flow.
+STATUSES = ("new", "inprogress", "done", "archive")
+ACTIVE_STATUSES = ("new", "inprogress", "done")
 ID_RE = re.compile(r"^id:\s*(\S+)$", re.M)
 
 

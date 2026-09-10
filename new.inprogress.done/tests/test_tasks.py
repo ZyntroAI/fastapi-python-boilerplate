@@ -118,6 +118,30 @@ def test_move_updates_status_and_folder(tmp_path, monkeypatch):
     assert tasks.read_front_matter(moved)["status"] == "done"
 
 
+def test_archive_is_a_status_but_not_in_the_working_flow():
+    """archive/ อยู่ใน STATUSES แต่ไม่นับเป็น active — runbook ยัง new->inprogress->done"""
+    assert "archive" in STATUSES
+    assert "archive" not in tasks.ACTIVE_STATUSES
+    assert set(tasks.ACTIVE_STATUSES) == {"new", "inprogress", "done"}
+
+
+def test_move_to_archive_updates_status_and_folder(tmp_path, monkeypatch):
+    """ย้ายงานเข้า archive/ แล้ว front-matter ต้องเป็น archived ตาม"""
+    fixed = tmp_path
+    for s in STATUSES:
+        (fixed / s).mkdir()
+    monkeypatch.setattr(tasks, "ROOT", fixed)
+    (fixed / "new" / "TASK-Y.md").write_text(
+        "---\nid: TASK-Y\ntitle: t\nstatus: new\ncreated: 2026-01-01\n"
+        "updated: 2026-01-01\nprs: []\ntokens: 0\n---\n# y\n", encoding="utf-8")
+
+    assert tasks.main(["move", "TASK-Y", "archive"]) == 0
+    assert not (fixed / "new" / "TASK-Y.md").exists()
+    archived = fixed / "archive" / "TASK-Y.md"
+    assert archived.exists()
+    assert tasks.read_front_matter(archived)["status"] == "archive"
+
+
 def test_new_creates_file_in_new(tmp_path, monkeypatch):
     fixed = tmp_path
     for s in STATUSES:

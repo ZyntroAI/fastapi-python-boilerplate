@@ -1,7 +1,7 @@
 ---
 id: TASK-YYYYMMDD-NNN
 title: Short, specific title
-status: new
+status: new               # new | inprogress | done | archive
 priority: normal
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
@@ -69,3 +69,5 @@ Anything a reader needs that does not fit above.
 
 Fill in only when moving to `done/`. What shipped, the PR or commit, and
 anything knowingly left undone.
+nowingly
+left undone.
