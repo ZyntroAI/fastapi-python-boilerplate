@@ -1,7 +1,7 @@
 ---
 id: TASK-YYYYMMDD-NNN
 title: Short, specific title
-status: new
+status: new               # new | inprogress | done | archive
 priority: normal
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
@@ -67,5 +67,6 @@ Anything a reader needs that does not fit above.
 
 ## Completion summary
 
-Fill in only when moving to `done/`. What shipped, the PR or commit, and
-anything knowingly left undone.
+Fill in only when moving to `done/` or `archive/`. What shipped (with the PR or
+commit), or — if archived — why the work was called off, and anything knowingly
+left undone.

@@ -43,6 +43,24 @@ mv new/TASK-20260910-004-example.md inprogress/
 python3 tools/tasks.py move TASK-20260910-004 inprogress
 ```
 
+Any of the four statuses can be passed as the target, including `archive`:
+
+```bash
+python3 tools/tasks.py move TASK-20260910-004 archive
+```
+
+When the destination is `archive`, prefer the `archive` command — it takes the
+reason as a required argument and writes it into the task's Completion summary
+for you, so a called-off task never ends up without a record of why:
+
+```bash
+python3 tools/tasks.py archive TASK-20260910-004 "ถูกแทนที่ด้วย TASK-20260910-009"
+```
+
+The command moves the file to `archive/`, sets `status: archive`, and replaces
+the `## Completion summary` body with `Archived <date> — <reason>`. An empty
+reason is rejected and the task is left where it is.
+
 Other commands:
 
 ```bash
