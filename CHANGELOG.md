@@ -6,6 +6,10 @@ All notable changes to this repository. Dates are UTC.
 
 ### Added
 - **PR #169** — deliverables: added `deliverables/pure-agent-dev/` (Issue #63 reference implementation — provider-agnostic Agent on FastAPI; `ComputeProvider` ABC with mock + BytePlus ECS adapters, planner/executor split, DI-based provider selection via `COMPUTE_PROVIDER`, external JSON Schema contract, Docker + compose, 47 tests). The guide's core rule — the Agent must not depend on the BytePlus SDK — is enforced by `tests/test_architecture.py` walking the real import graph, not by convention. All tests run on the mock provider; no cloud credentials needed.
+- **PR #170** — docs: recorded PR #169 in this changelog.
+
+### Fixed
+- **Issue #63 closed** — the `pure-agent-dev` implementation merged to `main` via PR #169 (squash `590b8615`); the issue was closed by the PR's `Closes #63` reference. No `.github/workflows/` files were touched, so the merge was not blocked by the App's `workflows` restriction.
 
 ## [2026-09-09]
 
@@ -51,4 +55,5 @@ All notable changes to this repository. Dates are UTC.
 
 ### Notes
 - Earlier `CHANGELOG.md` content describing a "Claude REST API ecosystem" described files not present in this repository; it has been replaced with this accurate record.
-- CI on this repo is red at the "Set up job" step from the org's SHA-pin policy (workflow actions must be pinned to full commit SHAs). A SHA-pin fix for all workflow files is prepared on branch `fix/sha-pin-all-workflows` and awaits admin grant of the GitHub App's `workflows` permission to push.
+- CI on this repo is red at the "Set up job" step from the org's SHA-pin policy: a job refuses to start when a referenced action is not pinned to a full commit SHA. Measured on **2026-09-10**, `main`'s workflows still mix full SHAs with mutable tags — `actions/checkout@v4` (17 refs), `actions/upload-artifact@v4` (6), `actions/setup-python@v5` (7), `subosito/flutter-action@v2` (5), `somaz94/compress-decompress@v1` (5), `gitleaks/gitleaks-action@v2`, and others.
+- The SHA-pin fix requires writing `.github/workflows/`, which the Fig GitHub App is not permitted to do (pushes are rejected with `refusing to allow a GitHub App to create or update workflow ... without workflows permission`). It must therefore be applied by a maintainer, or with elevated App permissions. This is why feature PRs on this repo show red checks even when their own tests pass.
