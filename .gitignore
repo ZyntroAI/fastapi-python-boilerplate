@@ -49,7 +49,7 @@ Thumbs.db
 .env.*
 *.pem
 *.key
-
+*.csv
 # Deployment & containers
 docker-compose.override.yml
 *.pid
