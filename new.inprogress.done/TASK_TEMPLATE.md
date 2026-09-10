@@ -1,7 +1,7 @@
 ---
 id: TASK-YYYYMMDD-NNN
 title: Short, specific title
-status: new               # new | inprogress | done | archive
+status: new
 priority: normal
 created: YYYY-MM-DD
 updated: YYYY-MM-DD

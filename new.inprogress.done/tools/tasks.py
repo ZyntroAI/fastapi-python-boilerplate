@@ -173,6 +173,10 @@ def cmd_new(args) -> int:
     body = re.sub(r"^title:.*$", f"title: {title}", body, count=1, flags=re.M)
     body = re.sub(r"^created:.*$", f"created: {today}", body, count=1, flags=re.M)
     body = re.sub(r"^updated:.*$", f"updated: {today}", body, count=1, flags=re.M)
+    # The template annotates status with a comment ("new  # new | inprogress …").
+    # Copying that verbatim made the value fail the folder/status check, so keep
+    # the bare value and drop the trailing comment.
+    body = re.sub(r"^status:.*$", "status: new", body, count=1, flags=re.M)
     body = body.replace("YYYY-MM-DD", today)
 
     dest = ROOT / "new" / f"{task_id}-{slug}.md"
