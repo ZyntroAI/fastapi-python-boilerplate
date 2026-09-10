@@ -138,6 +138,47 @@ generated content — can reappear if the template is annotated again.
 
 ---
 
+### P-007 — `new-crystalcastle` CI: five workflows read a `requirements.txt` that does not exist at the root — OPEN
+
+**Owner:** `TASK-20260910-006`
+
+Five workflows in `new-crystalcastle` run `pip install -r requirements.txt`, but
+the repository has no root `requirements.txt` — the only one is
+`scripts/errorlog-generator/requirements.txt`. Every job fails immediately:
+
+```
+ERROR: Could not open requirements file:
+[Errno 2] No such file or directory: 'requirements.txt'
+##[error]Process completed with exit code 1.
+```
+
+Affected workflows: `FastAPI_CI.yaml`, `Python-CI.yml`,
+`crystalcastle-coderabbit-test.yml`, `errorlog-generator.yml`, `test.yml`.
+
+**Evidence:** failure log for run `34471137096` on `main` (2026-09-10);
+`find . -name 'requirements*.txt'` returns only the `scripts/` path.
+
+**Note:** this is a **separate cause** from the bad-SHA problem in
+`TASK-20260910-003`. Fixing the codeql SHAs alone will not turn this repo's CI
+green.
+
+**Fix:** either add a root `requirements.txt`, or point each workflow at the
+real path (or at `pyproject.toml`). Which one is correct depends on the intended
+project layout — needs the owner's decision, not a guess.
+
+---
+
+### P-008 — `TASK-20260910-004` was stored in a file named `example-task.md` — RESOLVED
+
+Fixed in PR #182. The tracker's example file had been overwritten in place with
+a real task while keeping the placeholder filename, so the id in the
+front-matter (`TASK-20260910-004`) did not match the path. Renamed to
+`TASK-20260910-004-repair-github-actions-workflows.md`. Recorded because the
+same mistake — reusing a template file for live content — will hide a task from
+anyone browsing by filename.
+
+---
+
 ## How to add an entry
 
 1. Put it under the date section matching its changelog counterpart.
