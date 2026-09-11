@@ -5,6 +5,22 @@ All notable changes to this repository. Dates are UTC.
 Open problems and known blockers are tracked separately in
 [`PROBLEMS.md`](./PROBLEMS.md), using the same date sections.
 
+## [2026-09-12]
+
+### Added
+- **PR #206** — obsidian: connected the `fastapi-obsidian-backend` deliverable to a
+  running Obsidian vault via the Local REST API plugin. Adds `app/obsidian/client.py`
+  (vault list/read/write/append/patch/delete, active, JsonLogic + simple search, tags,
+  commands, open; injectable transport so the whole surface is testable without a vault)
+  and `app/routers/obsidian.py` (`/obsidian` endpoints — reads open, writes require a
+  valid JWT **and** `OBSIDIAN_ALLOW_WRITE=1`; unconfigured bridge returns 503). Vault-
+  relative paths only: `..`, absolute paths and NUL bytes are rejected with 422 before a
+  request is built, and every payload crossing the boundary is passed through the
+  CWE-1321 sanitizer (`app/cwe1321_bridge.py`) which strips `__proto__` / `prototype` /
+  `constructor` at any depth. Config (`OBSIDIAN_API_URL` / `_API_KEY` / `_ALLOW_WRITE` /
+  `_VERIFY_TLS`) is off by default. 33 tests passing. Also records the CI enforcement
+  gate in the suite README and `manifest.json`.
+
 ## [2026-09-11]
 
 ### Added
