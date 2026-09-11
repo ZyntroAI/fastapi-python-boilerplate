@@ -179,6 +179,54 @@ anyone browsing by filename.
 
 ---
 
+## [2026-09-11]
+
+### P-009 — `release_drafter.yaml` is not a workflow and sits in `workflows/` — OPEN
+
+**Owner:** `TASK-20260910-004`
+
+`.github/workflows/release_drafter.yaml` parses as YAML but has no `on:` and no
+`jobs:` — it is a release-drafter `autolabeler:` configuration, not a workflow.
+It has been sitting in the workflows directory since it was added, and it is the
+run named `.github/workflows/release_drafter.yaml` that shows as a failure on
+`main`. GitHub cannot run it because there is nothing to run.
+
+**Evidence:** `yaml.safe_load` yields `{'autolabeler': [...]}`, no `on`/`jobs`;
+no workflow file in the repo references the path.
+
+**Fix:** move it to `.github/release-drafter.yml` (done in the patch below). A
+release-drafter *workflow* that consumes it does not exist yet — that is a
+separate decision, not a repair.
+
+---
+
+### P-001 / P-002 — re-verified today, fix re-prepared against current `main` — BLOCKED
+
+The fix described under `[2026-09-10]` was re-prepared against `main` at
+`e34ede2`, because the tree has moved since it was first written. Current
+numbers differ from the September 10 entry:
+
+| | 2026-09-10 entry | re-verified 2026-09-11 |
+| --- | --- | --- |
+| Unpinned action refs | 66 | 23 |
+| Files affected | 11 | 11 |
+| Broken YAML files | 5 | 5 |
+
+The five YAML failures are unchanged (`ci.yml`, `secret-scan.yml`,
+`dependabot-automerge.yml`, `Auto-Index-Sync.yml`, `test-suite.yml`), so P-001
+stands as written. The pinning fix now covers 23 distinct action refs including
+the four `github/codeql-action/*` sub-paths, which the earlier count folded in.
+
+**Evidence:** `yaml.safe_load` over all 11 workflow files — 0 parse failures
+after repair; unpinned-ref scan returns empty. Patch applies clean to a fresh
+clone of `main` (`git apply --check`), and `yaml.safe_load` re-run on the
+applied tree still reports 0 failures.
+
+**Deliverable:** `ci_sha_pin_workflow_fix.patch` (+ `.bundle`) — cannot be
+pushed as a PR, see P-003.
+
+---
+
 ## How to add an entry
 
 1. Put it under the date section matching its changelog counterpart.
