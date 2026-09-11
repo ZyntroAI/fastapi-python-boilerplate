@@ -1,0 +1,52 @@
+name: WhatsApp Notification System
+
+# TEMPLATE — a repo admin must copy this into .github/workflows/ to activate.
+# Kept outside .github/workflows/ because the automation identity lacks the
+# GitHub App `workflows` permission.
+
+on:
+  workflow_run:
+    workflows: ["Test & Coverage"]
+    types: [completed]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    name: Notify CI result
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+
+      - name: Install deps
+        run: pip install requests
+
+      - name: Send WhatsApp alert
+        env:
+          WHATSAPP_TOKEN: ${{ secrets.WHATSAPP_TOKEN }}
+          WHATSAPP_PHONE_ID: ${{ secrets.WHATSAPP_PHONE_ID }}
+          WHATSAPP_API_VER: "v18.0"
+          ADMIN_PHONE: ${{ secrets.ADMIN_PHONE }}
+        run: |
+          python - <<'PY'
+          import os
+          from scripts.whatsapp_notify import WhatsAppClient
+
+          ok = "${{ github.event.workflow_run.conclusion || 'push' }}"
+          run_url = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          status = "OK" if ok in ("success", "push") else "FAILED"
+          text = (
+              f"CI {status} - {os.environ.get('GITHUB_REPOSITORY', '')}\n"
+              f"ref: ${{ github.ref_name }}\n{run_url}"
+          )
+          client = WhatsAppClient()
+          sent, detail = client.send_message(os.getenv("ADMIN_PHONE", ""), text)
+          print("sent" if sent else "failed", detail)
+          PY
