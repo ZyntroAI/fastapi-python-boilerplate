@@ -70,3 +70,13 @@
 ---
 
 🎯 **เป้าหมาย:** M4 Completed — `FastAPI + OnSpaceAI Integrated`
+
+## Supply Chain Security
+
+- [x] Pin every GitHub Action to a full commit SHA
+- [x] Add `verify-sha` CI gate (blocks tags and branches)
+- [x] Add `pin_workflows.py` updater
+- [x] Document the policy and pin history in `SECURITY.md`
+- [ ] Enable required status checks (`verify-sha`, `lint`, `test`) in repo settings
+- [ ] Secret scanning for workflow files
+- [ ] YAML linting for workflow structure

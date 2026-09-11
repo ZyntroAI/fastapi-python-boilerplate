@@ -48,3 +48,44 @@ patch before public disclosure.
 - Dependencies are kept current; security advisories are triaged promptly.
 
 [advisories]: https://github.com/ZyntroAI/fastapi-python-boilerplate/security/advisories
+
+## Supply Chain: GitHub Actions SHA Pinning
+
+Every GitHub Action used in `.github/workflows/` must be pinned to a **full
+40-character commit SHA**. Version tags (`@v4`) and branch refs (`@main`,
+`@master`) are rejected — a tag is mutable, so it can be moved to point at
+different code without any change to this repository.
+
+### Enforced automatically
+
+The `verify-sha` job in `.github/workflows/ci.yml` runs first on every push and
+pull request. It scans all workflow files and fails the build if any action is
+referenced by tag or branch. `lint`, `test` and the remaining jobs wait on it.
+
+Check locally at any time:
+
+```bash
+python3 .github/workflows/scripts/verify-shas.py
+```
+
+### Updating action versions
+
+Never edit a pinned SHA by hand. Resolve it from the action's own repository:
+
+```bash
+export GITHUB_TOKEN=...        # needs `repo` + `workflow` scope
+python3 pin_workflows.py --dry-run   # preview
+python3 pin_workflows.py             # rewrite the workflow files
+```
+
+`pin_workflows.py` resolves each tag to its commit SHA via the GitHub API,
+verifies the commit exists in the upstream repository, and rewrites only the
+affected references. Nothing is resolved from a fork.
+
+### Pin history
+
+| Date       | Actions pinned | Scope                          | Notes                          |
+| ---------- | -------------- | ------------------------------ | ------------------------------ |
+| 2026-09-11 | 76 refs        | all 12 workflow files          | Initial enforcement; repaired 5 fabricated pins and 5 invalid YAML files |
+
+When you run `pin_workflows.py` and merge the result, add a row to this table.
