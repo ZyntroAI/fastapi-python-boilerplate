@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
 from .db import db
-from .routers import billing, programs, security, skills, tools, users
+from .routers import billing, obsidian, programs, security, skills, tools, users
 
 
 @asynccontextmanager
@@ -34,6 +34,7 @@ app.include_router(billing.router)
 app.include_router(tools.router)
 app.include_router(security.router)
 app.include_router(users.router)
+app.include_router(obsidian.router)
 
 
 @app.get("/", tags=["meta"])
@@ -43,5 +44,6 @@ def root():
         "version": "1.0.0",
         "encrypt_at_rest": settings.encrypt_at_rest,
         "docs": "/docs",
-        "modules": ["skills", "programs", "billing", "tools", "auth", "security"],
+        "modules": ["skills", "programs", "billing", "tools", "auth", "security", "obsidian"],
+        "obsidian_connected": bool(settings.obsidian_api_url),
     }
