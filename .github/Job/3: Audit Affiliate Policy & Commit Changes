@@ -1,0 +1,45 @@
+  # ─────────────────────────────────────────────────────
+  # Job 3: Audit Affiliate Policy & Commit Changes
+  # ─────────────────────────────────────────────────────
+  audit-policies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d275971dd864cf32 # v4.1.1
+
+      - name: Fetch affiliate terms
+        run: |
+          curl -sL --max-time 30 https://www.upcomers.com/policies/affiliate-terms-conditions > affiliate.html
+
+      - name: Verify parse script exists
+        run: |
+          if [ ! -f scripts/parse_docs.py ]; then
+            echo "⚠️ scripts/parse_docs.py missing — creating placeholder"
+            mkdir -p scripts
+            cat << 'EOF' > scripts/parse_docs.py
+#!/usr/bin/env python3
+import sys
+print("# Policy Snapshot\n")
+print("Source:", sys.argv[1])
+EOF
+            chmod +x scripts/parse_docs.py
+          fi
+
+      - name: Parse policy & generate diff
+        run: |
+          python scripts/parse_docs.py affiliate.html > policy_diff.md
+          cat policy_diff.md
+
+      - name: Commit & push changes
+        if: ${{ inputs.dry_run == false }}
+        run: |
+          git config user.name "index-bot"
+          git config user.email "bot@example.com"
+          git add affiliate.html policy_diff.md
+          # Skip commit if no changes
+          if git diff --staged --quiet; then
+            echo "✅ No policy changes detected — nothing to commit"
+            exit 0
+          fi
+          git commit -m "chore: update affiliate policy snapshot [skip ci]"
+          git push
