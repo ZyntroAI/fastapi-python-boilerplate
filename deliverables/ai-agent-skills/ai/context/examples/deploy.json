@@ -1,0 +1,10 @@
+{
+  "intent": "deploy the new build to preview and check the deployment status",
+  "keywords": [
+    "deploy",
+    "deployment",
+    "preview"
+  ],
+  "mutates": true,
+  "risk": "medium"
+}
