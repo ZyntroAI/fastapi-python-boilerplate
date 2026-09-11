@@ -8,6 +8,16 @@ Open problems and known blockers are tracked separately in
 ## [2026-09-11]
 
 ### Added
+- **PR #193** — docs: added `docs/github-api.md` — a complete GitHub REST v3 +
+  GraphQL v4 reference and implementation guide. Covers authentication (PAT,
+  GitHub App, installation tokens, a required-scope table), core REST endpoints
+  (user, repositories, file contents, issues, pull requests, workflows/Actions)
+  with runnable `curl` examples and sample JSON, GraphQL queries/mutations and
+  efficient fetching patterns, SDK usage (PyGitHub, `gh` CLI, Octokit), and
+  enterprise best practices (rate limits, pagination, error handling, security,
+  conditional requests, idempotency). Also added
+  `schemas/github-api-schema.json` with example request/response payloads for
+  each documented operation.
 - **PR #187** — deliverables: added `deliverables/product-crud/` — a full-stack
   Products CRUD reference implementation. Backend is Express + Prisma + Zod in
   five layers (Zod schema → service → controller → routes → mount) with
