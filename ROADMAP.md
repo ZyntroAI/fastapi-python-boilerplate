@@ -155,3 +155,4 @@ App ยังไม่มี — ต้องทำ PR นี้ด้วยม�
 - **Service package:** `deliverables/onspace-platform-integration/`
 - **Source app:** `deliverables/onspace-ai/`
 - **แผนงานที่เกี่ยวข้อง:** [TASKS.md](./TASKS.md)
+- **ความรู้ & ตัวอย่างโค้ด:** [docs/onspace-fastapi-knowledge-base.md](./docs/onspace-fastapi-knowledge-base.md)

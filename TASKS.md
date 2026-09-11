@@ -1,6 +1,7 @@
 # ✅ Task List — FastAPI + OnSpace.AI
 
 ติดตามงานตาม [ROADMAP.md](./ROADMAP.md) — ติ๊กเมื่อทำเสร็จและมีหลักฐาน
+ความรู้และตัวอย่างโค้ด: [docs/onspace-fastapi-knowledge-base.md](./docs/onspace-fastapi-knowledge-base.md)
 
 ---
 
@@ -52,8 +53,14 @@
 ## 🔒 Phase 7 — CI/CD
 
 - [ ] SHA-pin workflows (11 actions — ดูรายการใน ROADMAP)
+- [ ] แก้ `scan` job ที่ pin ไปยัง SHA ซึ่ง resolve ไม่ได้
 - [ ] PR ความปลอดภัยแยกจากฟีเจอร์
 - [ ] ขอสิทธิ์ `workflows` สำหรับ automation App (ถ้าจะ push เอง)
+
+> 🔴 **ตรวจเมื่อ 2026-09-11:** CI ล้มทุก job ที่ *Set up job* —
+> `actions/checkout@v4`, `actions/setup-python@v5`, `actions/upload-artifact@v4`
+> ไม่ถูก pin เป็น SHA เต็ม (Analyze (python) และ Analyze (javascript-typescript) ผ่าน
+> เพราะ pin แล้ว) → บล็อกทุก PR บน `main`
 
 ## 🚀 Phase 8 — Deploy
 
