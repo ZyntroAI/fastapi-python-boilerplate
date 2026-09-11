@@ -76,9 +76,16 @@ clean = fastapi_safe_dict(raw_body)            # Pydantic/FastAPI-safe dict
 
 ## CI gate
 
-`.github/workflows/security-scan.yml` runs the Semgrep (JS + Python) and Bandit
-scans on every PR and blocks merge on any `ERROR`-severity prototype-pollution
-finding.
+`.github/workflows/cwe1321-protection-suite.yml` enforces the suite on every
+change under this directory:
+
+1. Parses every rule file — Semgrep YAML (JS + Python), `eslint-rules.json`,
+   `manifest.json`, and `bandit.config` — and fails on anything malformed.
+2. Runs the Python tests (`pytest tests/test_safe_parser.py`).
+3. Runs the JS tests (`node --test tests/sanitize.test.mjs`).
+
+All action refs are pinned to full commit SHAs and the workflow declares
+`permissions: contents: read`.
 
 ## Verified
 
