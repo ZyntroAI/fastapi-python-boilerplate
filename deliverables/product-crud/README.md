@@ -10,6 +10,8 @@ product-crud/
 ├── server/                        # Express + Prisma + Zod
 │   ├── prisma/schema.prisma       # Product model + ProductStatus enum + indexes
 │   ├── prisma/seed.ts             # ข้อมูลตัวอย่าง 30 รายการ (idempotent)
+│   ├── Dockerfile                 # production image (3 stage, non-root)
+│   ├── docker-entrypoint.sh       # apply schema ก่อน start + exec ต่อ
 │   └── src/
 │       ├── lib/zod/product.schema.ts   # single source of truth ของ contract
 │       ├── lib/pagination.ts           # skip/take, meta, where builder (pure)
@@ -153,6 +155,58 @@ npm run dev
 ```
 
 Vite ตั้ง proxy `/api` ไปที่ `http://localhost:4000` ไว้ให้แล้ว ถ้าไม่ตั้ง `VITE_API_BASE_URL` ก็ยังเรียก API ผ่าน proxy ได้
+
+## Production Docker image (backend)
+
+```bash
+cd server
+npm run docker:build          # docker build -t product-crud-server:local .
+npm run docker:run            # รันที่ http://localhost:4000
+```
+
+หรือตรง ๆ:
+
+```bash
+docker build -t product-crud-server:local ./server
+docker run --rm -p 4000:4000 \
+  -e DATABASE_URL="[REDACTED]" \
+  product-crud-server:local
+```
+
+### โครงสร้าง image (3 stage)
+
+| Stage | ทำอะไร |
+|---|---|
+| `deps` | `npm ci` ติดตั้งครบ + ติดตั้ง `openssl` ที่ Prisma engine ต้องใช้ |
+| `build` | `prisma generate` แล้ว `npm run build` → `dist/` |
+| `runtime` | `npm ci --omit=dev` + `prisma generate` + คัดลอก `dist/` มาเท่านั้น |
+
+ขนาดลดลงเพราะ stage สุดท้ายไม่มี TypeScript, vitest, supertest และ image รันด้วย user `nodejs` (uid 1001) ไม่ใช่ root
+
+### Entrypoint และการ apply schema
+
+`docker-entrypoint.sh` apply Prisma schema ให้ก่อนสตาร์ท server แล้ว `exec` ต่อเพื่อให้ signal ถึงตัว Node โดยตรง (มี `tini` เป็น PID 1)
+
+โมดูลนี้ **ยังไม่มี `prisma/migrations/` ในเครื่อง** — ถ้า entrypoint เรียก `prisma migrate deploy` ตรง ๆ จะไม่มีอะไรเกิดขึ้นและตารางจะหายไปทั้งที่ process ขึ้นสำเร็จ จึงเลือกโหมดอัตโนมัติ:
+
+| `SCHEMA_SYNC` | พฤติกรรม |
+|---|---|
+| `auto` (ค่าเริ่มต้น) | ถ้ามี `prisma/migrations/` → `migrate deploy`, ถ้าไม่มี → `db push` |
+| `deploy` | บังคับ `prisma migrate deploy` |
+| `push` | บังคับ `prisma db push` |
+| `none` | ข้ามการ sync ทั้งหมด (เช่นเมื่อ release job apply schema แยก) |
+
+ค่า `DATABASE_URL` เป็น required — ถ้าไม่ส่งมา container จะ exit ทันทีพร้อมข้อความบอก แทนที่จะพยายามต่อ DB แล้วล้มแบบกำกวม
+
+`prisma` CLI ถูกย้ายจาก `devDependencies` ไป `dependencies` เพราะ entrypoint ต้องใช้ใน runtime — ตัว `@prisma/client` ที่แอป import ยังทำงานเหมือนเดิม
+
+### Healthcheck
+
+Image มี `HEALTHCHECK` ที่ยิง `/health` ด้วย `fetch` ของ Node 22 จึงไม่ต้องติดตั้ง `curl`/`wget` เพิ่มใน image
+
+```bash
+docker inspect --format '{{.State.Health.Status}}' <container>
+```
 
 ## Seed data
 

@@ -14,12 +14,15 @@
     "db:up": "docker compose -f ../docker-compose.yml up -d --wait && npm run prisma:migrate && npm run prisma:seed",
     "db:down": "docker compose -f ../docker-compose.yml down",
     "db:reset": "docker compose -f ../docker-compose.yml down -v && npm run db:up",
-    "prisma:seed": "prisma db seed"
+    "prisma:seed": "prisma db seed",
+    "docker:build": "docker build -t product-crud-server:local .",
+    "docker:run": "docker run --rm -p 4000:4000 -e DATABASE_URL=\"postgresql://postgres:postgres@host.docker.internal:5432/products\" product-crud-server:local"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "cors": "^2.8.5",
     "express": "^4.21.2",
+    "prisma": "^5.22.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -27,7 +30,6 @@
     "@types/express": "^4.17.21",
     "@types/node": "^22.10.2",
     "@types/supertest": "^6.0.2",
-    "prisma": "^5.22.0",
     "supertest": "^7.0.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
