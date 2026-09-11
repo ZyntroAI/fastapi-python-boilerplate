@@ -8,6 +8,12 @@ Open problems and known blockers are tracked separately in
 ## [2026-09-11]
 
 ### Added
+- **PR #202** — notifications: added `scripts/whatsapp_notify.py` (WhatsApp Cloud API
+  client — `test_connection`, `send_message`; env-only config, no secrets in code),
+  `tests/test_whatsapp_notify.py` (9 tests, HTTP mocked, incl. `code=100/subcode=33`),
+  `docs/notifications/WHATSAPP.md` (secrets setup, endpoint shape, error table), and
+  `templates/workflows/notify-whatsapp.yml` (SHA-pinned workflow template, kept outside
+  `.github/workflows/` because the App lacks `workflows` permission).
 - **PR #193** — docs: added `docs/github-api.md` — a complete GitHub REST v3 +
   GraphQL v4 reference and implementation guide. Covers authentication (PAT,
   GitHub App, installation tokens, a required-scope table), core REST endpoints
