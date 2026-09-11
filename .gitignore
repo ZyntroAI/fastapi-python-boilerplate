@@ -50,6 +50,12 @@ Thumbs.db
 *.pem
 *.key
 *.csv
+# Node
+node_modules/
+coverage/
+.vercel/
+*.tsbuildinfo
+
 # Deployment & containers
 docker-compose.override.yml
 *.pid
