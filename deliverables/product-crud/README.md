@@ -6,6 +6,7 @@
 
 ```
 product-crud/
+├── docker-compose.yml             # Postgres 16 สำหรับ dev
 ├── server/                        # Express + Prisma + Zod
 │   ├── prisma/schema.prisma       # Product model + ProductStatus enum + indexes
 │   ├── prisma/seed.ts             # ข้อมูลตัวอย่าง 30 รายการ (idempotent)
@@ -91,25 +92,64 @@ Index บน `name`, `status`, `createdAt` เพื่อรองรับ sea
 
 รหัสที่ใช้: `BAD_REQUEST` (400), `NOT_FOUND` (404), `CONFLICT` (409 — SKU ซ้ำ), `INTERNAL` (500)
 
-## Setup
+## Quick start (คำสั่งเดียว)
+
+ต้องมี Docker Desktop หรือ Docker Engine + Compose v2
 
 ```bash
-# 1) ฐานข้อมูล — ต้องมี Postgres ก่อน
 cd server
-cp .env.example .env          # ตั้ง DATABASE_URL
+npm install
+npm run db:up        # สตาร์ท Postgres + migrate + seed ให้ครบในคำสั่งเดียว
+npm run dev          # http://localhost:4000
+```
+
+`db:up` ทำให้ทั้งสามอย่างตามลำดับ: `docker compose up -d --wait` → `prisma migrate` → `prisma db seed`
+
+จากนั้นเปิด frontend อีก terminal:
+
+```bash
+cd web
+npm install
+npm run dev          # http://localhost:5173
+```
+
+### คำสั่งจัดการฐานข้อมูล
+
+| คำสั่ง | ทำอะไร |
+|---|---|
+| `npm run db:up` | สตาร์ท Postgres + migrate + seed |
+| `npm run db:down` | หยุด container (ข้อมูลยังอยู่ใน named volume) |
+| `npm run db:reset` | ลบ volume แล้วเริ่มใหม่ทั้งหมด — **ข้อมูลหาย** |
+
+`docker-compose.yml` อยู่ที่ root ของ deliverable ใช้ image `postgres:16-alpine` พร้อม named volume `product_crud_pgdata` ข้อมูลจึงไม่หายเมื่อ `db:down`
+
+ค่า credentials ใน compose ตรงกับ `server/.env.example` แล้ว (`postgres` / `postgres` / db `products`) ไม่ต้องแก้อะไรเพิ่ม
+
+### Healthcheck
+
+compose มี healthcheck ด้วย `pg_isready` และ npm script เรียกด้วย `up -d --wait` จึงรอจน Postgres รับ connection จริงก่อนรัน migrate — กันอาการ migrate ล้ม intermittently ที่เกิดจาก `up -d` เฉย ๆ ที่ return ก่อน database พร้อม
+
+## Setup แบบ manual (ไม่ใช้ Docker)
+
+ถ้ามี Postgres อยู่แล้ว ข้าม compose ได้เลย
+
+```bash
+cd server
+cp .env.example .env          # ตั้ง DATABASE_URL ให้ชี้ไปที่ Postgres ของคุณ
 npm install
 npm run prisma:generate
 npm run prisma:migrate        # สร้างตาราง products
 npm run prisma:seed           # ใส่ข้อมูลตัวอย่าง 30 รายการ (ไม่บังคับ แต่แนะนำ)
+npm run dev
+```
 
-# 2) รัน API
-npm run dev                   # http://localhost:4000
+แล้วรัน frontend แยกอีก terminal:
 
-# 3) รัน frontend (คนละ terminal)
-cd ../web
+```bash
+cd web
 cp .env.example .env          # VITE_API_BASE_URL=http://localhost:4000
 npm install
-npm run dev                   # http://localhost:5173
+npm run dev
 ```
 
 Vite ตั้ง proxy `/api` ไปที่ `http://localhost:4000` ไว้ให้แล้ว ถ้าไม่ตั้ง `VITE_API_BASE_URL` ก็ยังเรียก API ผ่าน proxy ได้

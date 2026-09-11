@@ -11,6 +11,9 @@
     "test": "vitest run",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
+    "db:up": "docker compose -f ../docker-compose.yml up -d --wait && npm run prisma:migrate && npm run prisma:seed",
+    "db:down": "docker compose -f ../docker-compose.yml down",
+    "db:reset": "docker compose -f ../docker-compose.yml down -v && npm run db:up",
     "prisma:seed": "prisma db seed"
   },
   "dependencies": {
