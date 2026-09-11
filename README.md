@@ -67,3 +67,119 @@ uvicorn main:app --reload
 ## License
 
 See [LICENSE](./LICENSE).
+🚀 ZyntroAI/fastapi-python-boilerplate
+ 
+เทมเพลต FastAPI พร้อมใช้งานจริง — โครงสร้างมาตรฐาน, ความปลอดภัยสูง, รองรับ Async เต็มรูปแบบ
+ 
+ 
+ 
+📋 ภาพรวมรีโป
+ 
+เป็นแม่แบบเริ่มต้นสำหรับสร้าง API ที่ทันสมัย, มีโครงสร้างชัดเจน, มาพร้อมเครื่องมือพัฒนา & CI/CD ครบครัน ✅
+ 
+- สถาปัตยกรรม: Clean Architecture / Modular
+- Python: 3.12+ | FastAPI: ล่าสุด
+- ฐานข้อมูล: Async SQLAlchemy 2.0 + PostgreSQL + Alembic
+- ความปลอดภัย: OAuth2/JWT, CORS, Rate Limit, Validation
+- CI/CD: GitHub Actions, Linting, Testing, Build, Security Scan
+ 
+ 
+ 
+✨ คุณสมบัติหลัก
+ 
+🏗️ โครงสร้าง & สแต็ก
+ 
+- FastAPI: ประสิทธิภาพสูง, อัตโนมัติ OpenAPI/Docs
+- Pydantic v2: ตรวจสอบข้อมูลที่รวดเร็ว, จัดการการตั้งค่า
+- Async Ready: ฐานข้อมูล/คำขอทั้งหมดแบบ Async
+- SQLAlchemy 2.0: ORM ทรงพลัง + asyncpg
+- Alembic: การย้ายข้อมูล (Migration) อัตโนมัติ
+ 
+🔐 ความปลอดภัย & การตรวจสอบสิทธิ์
+ 
+- OAuth2 + JWT: ระบบล็อกอินที่ปลอดภัย
+- Role-Based Access: จัดการสิทธิ์ผู้ใช้
+- CORS Middleware: ตั้งค่าล่วงหน้า
+- การตรวจสอบข้อมูล: Input validation ที่เข้มงวด
+- รองรับ Supabase Auth: พร้อมผสานรวม
+ 
+🧪 เครื่องมือพัฒนา & คุณภาพโค้ด
+ 
+- Linting: Ruff + Black + isort
+- ทดสอบ: pytest + async support + coverage
+- คอนเทนเนอร์: Docker + Docker Compose พร้อมใช้
+- การตั้งค่า: .env, ตัวแปรสภาพแวดล้อม, ความลับ
+- เอกสาร: Swagger/Redoc อัตโนมัติ + README ครบถ้วน
+ 
+🛠️ CI/CD & การปรับใช้
+ 
+- GitHub Actions: Workflow สำหรับทดสอบ/บิลด์/ความปลอดภัย
+- Codecov: ตรวจสอบความครอบคลุมโค้ด
+- Security: CodeQL, Dependabot, SHA-pinning
+- Ready for Cloud: Docker image, Kubernetes-ready
+ 
+ 
+ 
+📂 โครงสร้างโฟลเดอร์
+ 
+plaintext
+  
+fastapi-python-boilerplate/
+├── .github/workflows/   # CI/CD YAML
+├── app/
+│   ├── api/             # เส้นทาง API (v1)
+│   ├── core/            # การตั้งค่า, ความปลอดภัย, ค่าคงที่
+│   ├── models/          # โมเดล Pydantic + SQLAlchemy
+│   ├── schemas/         # รูปแบบข้อมูล/การตอบกลับ
+│   ├── services/        # ตรรกะธุรกิจ
+│   └── main.py          # จุดเริ่มต้นแอป
+├── tests/               # ชุดทดสอบ
+├── alembic/             # การย้ายข้อมูล
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt / pyproject.toml
+└── .env.example
+ 
+ 
+ 
+ 
+🚀 เริ่มต้นใช้งาน
+ 
+bash
+  
+# 1. โคลนรีโป
+git clone https://github.com/ZyntroAI/fastapi-python-boilerplate.git
+cd fastapi-python-boilerplate
+
+# 2. ติดตั้งข้อกำหนด
+pip install -r requirements.txt
+
+# 3. ตั้งค่า .env
+cp .env.example .env
+# แก้ไขค่า เช่น DATABASE_URL, SECRET_KEY
+
+# 4. รันฐานข้อมูล + เริ่มเซิร์ฟเวอร์
+docker compose up -d
+alembic upgrade head
+uvicorn app.main:app --reload
+ 
+ 
+🌐 เข้าใช้งาน:  http://localhost:8000/docs  (เอกสาร Swagger)
+ 
+ 
+ 
+🛡️ สถานะรีโป
+ 
+- License: MIT
+- CI/CD: ✅ ผ่าน
+- ความปลอดภัย: ✅ ตรวจสอบแล้ว
+- รองรับ: Python 3.12+
+ 
+ 
+ 
+ต้องการให้ผมช่วย:
+ 
+- 📄 สรุปไฟล์  README.md  ฉบับเต็ม/ปรับแต่ง
+- ⚙️ อธิบายการตั้งค่า  .env  / CI Workflow
+- 🧩 เปรียบเทียบกับต้นฉบับ tiangolo/fastapi-boilerplate
+- 📝 สร้างเทมเพลตเริ่มต้นโปรเจกต์ใหม่? 🧑‍💻🚀
