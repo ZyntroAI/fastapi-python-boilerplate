@@ -54,6 +54,11 @@ uvicorn main:app --reload
 - Secrets live only in environment / CI secrets — never in source.
 - See `SECURITY.md` (reporting), `CONTRIBUTING.md` (PRs), `RELEASE.md` (releases).
 
+## 📌 แผนการพัฒนา (Roadmap)
+
+- [ROADMAP.md](./ROADMAP.md) — แผนงาน 8 เฟส + Milestone M4 (`Merge → Stabilize → Integrate → Build`)
+- [TASKS.md](./TASKS.md) — รายการงานที่ตรวจสอบได้
+
 ## Documentation
 
 - `docs/` — API, GraphQL, and reference guides.

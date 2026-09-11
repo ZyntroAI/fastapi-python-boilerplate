@@ -9,14 +9,15 @@ assignees: ""
 ## Summary
 
 <!-- What is changing and why? One clear paragraph. -->
+<!-- สรุปสิ่งที่ทำ และเหตุผลสั้นๆ -->
 
 ## Type of change
 
-- [ ] ✨ Feature (new capability)
-- [ ] 🐛 Bugfix (fixes a defect)
-- [ ] 🔒 Security (vulnerability / hardening)
+- [ ] ✨ Feature (new capability) — ฟีเจอร์ใหม่
+- [ ] 🐛 Bugfix (fixes a defect) — แก้ไขข้อผิดพลาด
+- [ ] 🔒 Security (vulnerability / hardening) — ความปลอดภัย
 - [ ] ⚙️ Configuration / Infra / CI
-- [ ] 📚 Documentation
+- [ ] 📚 Documentation — เอกสาร
 - [ ] 📦 Dependency
 - [ ] 🚀 Release
 
@@ -43,6 +44,8 @@ assignees: ""
 - [ ] Lint passes (ruff / eslint)
 - [ ] Tests pass (pytest / vitest)
 - [ ] Manual verification
+
+- Environment tested: `local` / `staging` / `prod`
 
 ```
 (paste test / verification output)
