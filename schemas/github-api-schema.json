@@ -1,0 +1,406 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ZyntroAI/fastapi-python-boilerplate/schemas/github-api-schema.json",
+  "title": "GitHub API — Example Payloads",
+  "description": "Reference payloads for common GitHub REST v3 and GraphQL v4 operations. Companion to docs/github-api.md. These are illustrative shapes, not a validating contract for GitHub's live API — unknown fields are permitted throughout.",
+  "$defs": {
+    "user": {
+      "description": "GET /user  |  GET /users/{username}",
+      "type": "object",
+      "properties": {
+        "login": { "type": "string", "examples": ["octocat"] },
+        "id": { "type": "integer", "examples": [1] },
+        "type": { "type": "string", "enum": ["User", "Organization", "Bot"] },
+        "name": { "type": ["string", "null"] },
+        "company": { "type": ["string", "null"] },
+        "blog": { "type": ["string", "null"] },
+        "location": { "type": ["string", "null"] },
+        "email": { "type": ["string", "null"] },
+        "public_repos": { "type": "integer" },
+        "followers": { "type": "integer" },
+        "following": { "type": "integer" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["login", "id", "type"]
+    },
+
+    "repository": {
+      "description": "GET /repos/{owner}/{repo}",
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "full_name": { "type": "string", "examples": ["octocat/hello-world"] },
+        "private": { "type": "boolean" },
+        "visibility": { "type": "string", "enum": ["public", "private", "internal"] },
+        "default_branch": { "type": "string", "examples": ["main"] },
+        "fork": { "type": "boolean" },
+        "archived": { "type": "boolean" },
+        "disabled": { "type": "boolean" },
+        "stargazers_count": { "type": "integer" },
+        "forks_count": { "type": "integer" },
+        "open_issues_count": { "type": "integer" },
+        "language": { "type": ["string", "null"] },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" },
+        "pushed_at": { "type": "string", "format": "date-time" },
+        "permissions": {
+          "type": "object",
+          "description": "Effective permissions for the requesting credential.",
+          "properties": {
+            "admin": { "type": "boolean" },
+            "maintain": { "type": "boolean" },
+            "push": { "type": "boolean" },
+            "triage": { "type": "boolean" },
+            "pull": { "type": "boolean" }
+          }
+        },
+        "owner": { "$ref": "#/$defs/user" }
+      },
+      "required": ["id", "full_name", "default_branch", "private"]
+    },
+
+    "createRepositoryRequest": {
+      "description": "POST /user/repos  |  POST /orgs/{org}/repos",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "private": { "type": "boolean", "default": false },
+        "auto_init": { "type": "boolean", "default": false },
+        "gitignore_template": { "type": "string", "examples": ["Python"] },
+        "license_template": { "type": "string", "examples": ["mit"] }
+      },
+      "required": ["name"]
+    },
+
+    "fileContents": {
+      "description": "GET /repos/{owner}/{repo}/contents/{path} — content is base64-encoded",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["file", "dir", "symlink", "submodule"] },
+        "name": { "type": "string" },
+        "path": { "type": "string" },
+        "sha": { "type": "string", "description": "Blob SHA; required when updating the file." },
+        "size": { "type": "integer" },
+        "encoding": { "type": "string", "examples": ["base64"] },
+        "content": { "type": "string", "description": "Base64-encoded file body." },
+        "download_url": { "type": ["string", "null"], "format": "uri" }
+      },
+      "required": ["type", "name", "path", "sha"]
+    },
+
+    "putFileContentsRequest": {
+      "description": "PUT /repos/{owner}/{repo}/contents/{path}",
+      "type": "object",
+      "properties": {
+        "message": { "type": "string", "description": "Commit message." },
+        "content": { "type": "string", "description": "Base64-encoded new content." },
+        "sha": { "type": "string", "description": "Current blob SHA. Omit only when creating a new file." },
+        "branch": { "type": "string" },
+        "committer": {
+          "type": "object",
+          "properties": { "name": { "type": "string" }, "email": { "type": "string" } }
+        }
+      },
+      "required": ["message", "content"]
+    },
+
+    "issue": {
+      "description": "GET /repos/{owner}/{repo}/issues/{issue_number}",
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "number": { "type": "integer" },
+        "title": { "type": "string" },
+        "body": { "type": ["string", "null"] },
+        "state": { "type": "string", "enum": ["open", "closed"] },
+        "state_reason": {
+          "type": ["string", "null"],
+          "enum": ["completed", "not_planned", "reopened", null]
+        },
+        "labels": { "type": "array", "items": { "$ref": "#/$defs/label" } },
+        "assignees": { "type": "array", "items": { "$ref": "#/$defs/user" } },
+        "comments": { "type": "integer" },
+        "locked": { "type": "boolean" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" },
+        "closed_at": { "type": ["string", "null"], "format": "date-time" },
+        "html_url": { "type": "string", "format": "uri" },
+        "pull_request": {
+          "type": "object",
+          "description": "Present when the item is actually a pull request — issues and PRs share numbering. Filter these out when listing issues."
+        }
+      },
+      "required": ["id", "number", "title", "state"]
+    },
+
+    "createIssueRequest": {
+      "description": "POST /repos/{owner}/{repo}/issues",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "labels": { "type": "array", "items": { "type": "string" } },
+        "assignees": { "type": "array", "items": { "type": "string" } },
+        "milestone": { "type": "integer" }
+      },
+      "required": ["title"]
+    },
+
+    "label": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "color": { "type": "string", "description": "6-char hex, no leading #." },
+        "description": { "type": ["string", "null"] }
+      },
+      "required": ["name"]
+    },
+
+    "pullRequest": {
+      "description": "GET /repos/{owner}/{repo}/pulls/{pull_number}",
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "number": { "type": "integer" },
+        "title": { "type": "string" },
+        "body": { "type": ["string", "null"] },
+        "state": { "type": "string", "enum": ["open", "closed"] },
+        "draft": { "type": "boolean" },
+        "merged": { "type": "boolean" },
+        "mergeable": { "type": ["boolean", "null"], "description": "null while GitHub is still computing." },
+        "mergeable_state": { "type": "string", "examples": ["clean", "dirty", "unstable", "blocked"] },
+        "merged_at": { "type": ["string", "null"], "format": "date-time" },
+        "head": { "$ref": "#/$defs/prRef" },
+        "base": { "$ref": "#/$defs/prRef" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "html_url": { "type": "string", "format": "uri" }
+      },
+      "required": ["id", "number", "state", "head", "base"]
+    },
+
+    "prRef": {
+      "type": "object",
+      "properties": {
+        "label": { "type": "string", "examples": ["octocat:main"] },
+        "ref": { "type": "string" },
+        "sha": { "type": "string" },
+        "user": { "$ref": "#/$defs/user" }
+      },
+      "required": ["ref", "sha"]
+    },
+
+    "createPullRequestRequest": {
+      "description": "POST /repos/{owner}/{repo}/pulls",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "head": { "type": "string", "description": "Source branch, or org:branch for cross-repo." },
+        "base": { "type": "string", "description": "Target branch." },
+        "body": { "type": "string" },
+        "draft": { "type": "boolean", "default": false },
+        "maintainer_can_modify": { "type": "boolean", "default": true }
+      },
+      "required": ["title", "head", "base"]
+    },
+
+    "mergePullRequestRequest": {
+      "description": "PUT /repos/{owner}/{repo}/pulls/{pull_number}/merge",
+      "type": "object",
+      "properties": {
+        "merge_method": { "type": "string", "enum": ["merge", "squash", "rebase"] },
+        "commit_title": { "type": "string" },
+        "commit_message": { "type": "string" },
+        "sha": { "type": "string", "description": "Expected head SHA — the merge fails if the PR has moved." }
+      }
+    },
+
+    "workflow": {
+      "description": "GET /repos/{owner}/{repo}/actions/workflows",
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "path": { "type": "string", "examples": [".github/workflows/ci.yml"] },
+        "state": {
+          "type": "string",
+          "enum": ["active", "disabled_manually", "disabled_inactivity", "deleted"]
+        },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "path", "state"]
+    },
+
+    "workflowDispatchRequest": {
+      "description": "POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches",
+      "type": "object",
+      "properties": {
+        "ref": { "type": "string", "description": "Git ref to run against." },
+        "inputs": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Must match the workflow's workflow_dispatch inputs."
+        }
+      },
+      "required": ["ref"]
+    },
+
+    "workflowRun": {
+      "description": "GET /repos/{owner}/{repo}/actions/runs/{run_id}",
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "event": { "type": "string", "examples": ["push", "pull_request", "workflow_dispatch"] },
+        "status": { "type": "string", "enum": ["queued", "in_progress", "completed"] },
+        "conclusion": {
+          "type": ["string", "null"],
+          "enum": ["success", "failure", "cancelled", "skipped", "timed_out", "action_required", "neutral", null]
+        },
+        "head_branch": { "type": "string" },
+        "head_sha": { "type": "string" },
+        "run_number": { "type": "integer" },
+        "run_attempt": { "type": "integer" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "html_url": { "type": "string", "format": "uri" }
+      },
+      "required": ["id", "status"]
+    },
+
+    "graphqlRequest": {
+      "description": "POST /graphql",
+      "type": "object",
+      "properties": {
+        "query": { "type": "string" },
+        "variables": { "type": "object" },
+        "operationName": { "type": ["string", "null"] }
+      },
+      "required": ["query"]
+    },
+
+    "graphqlError": {
+      "description": "GraphQL returns HTTP 200 with an errors[] array — check it even on success.",
+      "type": "object",
+      "properties": {
+        "message": { "type": "string" },
+        "type": { "type": "string", "examples": ["NOT_FOUND", "FORBIDDEN", "RATE_LIMITED"] },
+        "path": { "type": "array", "items": { "type": ["string", "integer"] } },
+        "locations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": { "line": { "type": "integer" }, "column": { "type": "integer" } }
+          }
+        }
+      },
+      "required": ["message"]
+    },
+
+    "rateLimitHeaders": {
+      "description": "Response headers present on REST responses. /rate_limit itself does not consume quota.",
+      "type": "object",
+      "properties": {
+        "x-ratelimit-limit": { "type": "integer" },
+        "x-ratelimit-remaining": { "type": "integer" },
+        "x-ratelimit-used": { "type": "integer" },
+        "x-ratelimit-reset": { "type": "integer", "description": "Unix epoch seconds." },
+        "x-ratelimit-resource": { "type": "string", "examples": ["core", "search", "graphql"] },
+        "retry-after": { "type": "integer", "description": "Seconds — present on secondary rate limits." },
+        "etag": { "type": "string", "description": "Send back as If-None-Match for a free 304." },
+        "link": { "type": "string", "description": "RFC 5988 pagination links: rel=next, prev, first, last." }
+      }
+    }
+  },
+
+  "examples": {
+    "user": {
+      "login": "octocat",
+      "id": 1,
+      "type": "User",
+      "name": "The Octocat",
+      "company": "@github",
+      "location": "San Francisco",
+      "public_repos": 8,
+      "followers": 16000,
+      "following": 9,
+      "created_at": "2011-01-25T18:44:36Z"
+    },
+    "repository": {
+      "id": 1296269,
+      "name": "hello-world",
+      "full_name": "octocat/hello-world",
+      "private": false,
+      "visibility": "public",
+      "default_branch": "main",
+      "stargazers_count": 2400,
+      "open_issues_count": 42,
+      "language": "Python",
+      "permissions": { "admin": false, "push": true, "pull": true },
+      "owner": { "login": "octocat", "id": 1, "type": "User" }
+    },
+    "fileContents": {
+      "type": "file",
+      "name": "README.md",
+      "path": "README.md",
+      "sha": "95b966ae1c166bd92f8ae225a9f1813f5a4c1c1e",
+      "size": 12,
+      "encoding": "base64",
+      "content": "aGVsbG8gd29ybGQK",
+      "download_url": "https://raw.githubusercontent.com/octocat/hello-world/main/README.md"
+    },
+    "issue": {
+      "id": 1,
+      "number": 1347,
+      "title": "Bug: crash on startup",
+      "state": "open",
+      "labels": [{ "name": "bug", "color": "d73a4a" }],
+      "comments": 3,
+      "html_url": "https://github.com/octocat/hello-world/issues/1347"
+    },
+    "pullRequest": {
+      "id": 100,
+      "number": 17,
+      "title": "feat: add caching",
+      "state": "open",
+      "draft": false,
+      "merged": false,
+      "mergeable": true,
+      "mergeable_state": "clean",
+      "head": { "ref": "feature/caching", "sha": "a1b2c3d4e5f6" },
+      "base": { "ref": "main", "sha": "b2c3d4e5f6a1" }
+    },
+    "workflowRun": {
+      "id": 1234567890,
+      "name": "CI",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "head_branch": "feature/caching",
+      "head_sha": "a1b2c3d4e5f6",
+      "run_number": 214,
+      "run_attempt": 1,
+      "html_url": "https://github.com/octocat/hello-world/actions/runs/1234567890"
+    },
+    "rateLimitHeaders": {
+      "x-ratelimit-limit": 5000,
+      "x-ratelimit-remaining": 4998,
+      "x-ratelimit-used": 2,
+      "x-ratelimit-reset": 1726000000,
+      "x-ratelimit-resource": "core",
+      "link": "<https://api.github.com/user/repos?page=2>; rel=\"next\", <https://api.github.com/user/repos?page=34>; rel=\"last\""
+    },
+    "graphqlRequest": {
+      "query": "query($o:String!,$n:String!){repository(owner:$o,name:$n){name stargazerCount}}",
+      "variables": { "o": "octocat", "n": "hello-world" }
+    },
+    "graphqlError": {
+      "message": "Could not resolve to a Repository with the name 'octocat/nope'.",
+      "type": "NOT_FOUND",
+      "path": ["repository"]
+    }
+  }
+}
