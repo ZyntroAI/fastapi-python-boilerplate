@@ -1,0 +1,53 @@
+"""Token Budget — hard cap, soft truncate, usage metrics."""
+from __future__ import annotations
+
+import logging
+from typing import Dict
+
+from . import metrics
+from .context import estimate_tokens
+
+logger = logging.getLogger("token_budget")
+
+MODEL_LIMITS = {
+    "default": 128000,
+    "gpt-4o": 128000,
+    "claude-3-opus": 200000,
+    "claude-3-5-sonnet": 200000,
+    "gemini": 1000000,
+    "mini": 32000,
+}
+
+
+class TokenBudget:
+    """Enforce a per-model token ceiling and reject oversized payloads early."""
+
+    def __init__(self, model: str = "default") -> None:
+        self.model = model
+        self.max = MODEL_LIMITS.get(model, MODEL_LIMITS["default"])
+
+    def check(self, estimated: int) -> bool:
+        """Hard check: over budget → reject before any provider is called."""
+        return estimated <= self.max
+
+    def truncate(self, context: Dict) -> Dict:
+        """Soft path: drop oldest messages until the estimate fits."""
+        ctx = {
+            **context,
+            "messages": list(context["messages"]),
+            "system": context["system"],
+        }
+        while ctx["estimated_tokens"] > self.max and ctx["messages"]:
+            removed = ctx["messages"].pop(0)
+            over = ctx["estimated_tokens"] - self.max
+            saved = min(over, estimate_tokens(removed.get("content", "")))
+            if saved > 0:
+                metrics.TOKEN_SAVED.inc(saved)
+            ctx["estimated_tokens"] = estimate_tokens(ctx["system"]) + sum(
+                estimate_tokens(m.get("content", "")) for m in ctx["messages"]
+            )
+        metrics.TOKEN_TOTAL.labels(self.model).inc(ctx["estimated_tokens"])
+        return ctx
+
+    def reject_reason(self, estimated: int) -> str:
+        return f"estimated {estimated} exceeds model limit {self.max}"

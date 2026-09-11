@@ -18,6 +18,8 @@
 | `pm-backend/` | [Program Management Backend](./pm-backend/README.md) — FastAPI app 4 modules: PM CSV template, provider-neutral billing (stub/Stripe/Chargebee/Paddle), tool switcher, opt-in encryption at rest |
 | `agent-core/` | [Agent Core](./agent-core/README.md) — provider-agnostic agent task backend: async httpx client, bounded retry + polling, Supabase task store with RLS, FastAPI routes (25 tests) |
 | `product-crud/` | [Products CRUD](./product-crud/README.md) — Prisma `Product` + Express (Zod → service → controller → routes) และ React + TanStack Query (search/pagination state อยู่ใน query key, 30 tests) |
+| `onspace-ai/` | [OnSpaceAI](./onspace-ai/README.md) — AI reliability engine (cache, circuit breaker, fallback router, context compiler, token budget, Prometheus) เป็น standalone FastAPI app (31 tests) |
+| `onspace-platform-integration/` | [OnSpace Platform Integration](./onspace-platform-integration/README.md) — ดึง OnSpaceAI engine ออกมาเป็น reusable AI infrastructure service (`OnSpaceAIService`, ไม่มี FastAPI import) + provider chain (OpenAI/Anthropic/Google/mock) + [ADR-001](./onspace-platform-integration/ADR-001-onspace-as-platform-service.md) และ [Migration Plan](./onspace-platform-integration/MIGRATION.md) (58 tests) |
 
 ## ไฟล์อ้างอิงที่เกี่ยวข้อง
 
