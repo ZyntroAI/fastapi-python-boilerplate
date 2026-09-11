@@ -23,7 +23,7 @@
     "prettier": "^3.2.0",
     "husky": "^9.0.0",
     "lint-staged": "^17.5.0",
-    "vitest": "^3.0.0",
+    "vitest": "^5.0.0",
     "@vitest/coverage-v8": "^3.0.0",
     "semantic-release": "^25.0.9",
     "@semantic-release/changelog": "^7.0.0",
