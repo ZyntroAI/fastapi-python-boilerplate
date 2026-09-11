@@ -1,0 +1,35 @@
+skill_schema:
+  id: cloudflare
+  name: Cloudflare
+  version: 1.0.0
+  category: networking
+  tool: cloudflare
+  interface:
+    input:
+      required: ["action", "params"]
+      optional: ["context", "credential_ref"]
+    output: ["result", "audit_log", "usage"]
+  actions:
+    - id: describe
+      description: "คืนความสามารถและ scope ที่อนุญาตของ skill นี้"
+      mutates: false
+    - id: invoke
+      description: "เรียกงานจริงตามพารามิเตอร์ที่ตรวจแล้ว"
+      mutates: true
+  permissions:
+    model: "least-privilege"
+    scopes:
+      - "dns:read"
+      - "dns:write"
+      - "cache:purge"
+    credential_source: "env-or-secret-manager-by-name"
+    secrets_in_files: false
+  constraints:
+    rate_limit: "per-provider-default"
+    retry: "idempotent-only"
+    timeout_seconds: 30
+    max_payload_kb: 256
+  security:
+    verification_gates: ["structure-valid", "vuln-scan", "permission-check", "output-verify"]
+    audit: "every-write"
+    compliance: ["Vulnerability Check", "Audit Ready"]

@@ -1,0 +1,268 @@
+{
+  "version": "1.0.0",
+  "tier_weights": {
+    "exact_target": 100,
+    "keyword": 40,
+    "category": 10
+  },
+  "rules": [
+    {
+      "id": "rule-schedule-management",
+      "skill": "schedule-management",
+      "category": "automation",
+      "mutates": true,
+      "keywords": [
+        "cron",
+        "schedule",
+        "timed job",
+        "ตั้งเวลา",
+        "ตามกำหนด"
+      ]
+    },
+    {
+      "id": "rule-connection-manager",
+      "skill": "connection-manager",
+      "category": "core",
+      "mutates": true,
+      "keywords": [
+        "connect",
+        "connection",
+        "credential",
+        "integration",
+        "เชื่อมต่อ"
+      ]
+    },
+    {
+      "id": "rule-github",
+      "skill": "github",
+      "category": "development",
+      "mutates": true,
+      "keywords": [
+        "commit",
+        "github",
+        "issue",
+        "pr",
+        "pull request",
+        "repo"
+      ]
+    },
+    {
+      "id": "rule-stripe-payments",
+      "skill": "stripe-payments",
+      "category": "finance",
+      "mutates": true,
+      "keywords": [
+        "checkout",
+        "payment",
+        "refund",
+        "stripe",
+        "ชำระเงิน"
+      ]
+    },
+    {
+      "id": "rule-shopify-commerce",
+      "skill": "shopify-commerce",
+      "category": "commerce",
+      "mutates": true,
+      "keywords": [
+        "discount",
+        "order",
+        "product",
+        "shopify",
+        "ส่วนลด"
+      ]
+    },
+    {
+      "id": "rule-anthropic",
+      "skill": "anthropic",
+      "category": "ai-core",
+      "mutates": true,
+      "keywords": [
+        "anthropic",
+        "claude",
+        "llm",
+        "model"
+      ]
+    },
+    {
+      "id": "rule-openai",
+      "skill": "openai",
+      "category": "ai-core",
+      "mutates": true,
+      "keywords": [
+        "gpt",
+        "llm",
+        "model",
+        "openai"
+      ]
+    },
+    {
+      "id": "rule-resend-email",
+      "skill": "resend-email",
+      "category": "communication",
+      "mutates": true,
+      "keywords": [
+        "email",
+        "resend",
+        "send mail",
+        "อีเมล"
+      ]
+    },
+    {
+      "id": "rule-jira",
+      "skill": "jira",
+      "category": "project-management",
+      "mutates": true,
+      "keywords": [
+        "issue",
+        "jira",
+        "sprint",
+        "ticket",
+        "งาน"
+      ]
+    },
+    {
+      "id": "rule-notion",
+      "skill": "notion",
+      "category": "knowledge-work",
+      "mutates": true,
+      "keywords": [
+        "database",
+        "notion",
+        "page",
+        "wiki",
+        "โน้ต"
+      ]
+    },
+    {
+      "id": "rule-slack",
+      "skill": "slack",
+      "category": "communication",
+      "mutates": true,
+      "keywords": [
+        "channel",
+        "message",
+        "slack",
+        "ข้อความ",
+        "แจ้งเตือน"
+      ]
+    },
+    {
+      "id": "rule-aws",
+      "skill": "aws",
+      "category": "cloud",
+      "mutates": true,
+      "keywords": [
+        "aws",
+        "cloud",
+        "ec2",
+        "lambda",
+        "s3"
+      ]
+    },
+    {
+      "id": "rule-vercel",
+      "skill": "vercel",
+      "category": "deployment",
+      "mutates": true,
+      "keywords": [
+        "deploy",
+        "deployment",
+        "preview",
+        "vercel",
+        "โดเมน"
+      ]
+    },
+    {
+      "id": "rule-cloudflare",
+      "skill": "cloudflare",
+      "category": "networking",
+      "mutates": true,
+      "keywords": [
+        "cache",
+        "cloudflare",
+        "dns",
+        "firewall",
+        "waf"
+      ]
+    },
+    {
+      "id": "rule-linear",
+      "skill": "linear",
+      "category": "project-management",
+      "mutates": true,
+      "keywords": [
+        "cycle",
+        "issue",
+        "linear",
+        "project",
+        "งาน"
+      ]
+    },
+    {
+      "id": "rule-supabase",
+      "skill": "supabase",
+      "category": "data",
+      "mutates": true,
+      "keywords": [
+        "database",
+        "rls",
+        "row",
+        "supabase",
+        "table"
+      ]
+    },
+    {
+      "id": "rule-discord",
+      "skill": "discord",
+      "category": "communication",
+      "mutates": true,
+      "keywords": [
+        "channel",
+        "discord",
+        "guild",
+        "message",
+        "บอท"
+      ]
+    },
+    {
+      "id": "rule-google-workspace",
+      "skill": "google-workspace",
+      "category": "productivity",
+      "mutates": true,
+      "keywords": [
+        "calendar",
+        "drive",
+        "gmail",
+        "google",
+        "ปฏิทิน",
+        "ไฟล์"
+      ]
+    },
+    {
+      "id": "rule-webhook",
+      "skill": "webhook",
+      "category": "integration",
+      "mutates": true,
+      "keywords": [
+        "callback",
+        "hook",
+        "postback",
+        "webhook"
+      ]
+    },
+    {
+      "id": "rule-oauth",
+      "skill": "oauth",
+      "category": "security",
+      "mutates": true,
+      "keywords": [
+        "authorize",
+        "login",
+        "oauth",
+        "token",
+        "เข้าสู่ระบบ"
+      ]
+    }
+  ]
+}

@@ -10,6 +10,7 @@
 | `azure-cli-2026/` | [Azure CLI 2026 — บัตรคำ & ชีทสรุป](./azure-cli-2026/azure-cli-2026.md) — คำสั่ง CLI, Bicep/IaC, GitHub Actions workflow commands |
 | `agent-security-suite/` | ชุด security rules/CI สำหรับ AI agent (CWE-1321, ci_ops, permission-aware checks) |
 | `agent-skill-template/` | เทมเพลตมาตรฐานสำหรับสร้าง agent skill (`agent-skill-template.v1.yaml/.json`) |
+| `ai-agent-skills/` | [AI Agent Skills Bundle](./ai-agent-skills/README.md) — ชุด 20 agent skills + AI Context engine (progressive disclosure, least-privilege scopes, matcher/router, 13 tests) |
 | `ai-agents-decision-pack/` | ชุด decision pack สำหรับงาน AI agents |
 | `gh-devops-toolkit/` | ชุดเครื่องมือ DevOps บน GitHub CLI |
 | `notebooklm-access-suite/` | ชุดทักษะเข้าถึง NotebookLM (link share, artifact normalization) |
