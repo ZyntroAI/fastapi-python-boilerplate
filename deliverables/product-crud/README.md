@@ -8,6 +8,7 @@
 product-crud/
 ├── server/                        # Express + Prisma + Zod
 │   ├── prisma/schema.prisma       # Product model + ProductStatus enum + indexes
+│   ├── prisma/seed.ts             # ข้อมูลตัวอย่าง 30 รายการ (idempotent)
 │   └── src/
 │       ├── lib/zod/product.schema.ts   # single source of truth ของ contract
 │       ├── lib/pagination.ts           # skip/take, meta, where builder (pure)
@@ -99,6 +100,7 @@ cp .env.example .env          # ตั้ง DATABASE_URL
 npm install
 npm run prisma:generate
 npm run prisma:migrate        # สร้างตาราง products
+npm run prisma:seed           # ใส่ข้อมูลตัวอย่าง 30 รายการ (ไม่บังคับ แต่แนะนำ)
 
 # 2) รัน API
 npm run dev                   # http://localhost:4000
@@ -111,6 +113,24 @@ npm run dev                   # http://localhost:5173
 ```
 
 Vite ตั้ง proxy `/api` ไปที่ `http://localhost:4000` ไว้ให้แล้ว ถ้าไม่ตั้ง `VITE_API_BASE_URL` ก็ยังเรียก API ผ่าน proxy ได้
+
+## Seed data
+
+```bash
+cd server && npm run prisma:seed
+```
+
+`prisma/seed.ts` ใส่สินค้า **30 รายการ** ครอบคลุมทั้งสามสถานะ — `ACTIVE` 14, `DRAFT` 10, `ARCHIVED` 6
+
+จำนวน 30 ตั้งใจเลือกให้เกิน `pageSize` default (20) พอดี จึงเห็น pagination 2 หน้าได้ทันทีโดยไม่ต้องแก้อะไร และมีคำให้ค้นหาหลากหลาย (ชื่อไทย, SKU, คำอธิบาย)
+
+**Idempotent** — ใช้ `upsert` บน `sku` ที่ unique รันซ้ำกี่ครั้งก็ได้ ผลคือ update ไม่ใช่เพิ่มซ้ำ
+
+หลังรันจะพิมพ์สรุป:
+
+```
+seeded 30 products (ACTIVE 14, DRAFT 10, ARCHIVED 6) - table now holds 30 rows
+```
 
 ## Tests
 
@@ -139,5 +159,5 @@ Tests       30 passed (30)
 
 ## Verification
 
-- `server`: `tsc --noEmit` ผ่าน (0 errors), `vitest run` → **30 passed**
+- `server`: `npm run typecheck` ผ่าน (app + seed script, 0 errors), `npm run build` ผ่าน, `vitest run` → **30 passed**
 - `web`: `tsc -b && vite build` ผ่าน → 98 modules, bundle 279.59 kB (gzip 85.46 kB)
