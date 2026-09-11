@@ -33,6 +33,51 @@ Open problems and known blockers are tracked separately in
   three-stage production `Dockerfile` whose entrypoint applies the Prisma schema
   before starting.
 
+### Fixed
+- **PR #189** — deliverables: patched Dependabot alert #101
+  (`GHSA-5xrq-8626-4rwp`, `CVE-2026-47429`, critical) in
+  `deliverables/product-crud/server/`. `vitest` 2.1.9 → 4.1.11; going to 4.x
+  rather than the minimum patched 3.2.6 also clears the separate moderate
+  `@vitest/mocker` path-traversal advisory that 3.2.7 still carried. The suite
+  is synchronous, `node`-environment and imports only
+  `describe`/`expect`/`it`/`vi`/`beforeEach`, so the major bump needed no test
+  changes. Also cleared the two moderate prod findings `npm audit` reported
+  separately: `express` requires `qs ~6.15.1` and every release in that range is
+  affected, so an `overrides` entry pins `qs` to 6.16.0 — the first patched
+  release — rather than forcing an `express` major. `npm audit` now reports 0
+  vulnerabilities, prod and dev alike.
+
+### Changed
+- **PR #191** — chore: moved the root test runner from `jest` to `vitest`
+  (`vitest` + `@vitest/coverage-v8`, with `test` / `test:run` / `test:coverage`
+  scripts), and added the `vitest.config.mjs` the switch needs. Without a root
+  config `vitest run` walks the whole tree and collects
+  `deliverables/cwe1321-protection-suite/tests/sanitize.test.mjs` — a
+  `node:test` file — then exits 1 with "No test suite found in file"; the config
+  scopes collection to the root project and excludes the self-contained
+  deliverable packages. Also added `node_modules/` and `coverage/` to
+  `.gitignore`, which the repo root had been missing, and committed the first
+  root `package-lock.json`.
+
+### Added — Production Docker image (`deliverables/product-crud/server/`)
+- **PR #188** — a three-stage `Dockerfile` (`deps` → `build` → `runtime`) for
+  the product-crud API, running `node:22-alpine` as non-root (uid 1001) with
+  `tini` as PID 1, since the app relies on SIGTERM for its graceful shutdown,
+  and a `HEALTHCHECK` against `/health` using Node's global `fetch`. The module
+  has no committed `prisma/migrations/`, so the accompanying
+  `docker-entrypoint.sh` inspects the filesystem — `migrate deploy` when
+  migrations are present, `db push` otherwise — because a bare
+  `migrate deploy` would exit 0 having done nothing and leave the container
+  reporting healthy with the tables missing. `SCHEMA_SYNC=auto|deploy|push|none`
+  overrides it, and a missing `DATABASE_URL` fails fast. `prisma` moved from
+  `devDependencies` to `dependencies` so the CLI survives `--omit=dev`.
+
+### Notes
+- **PR #190** was closed unmerged as a duplicate of #191: same `jest` → `vitest`
+  change to the root `package.json`, opened a minute earlier, but without the
+  `vitest.config.mjs` or the `.gitignore` entries, so merging it alone would have
+  shipped a `test:run` script that exits 1 on first use.
+
 ## [2026-09-10]
 
 ### Added
