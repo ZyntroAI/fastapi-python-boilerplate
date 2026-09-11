@@ -70,6 +70,22 @@ Open problems and known blockers are tracked separately in
   `docs/notifications/WHATSAPP.md` (secrets setup, endpoint shape, error table), and
   `templates/workflows/notify-whatsapp.yml` (SHA-pinned workflow template, kept outside
   `.github/workflows/` because the App lacks `workflows` permission).
+- **PR #197** — deliverables: added `deliverables/onspace-platform-integration/` —
+  extracted the OnSpaceAI reliability engine out of the standalone app in
+  `deliverables/onspace-ai/` and turned it into a reusable AI infrastructure
+  service. `OnSpaceAIService` is an async engine with **no FastAPI import**
+  (enforced by `tests/test_architecture.py`, which fails if the layering
+  regresses); `api.py` is a thin HTTP layer that maps typed exceptions to
+  413/503.
+
+  Providers became a config-driven package (`base` + `openai` + `anthropic` +
+  `google` + `mock`) replacing the previous hardcoded pair; `factory.build_service()`
+  is the single composition root so REST, GraphQL, a worker, and a CLI all get
+  the same configured engine; `config.py` uses an `ONSPACE_*` env prefix so
+  workers and CLIs need no OAuth env. 58 tests. The original
+  `deliverables/onspace-ai/` is untouched at 31 tests and retained as the
+  migration source. Ships `README.md`, `MIGRATION.md` (plan steps 1–3 done,
+  4–8 pending with the blocker named), and `ADR-001`.
 - **PR #193** — docs: added `docs/github-api.md` — a complete GitHub REST v3 +
   GraphQL v4 reference and implementation guide. Covers authentication (PAT,
   GitHub App, installation tokens, a required-scope table), core REST endpoints
@@ -96,6 +112,19 @@ Open problems and known blockers are tracked separately in
   before starting.
 
 ### Fixed
+- **PR #198** — `app/__init__.py`: the package no longer imports anything, so
+  `import app` works again. It previously built a *second* FastAPI app and ran
+  `FastAPIInstrumentor.instrument_app(app)` before the object existed
+  (instrumenting on line 37, constructing on line 43), imported the
+  never-existing `app.routes`, and pulled in `slowapi` plus six `opentelemetry`
+  packages that are absent from the root `requirements.txt`. The result was a
+  `ModuleNotFoundError` on any import of the package, including test collection.
+  Nothing referenced it — every entrypoint serves `app.main:app`
+  (`app/Dockerfile`, `backend/Dockerfile`, `graphql_api/Dockerfile`, `Makefile`),
+  and the only `from app import …` statements live in `graphql_api/`, which has
+  its own `app` package. Added `tests/test_app_package_init.py` (5 static AST
+  checks, no OAuth env or instrumentation packages needed) to prevent the
+  regression. Merged 2026-09-12 (squash `b282b9e`).
 - **PR #189** — deliverables: patched Dependabot alert #101
   (`GHSA-5xrq-8626-4rwp`, `CVE-2026-47429`, critical) in
   `deliverables/product-crud/server/`. `vitest` 2.1.9 → 4.1.11; going to 4.x

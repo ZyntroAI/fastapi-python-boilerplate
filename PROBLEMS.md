@@ -12,6 +12,84 @@ environment) · **RESOLVED** (fixed; kept briefly for context).
 
 ---
 
+## [2026-09-11]
+
+### P-009 — The root `tests/` suite never collects — OPEN
+
+**Owner:** unassigned
+
+`pytest tests/` dies in `conftest.py` before a single test is collected, so the
+`Test` job in `ci.yml` and the `Run ALL Tests` job in `test-suite.yml` can never
+pass — on `main` or on any PR.
+
+`tests/conftest.py` does `from app.main import app`, which reaches
+`app/core/config.py`, whose `Settings` declares `OAUTH_CLIENT_ID: str` as a
+**required** field. Neither the tracked `.env` (it contains only BytePlus keys
+and a stray documentation line) nor any workflow `env:` block supplies it.
+
+**Evidence:**
+
+```
+$ pytest tests/ --collect-only -q
+python-dotenv could not parse statement starting at line 2
+ImportError while loading conftest '.../tests/conftest.py'.
+tests/conftest.py:7: in <module>
+    from app.main import app
+app/main.py:3: in <module>
+    from app.api import auth, callback, health
+app/api/auth.py:6: in <module>
+    from app.core.config import settings
+app/core/config.py:68: in <module>
+    settings = get_settings()
+pydantic_core._pydantic_core.ValidationError: 1 validation error for Settings
+OAUTH_CLIENT_ID
+  Field required [type=missing, input_value={}, input_type=dict]
+```
+
+`ci.yml` passes only `DATABASE_URL` to the pytest step; `test-suite.yml` passes
+`DATABASE_URL`, `REDIS_URL`, `API_BASE_URL`, `COMPOSE_FILE`,
+`COMPOSE_PROJECT_NAME`. Neither sets `OAUTH_CLIENT_ID`.
+
+**Fix (one of):** give `OAUTH_CLIENT_ID` a default in `app/core/config.py`
+(it is an OAuth *public* client id — a placeholder default is harmless), or set
+it in the test invocation, or move it to `OAUTH_CLIENT_ID: str | None = None`
+and raise at the login endpoint instead of at import. The last is the only one
+that also unblocks importing the app in a worker/CLI context.
+
+---
+
+### P-010 — `app.api.routes` imports two modules that do not exist — OPEN
+
+**Owner:** unassigned
+
+`app/api/routes.py` cannot be imported at all:
+
+```
+from app.models.user_models import UserCreate, UserOut, TokenOut
+from app.services.users import get_repo, fanout_profile
+```
+
+- `app/models/user_models.py` — does not exist (`app/models/` holds
+  `dependency.py`, `graph_service.py`, `items.py`, `oauth_service.py`,
+  `search_service.py`, `token_service.py`, `user_service.py`, `users.py`)
+- `app/models/__init__.py` — does not exist, so `app.models` is not a package
+  at all
+- `app/services/users.py` — exists; the names `get_repo` / `fanout_profile`
+  have not been checked against it
+
+Separately, `tests/conftest.py` imports `get_current_user` from
+`app.api.routes`, but that symbol is only re-exported there from
+`app.api.auth`. It is defined in `app.core.deps` and `app.core.security`. So
+even once P-009 is fixed, the import path in conftest is wrong.
+
+**Evidence:** `python -c "import app.api.routes"` → `ModuleNotFoundError:
+No module named 'app.models'`; `ls app/models/` as listed above.
+
+**Note:** P-009 must be fixed first — it masks this one, because
+`app.core.config` raises before the missing module is reached.
+
+---
+
 ## [2026-09-10]
 
 ### P-001 — CI is red repo-wide: 5 workflow files do not parse — OPEN
