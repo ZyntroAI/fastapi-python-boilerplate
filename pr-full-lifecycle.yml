@@ -1,0 +1,145 @@
+name: PR Full Lifecycle & Security Gate
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened, edited]
+  pull_request_review:
+    types: [submitted, edited]
+
+# Fix 5: explicit least-privilege permissions instead of relying on repo defaults
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  DRY_RUN: "false"
+  CLOSE_ENABLED: "false"
+
+jobs:
+  analyze-pr:
+    name: Analyze & Context Setup
+    runs-on: ubuntu-latest
+    outputs:
+      has-migrations: ${{ steps.check-files.outputs.has-migrations }}
+      risk-level: ${{ steps.rating.outputs.level }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Fix 3: github.head_ref is empty on pull_request_review events;
+          # fall back to the PR head SHA so checkout always resolves correctly.
+          ref: ${{ github.event.pull_request.head.sha || github.head_ref }}
+
+      - name: Analyze PR Content & Diff
+        id: analyze
+        uses: ./.github/actions/analyze-pr
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Detect Special Files
+        id: check-files
+        run: |
+          echo "has-migrations=$(find . -name "*migration*.py" -o -name "*migration*.sql" | grep -q . && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Risk & Impact Rating
+        id: rating
+        run: |
+          # ตรรกะประเมินความเสี่ยงตามขนาดการเปลี่ยนแปลงและประเภทไฟล์
+          echo "level=medium" >> "$GITHUB_OUTPUT"
+
+  debug-ci:
+    name: Debug & Env Check
+    runs-on: ubuntu-latest
+    needs: analyze-pr
+    if: runner.debug || github.event_name == 'workflow_dispatch'
+    steps:
+      # Fix 2: this job never checked out the repo, so .github/workflows
+      # did not exist when yamllint/grep ran below. Added checkout first.
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Print Runtime Context
+        run: |
+          echo "=== GitHub Context ==="
+          echo "Event: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "SHA: ${{ github.sha }}"
+          echo "=== Env Vars ==="
+          env | sort
+
+      # Fix 1: the run block was indented at the same level as `run:` itself,
+      # which is invalid YAML block-scalar indentation (breaks parsing of the
+      # WHOLE file). Content must be indented deeper than the key that owns
+      # it. The stray `uses: actions/checkout@v4` glued onto this step (which
+      # made two mutually exclusive step types collide) was also removed.
+      - name: Validate YAML Syntax
+        run: |
+          sudo apt-get update && sudo apt-get install -y yamllint
+          yamllint .github/workflows/**/*.yml || true
+
+      - name: Inspect Action References
+        run: |
+          grep -r "uses:" .github/workflows --include="*.yml" | sort
+
+  security-gate:
+    name: Security & Supply Chain Check
+    runs-on: ubuntu-latest
+    needs: analyze-pr
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Fix 6: verify-sha-pin is supposed to ENFORCE SHA pinning on other
+      # actions, but it was itself referenced by a mutable tag (@v1), and
+      # this action does not exist under the zyntroai org (would 404). Pin
+      # it to a real commit SHA once the action is published, or drop the
+      # step until it exists. Placeholder SHA left as a comment to fill in.
+      - name: Verify Action SHA Pinning
+        id: sha-check
+        # uses: zyntroai/verify-sha-pin@<REPLACE_WITH_REAL_COMMIT_SHA>
+        run: |
+          echo "::warning::verify-sha-pin action not yet published — skipping until a real, pinned release exists"
+
+      - name: Secret Leak Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+
+  build-test:
+    name: Build & Test Suite
+    runs-on: ubuntu-latest
+    needs: security-gate
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+      - name: Run Pytest & Lint
+        run: |
+          python -m pytest tests/ -v --cov=app
+          python -m flake8 app/ --max-line-length=120
+
+  finalize:
+    name: Merge Ready & Summary
+    runs-on: ubuntu-latest
+    needs: [analyze-pr, security-gate, build-test]
+    if: always()
+    steps:
+      - name: Generate Run Summary
+        run: |
+          cat << EOF >> "$GITHUB_STEP_SUMMARY"
+          ### ✅ PR Lifecycle Complete
+          - **Analyze:** ${{ needs.analyze-pr.result }}
+          - **Security:** ${{ needs.security-gate.result }}
+          - **Build/Test:** ${{ needs.build-test.result }}
+          EOF

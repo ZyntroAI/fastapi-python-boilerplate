@@ -33,10 +33,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@<commit-sha>
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@<commit-sha>
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -60,7 +60,7 @@ jobs:
 
       - name: Upload coverage XML
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@<commit-sha>
         with:
           name: coverage-xml-python-${{ matrix.python-version }}
           path: coverage.xml

@@ -1,0 +1,57 @@
+// run.js
+import { createClient } from "@supabase/supabase-js";
+
+// --- Config จาก ENV ---
+const supabase = createClient(
+  process.env.DB_URL,
+  process.env.DB_PASS
+);
+
+// --- Logic ตรวจสอบ ---
+function shouldSkipPayment(ctx) {
+  if (ctx.role === "admin" || ctx.role === "sponsor") return true;
+  if (ctx.plan === "trial") return true;
+  if (ctx.coupon?.discountPercent === 100) return true;
+  if (ctx.amount === 0) return true;
+  if (ctx.flags?.skipPayment || ctx.flags?.sponsored) return true;
+  return false;
+}
+
+// --- Main workflow ---
+async function main() {
+  const { data: users, error } = await supabase
+    .from("subscriptions")
+    .select("*");
+
+  if (error) {
+    console.error("DB error:", error);
+    process.exit(1);
+  }
+
+  for (const user of users) {
+    const ctx = {
+      userId: user.id,
+      role: user.role,
+      plan: user.plan,
+      coupon: user.coupon,
+      amount: user.amount,
+      flags: {
+        skipPayment: user.skip_payment,
+        sponsored: user.sponsored
+      }
+    };
+
+    if (shouldSkipPayment(ctx)) {
+      console.log(`User ${user.id} → SKIP payment`);
+      // อาจ update flag ใน DB หรือ log ลง audit table
+      await supabase
+        .from("payment_audit")
+        .insert({ user_id: user.id, status: "skip" });
+    } else {
+      console.log(`User ${user.id} → REQUIRE payment`);
+      // trigger payment workflow ต่อไป
+    }
+  }
+}
+
+main();
