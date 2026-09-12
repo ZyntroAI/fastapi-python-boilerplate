@@ -36,6 +36,18 @@ Open problems and known blockers are tracked separately in
   gate in the suite README and `manifest.json`.
 
 ### Fixed
+- **PR #216** — two defects found by auditing the merged MCP guide against the
+  actual tree. (1) `scripts/check-mcp-environment.sh --help` leaked source: the
+  handler used a fixed line range, `sed -n '2,22p'`, but the comment header ends
+  at line 18, so help output ran into the blank line and `set -uo pipefail` — any
+  edit that moves the header would silently change what it printed. It now
+  prints the leading comment block itself via `awk`. (2) Two paths in
+  `docs/MCP-Guide-Complete.md` did not match the repo: the MCP client example
+  lives at `deliverables/agent-security-suite/agent_security_suite/mcp_client.py`,
+  and `./mcp/servers.json` does not exist — `.agent/settings.json` points
+  `"configPath"` at it, so the doc now says that is where config belongs, with a
+  note not to commit it. Adds three assertions to `test_mcp_checker.sh` so
+  `--help` cannot regress; 17/17 pass.
 - **PR #214** — `scripts/check-mcp-environment.sh`: `check_key()` reported the
   length of the variable *name* rather than the value it held. It printed
   `${#_var}`, which is the character count of the literal string `_var` (4), so
