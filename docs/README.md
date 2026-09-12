@@ -21,6 +21,7 @@
 | เอกสาร | คำอธิบาย |
 |--------|----------|
 | [AI Agent Security & DevSecOps 2026](./knowledge-ai-agent-security-devsecops-2026.md) | Sandbox design, trust tiers T1–T4, state isolation |
+| [คู่มือแก้ไขปัญหา & การติดตั้ง MCP](./MCP-Guide-Complete.md) | MCP-ERR-001/002/003 + สคริปต์ตรวจสอบ `check-mcp-environment.sh` |
 
 ## เอกสารอื่น
 
