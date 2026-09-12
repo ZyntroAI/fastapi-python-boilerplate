@@ -48,7 +48,8 @@ else
       --runtimes|--rt)  DO_RUNTIMES=1 ;;
       --keys)           DO_KEYS=1 ;;
       -h|--help)
-        sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'
+        # พิมพ์เฉพาะคอมเมนต์หัวไฟล์ — หยุดที่บรรทัดแรกที่ไม่ใช่คอมเมนต์
+        awk 'NR==1 {next} /^#/ {sub(/^# ?/, ""); print; next} {exit}' "$0"
         exit 0 ;;
       *)
         printf "ไม่รู้จัก option: %s (ใช้ --help)\n" "$arg" >&2
