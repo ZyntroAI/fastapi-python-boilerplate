@@ -1,0 +1,5 @@
+- [ ] ยืนยันบริบท repo: โครง docs/, style, การอ้าง MCP ที่มีอยู่
+- [x] ร่าง docs/MCP-Guide-Complete.md (3 ปัญหา + ขั้นตอนแก้ + ลิงก์ทางการ) — ร่าง docs/MCP-Guide-Complete.md ครอบคลุม 3 ปัญหา ตามโครง MCP-ERR-001/002/003 — ร่าง docs/MCP-Guide-Complete.md เสร็จ — ครอบคลุม MCP-ERR-001/002/003 + แบบฟอร์มบันทึกผล + ลิงก์ทางการ
+- [x] เขียน scripts/check-mcp-environment.sh + ทดสอบให้รันได้จริง — เขียน scripts/check-mcp-environment.sh พร้อม flag --gcp/--runtimes/--keys และทดสอบให้รันได้จริง — สคริปต์ + ชุดทดสอบ merge เข้า main แล้ว (PR #212, #214) และแก้บั๊กที่ทดสอบเจอเรียบร้อย
+- [x] อัปเดต docs/README.md index — เพิ่มลิงก์คู่มือ MCP ใน docs/README.md — เพิ่มลิงก์คู่มือ MCP ใน docs/README.md แล้ว
+- [x] Commit + push + เปิด PR — PR #212 merged เข้า main แล้ว (squash 15f977c) — เหลือบันทึก CHANGELOG ตาม workflow repo — commit + push + เปิด PR #212 แล้ว merge (squash 15f977c) พร้อม CHANGELOG PR #213 merged
