@@ -15,7 +15,7 @@
 
 - [AI Agent Security & DevSecOps 2026](./knowledge-ai-agent-security-devsecops-2026.md) — trust tier T1–T4
 - [gh CLI Reference](./github-cli-gh-reference.md) — คำสั่ง GitHub CLI
-- `deliverables/agent-security-suite/` — MCP client ตัวอย่าง (`mcp_client.py`)
+- `deliverables/agent-security-suite/` — MCP client ตัวอย่าง (`agent_security_suite/mcp_client.py`)
 
 ---
 
@@ -166,7 +166,10 @@ export PATH="$PATH:$HOME/.pub-cache/bin"   # Dart global packages
 
 **4) ตั้งค่า MCP server config**
 
-ใน repo นี้ config อยู่ที่ `.agent/settings.json` → ชี้ไปที่ `./mcp/servers.json`
+ใน repo นี้ `.agent/settings.json` ประกาศ `"mcpServers"` พร้อมชี้ `"configPath": "./mcp/servers.json"`
+
+> ⚠️ ไฟล์ `mcp/servers.json` **ยังไม่มีใน repo** — path นี้เป็นที่ที่ควรวางไฟล์ config
+> (ไฟล์มักมีความลับ จึงไม่ควร commit) ตรวจว่า client อ่าน path นี้จริงก่อนใช้งาน
 
 ```json
 {

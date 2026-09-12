@@ -19,6 +19,14 @@ echo "== T3: --help ออก 0 และมีเนื้อหา =="
 OUT=$("$SCRIPT" --help 2>&1); RC=$?
 [ "$RC" -eq 0 ] && ok "--help exit 0" || bad "--help exit $RC"
 echo "$OUT" | grep -q "MCP-ERR-001" && ok "--help อ้าง MCP-ERR-001" || bad "--help ขาดเนื้อหา"
+# --help ต้องไม่รั่วโค้ดออกมา (เคยพังเพราะใช้ช่วงบรรทัดตายตัว)
+if echo "$OUT" | grep -qE 'set -uo pipefail|DO_GCP=|shebang'; then
+  bad "--help รั่วโค้ดออกมา"
+else
+  ok "--help ไม่รั่วโค้ด"
+fi
+# ต้องมีบรรทัด Exit code และไม่ลากโค้ดต่อท้าย
+echo "$OUT" | grep -q "Exit code:" && ok "--help มีบรรทัด Exit code" || bad "--help ขาด Exit code"
 
 echo "== T4: flag เฉพาะทาง =="
 for f in --gcp --runtimes --keys; do
