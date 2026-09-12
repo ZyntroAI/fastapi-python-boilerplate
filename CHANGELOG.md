@@ -35,6 +35,20 @@ Open problems and known blockers are tracked separately in
   `_VERIFY_TLS`) is off by default. 33 tests passing. Also records the CI enforcement
   gate in the suite README and `manifest.json`.
 
+### Fixed
+- **PR #214** — `scripts/check-mcp-environment.sh`: `check_key()` reported the
+  length of the variable *name* rather than the value it held. It printed
+  `${#_var}`, which is the character count of the literal string `_var` (4), so
+  every key reported "ความยาว 4 ตัวอักษร" no matter how long it actually was —
+  a constant that reads like a successful check. Now copies the value into
+  `_val` and measures `${#_val}`. Found by the new `scripts/test_mcp_checker.sh`
+  added in the same PR: a 15-assertion harness covering syntax, executable bit,
+  `--help`, each flag, the unknown-flag exit code, the 0/1 result contract,
+  secret redaction, and `.env` tracking (with a fixture repo that tracks a real
+  `.env` alongside a safe `.env.example`). The length assertion is computed from
+  the fixture rather than hardcoded, and it fails against the unfixed script.
+  15/15 pass.
+
 ## [2026-09-11]
 
 ### Added
