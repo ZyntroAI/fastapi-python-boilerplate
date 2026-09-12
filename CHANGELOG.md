@@ -64,6 +64,18 @@ Open problems and known blockers are tracked separately in
 ## [2026-09-11]
 
 ### Added
+- **PR #208** — deliverables: added `deliverables/ai-agent-skills/` — 20 agent
+  skills plus an AI Context engine. Each skill ships as
+  `skills/<id>/{SKILL.md,schema.yaml}` with its interface, actions and
+  least-privilege scopes, catalogued in `registry.yaml` / `registry.json`
+  and validated against `ai.context.schema.json`. The engine is
+  dependency-free Node: `matcher.js` scores skills by exact target,
+  word-bounded keyword and category, and `router.js` turns that ranking
+  into a plan that refuses any step whose scopes have not been granted and
+  defaults to dry-run for mutating ones (`:write` `:send` `:invoke`
+  `:purge` `:authorize`). No secrets are stored anywhere — credentials are
+  referenced by name only, and a test scans the registry and schemas for
+  common key patterns. 13 tests via `node:test`.
 - **PR #202** — notifications: added `scripts/whatsapp_notify.py` (WhatsApp Cloud API
   client — `test_connection`, `send_message`; env-only config, no secrets in code),
   `tests/test_whatsapp_notify.py` (9 tests, HTTP mocked, incl. `code=100/subcode=33`),
