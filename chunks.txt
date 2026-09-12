@@ -1,0 +1,28 @@
+--- Chunk 1 (651 chars) ---
+#! /usr/bin/env python3
+import sys
+import json
+from bs4 import BeautifulSoup
+
+def main():
+    if len(sys. argv) < 2:
+        print("Usage: parse_docs. py <input. html>")
+        sys. exit(1)
+
+    input_file = sys. argv[1]
+    with open(input_file, "r", encoding="utf-8") as f:
+        html = f. read()
+
+    soup = BeautifulSoup(html, "html. parser")
+
+    # Example: extract headings and paragraphs
+    data = []
+    for heading in soup. find_all(["h1", "h2", "h3"]):
+        section = {
+            "tag": heading. name,
+            "text": heading. get_text(strip=True)
+        }
+        data. append(section)
+
+    # Output JSON index
+    print(json.
