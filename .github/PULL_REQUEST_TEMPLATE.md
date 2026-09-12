@@ -53,6 +53,7 @@ assignees: ""
 
 ## Checklist
 
+- [ ] GitHub Actions pinned to full commit SHAs (no `@vX`, `@main`) — `verify-sha` passes
 - [ ] No secrets committed
 - [ ] No unrelated changes bundled
 - [ ] Existing files not clobbered (additive where appropriate)

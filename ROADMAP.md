@@ -156,3 +156,22 @@ App ยังไม่มี — ต้องทำ PR นี้ด้วยม�
 - **Source app:** `deliverables/onspace-ai/`
 - **แผนงานที่เกี่ยวข้อง:** [TASKS.md](./TASKS.md)
 - **ความรู้ & ตัวอย่างโค้ด:** [docs/onspace-fastapi-knowledge-base.md](./docs/onspace-fastapi-knowledge-base.md)
+
+## Security Layer
+
+### Implemented
+
+- **SHA pinning enforced in CI.** Every action reference is a full 40-character
+  commit SHA; the `verify-sha` job blocks any push or PR that introduces a tag
+  or branch reference.
+- **Automated updater.** `pin_workflows.py` resolves tags to SHAs against the
+  upstream repository and rewrites the workflow files.
+- **Structured CI output.** `verify-shas.py` groups results, reports counts, and
+  names the file and line of any blocked reference.
+
+### Planned
+
+- Secret scanning across workflow files (in addition to the existing
+  `secret-scan.yml` job).
+- YAML linting for workflow structure.
+- License checks on third-party actions.
