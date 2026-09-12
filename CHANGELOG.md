@@ -8,6 +8,20 @@ Open problems and known blockers are tracked separately in
 ## [2026-09-12]
 
 ### Added
+- **PR #212** — docs: added `docs/MCP-Guide-Complete.md` (MCP-DOC-2026-0912), a
+  Thai-language troubleshooting and setup reference for Model Context Protocol
+  servers covering the three most common failure modes: Google Cloud ADC
+  (`DefaultCredentialsError`, `gcloud auth application-default login`, quota
+  project, service-account path, and an explicit warning not to commit
+  credentials), missing runtimes (Node.js / Dart / Go install links, per-shell
+  PATH setup, the caveat that GUI MCP clients do not read shell profiles, and
+  the `.agent/settings.json` → `mcp/servers.json` config shape), and third-party
+  API keys (Antimetal / Lovable / Mobbin / Windsor — safe storage order,
+  `.env.example` convention, and how to verify a secret never reached git
+  history). Also added `scripts/check-mcp-environment.sh`, an automated checker
+  for the same three issues with `--gcp` / `--runtimes` / `--keys` flags and a
+  CI-suitable exit code; it never prints secret values, only set/not-set. Linked
+  from `docs/README.md`.
 - **PR #206** — obsidian: connected the `fastapi-obsidian-backend` deliverable to a
   running Obsidian vault via the Local REST API plugin. Adds `app/obsidian/client.py`
   (vault list/read/write/append/patch/delete, active, JsonLogic + simple search, tags,
