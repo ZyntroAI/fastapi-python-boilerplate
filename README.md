@@ -183,3 +183,16 @@ uvicorn app.main:app --reload
 - ⚙️ อธิบายการตั้งค่า  .env  / CI Workflow
 - 🧩 เปรียบเทียบกับต้นฉบับ tiangolo/fastapi-boilerplate
 - 📝 สร้างเทมเพลตเริ่มต้นโปรเจกต์ใหม่? 🧑‍💻🚀
+# 🚀 ZyntroAI FastAPI Boilerplate
+**มาตรฐานองค์กร • ปลอดภัย • พร้อมใช้งาน • SHA-pinned**
+
+## 🧩 คุณสมบัติหลัก (อัปเดต)
+- ✅ **CI/CD ปลอดภัย:** GitHub Actions ทั้งหมดใช้ **SHA-pinning เต็ม 40 ตัว**
+- ✅ **สิทธิ์น้อยที่สุด:** แยก `permissions` ตามงานในแต่ละ Job
+- ✅ **Workflow โปร่งใส:** รองรับ `workflow_dispatch` + ไอคอนชื่อ Job ชัดเจน
+- ✅ ลินต์: `ruff` + `black` + `isort`
+- ✅ ทดสอบ: `pytest` + ความครอบคลุม + Postgres บริการ
+- ✅ ความปลอดภัย: CodeQL + การอัปเกรด `pip` อัตโนมัติ
+- ✅ บิลด์: ด็อกเกอร์ไปยัง GHCR (เฉพาะสาขา `main`)
+
+## 🛠️ โครงสร้างไฟล์ CI
