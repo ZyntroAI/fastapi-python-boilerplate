@@ -36,6 +36,23 @@ Open problems and known blockers are tracked separately in
   gate in the suite README and `manifest.json`.
 
 ### Fixed
+- **Docs** — corrected the CI/supply-chain documentation so it matches the tree.
+  (1) `README.md` still carried a copy-pasted boilerplate block that ended in a
+  "CI/CD: ผ่าน / Security: ตรวจสอบแล้ว" status line and a "ต้องการให้ผมช่วย:"
+  list — it claimed CI was green, which is false, and pasted a `SECURITY.md`
+  draft inline. The block is replaced with a verified
+  **CI/CD & supply-chain integrity** section: policy (full-SHA pinning), the
+  current state measured against `main`, and the reference SHAs for the actions
+  `ci.yml` uses. (2) `SECURITY.md` was a chat-style answer wrapped in prose and
+  code fences, and it had picked up a "Supply Chain" section describing a
+  `verify-sha` job in `ci.yml` and a pin-history row of "76 refs / all 12
+  workflow files / repaired 5 fabricated pins" — none of which is true: there is
+  no `verify-sha` job and no `.github/workflows/scripts/verify-shas.py`. It is
+  rewritten as a normal policy document (supported versions, private-advisory
+  reporting, SLA by severity, scope, coordinated disclosure, severity table) with
+  a supply-chain section that states plainly that pinning is policy but **not yet
+  enforced**, backed by the same measured counts. All SHAs quoted in both files
+  were resolved from the actions' own repositories on 2026-09-12.
 - **PR #216** — two defects found by auditing the merged MCP guide against the
   actual tree. (1) `scripts/check-mcp-environment.sh --help` leaked source: the
   handler used a fixed line range, `sed -n '2,22p'`, but the comment header ends
