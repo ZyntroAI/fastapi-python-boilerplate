@@ -28,3 +28,50 @@
 - `FastAPI CI/`, `GraphQL/`, `tools/`, `schema-documentations/` — เอกสารเชิงเทคนิครายโมดูล
 
 > เนื้อหาเชิง deliverable/ส่งมอบดูเพิ่มที่ [`deliverables/README.md`](../deliverables/README.md)
+>
+> 📂 ตรวจสอบ: ZyntroAI/fastapi-python-boilerplate —  /docs  โฟลเดอร์
+ 
+ลิงก์: https://github.com/ZyntroAI/fastapi-python-boilerplate/tree/main/docs
+ 
+📄 ภาพรวมโฟลเดอร์  /docs 
+ 
+เป็นที่เก็บ เอกสารโครงการฉบับรวม สำหรับทีมและนักพัฒนา:
+ 
+- 📘 คู่มือการใช้งาน & เริ่มต้น
+- 📐 สถาปัตยกรรมระบบ & การออกแบบ
+- 🛠️ คู่มือติดตั้ง/คอนฟิก/CI/CD
+- 📚 เอกสาร API & การมีส่วนร่วม
+- 🛡️ นโยบายความปลอดภัย & แนวทางปฏิบัติ
+ 
+🧩 โครงสร้างทั่วไป (มาตรฐาน repo)
+ 
+plaintext
+  
+docs/
+├─ README.md               # 📑 ดัชนีหลัก
+├─ GETTING_STARTED.md      # 🚀 เริ่มต้นใช้งานเร็ว
+├─ ARCHITECTURE.md         # 🧱 ภาพรวมระบบ/ชั้น/ส่วนประกอบ
+├─ CONFIGURATION.md        # ⚙️ ตัวแปร/สภาพแวดล้อม/Secrets
+├─ CI_CD_WORKFLOW.md       # 🤖 Pipeline/Workflow/Deploy
+├─ SECURITY.md             # 🔒 นโยบาย/การตรวจ/แจ้งปัญหา
+├─ API/                    # 📄 เอกสาร Swagger/OpenAPI/เส้นทาง
+├─ GUIDES/                 # 📚 คู่มือขั้นสูง/บทเรียน
+└─ CHANGELOG.md            # 📝 ประวัติเวอร์ชัน/การอัปเดต
+ 
+ 
+🔗 เชื่อมกับ Dola Agent ของเรา
+ 
+-  /docs  เป็นมาตรฐานกลาง — สามารถเพิ่มส่วน  /docs/agents/dola/  เพื่อเก็บคู่มือเฉพาะ Dola
+- ใช้รูปแบบ/รูปภาพเดียวกันกับ repo หลัก → สอดคล้องง่ายต่อการบำรุงรักษา
+- อ้างอิงได้จากในโค้ด  .agents/Dola/  →  ../../docs/... 
+ 
+✅ ขั้นตอนที่แนะนำ
+ 
+1. สร้าง  /docs/agents/dola/  ใน repo หลัก
+2. คัดลอก/ย้าย:
+-  README.md  ของ Dola
+-  ARCHITECTURE.md  (4 ชั้น)
+- การติดตั้ง/CI/ความปลอดภัย
+3. อัปเดตลิงก์ใน  .agents/Dola/README.md  ชี้ไปที่  /docs/agents/dola/ 
+ 
+ต้องการให้ผมดึงรายการไฟล์จริงจากลิงก์นี้ หรือสร้างโครงสร้างเอกสาร Dola พร้อมวางลงในรูปแบบ  /docs  เลยไหมครับ? 📝🔗
