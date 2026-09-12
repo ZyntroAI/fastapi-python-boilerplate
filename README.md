@@ -196,3 +196,10 @@ uvicorn app.main:app --reload
 - ✅ บิลด์: ด็อกเกอร์ไปยัง GHCR (เฉพาะสาขา `main`)
 
 ## 🛠️ โครงสร้างไฟล์ CI
+
+
+## ⚙️ นโยบายความปลอดภัย (สำคัญ)
+- **🔒 SHA-pinning:** ห้ามใช้แท็ก `@vX` — ทุก `uses:` ต้องเป็นคอมมิต SHA เต็ม
+  ```yaml
+  uses: actions/checkout@11bd71903a754fa4acce1b6cd295a12fc38ffd4
+
