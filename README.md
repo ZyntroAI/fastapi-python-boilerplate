@@ -183,3 +183,38 @@ uvicorn app.main:app --reload
 - ⚙️ อธิบายการตั้งค่า  .env  / CI Workflow
 - 🧩 เปรียบเทียบกับต้นฉบับ tiangolo/fastapi-boilerplate
 - 📝 สร้างเทมเพลตเริ่มต้นโปรเจกต์ใหม่? 🧑‍💻🚀
+# 🚀 ZyntroAI FastAPI Boilerplate
+**มาตรฐานองค์กร • ปลอดภัย • พร้อมใช้งาน • SHA-pinned**
+
+## 🧩 คุณสมบัติหลัก (อัปเดต)
+- ✅ **CI/CD ปลอดภัย:** GitHub Actions ทั้งหมดใช้ **SHA-pinning เต็ม 40 ตัว**
+- ✅ **สิทธิ์น้อยที่สุด:** แยก `permissions` ตามงานในแต่ละ Job
+- ✅ **Workflow โปร่งใส:** รองรับ `workflow_dispatch` + ไอคอนชื่อ Job ชัดเจน
+- ✅ ลินต์: `ruff` + `black` + `isort`
+- ✅ ทดสอบ: `pytest` + ความครอบคลุม + Postgres บริการ
+- ✅ ความปลอดภัย: CodeQL + การอัปเกรด `pip` อัตโนมัติ
+- ✅ บิลด์: ด็อกเกอร์ไปยัง GHCR (เฉพาะสาขา `main`)
+
+## 🛠️ โครงสร้างไฟล์ CI
+
+
+## ⚙️ นโยบายความปลอดภัย (สำคัญ)
+- **🔒 SHA-pinning:** ห้ามใช้แท็ก `@vX` — ทุก `uses:` ต้องเป็นคอมมิต SHA เต็ม
+  ```yaml
+  uses: actions/checkout@11bd71903a754fa4acce1b6cd295a12fc38ffd4
+
+---
+
+## 📄 `SECURITY.md` — เพิ่มนโยบาย SHA-Pinning
+```markdown
+# 🛡️ นโยบายความปลอดภัย — CI/CD
+**อัปเดต:** 12 กันยายน 2026
+
+## ✅ การปัก SHA (Supply Chain)
+- **บังคับ:** ทุก GitHub Actions ต้องใช้ **full commit SHA** (40 ตัว)
+- ❌ ห้าม: `@v4`, `@main`, `@latest`
+- ✅ ตัวอย่างที่ถูกต้อง:
+  ```yaml
+  uses: actions/checkout@11bd71903a754fa4acce1b6cd295a12fc38ffd4
+  uses: actions/setup-python@8d9ed9ac65efc6b600b45b871c877404878e487
+
