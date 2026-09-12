@@ -64,157 +64,43 @@ uvicorn main:app --reload
 - `docs/` — API, GraphQL, and reference guides.
 - `deliverables/` — each suite ships its own README, SKILL.md, and tests.
 
+## CI/CD & supply-chain integrity
+
+The repository's supply-chain policy is **full-SHA pinning**: every `uses:` reference
+must point at a 40-character commit SHA, never a mutable tag such as `@v4`. The org's
+policy gate refuses a workflow that references an action by tag.
+
+**Current state (2026-09-12) — verified against `main`:**
+
+- A minority of references are already SHA-pinned; the majority are still tags
+  (`actions/checkout@v4`, `actions/setup-python@v5`, `actions/upload-artifact@v4`,
+  `github/codeql-action/*@v3`, `docker/*` and others).
+- Six workflow files are not valid YAML as committed, so they never run:
+  `ci.yml`, `secret-scan.yml`, `Auto-Index-Sync.yml`, `dependabot-automerge.yml`,
+  `test-suite.yml`, and `github-actions-autodebug-autorerun` (which also has no
+  `.yml`/`.yaml` extension).
+- Because jobs cannot start, a feature PR shows red checks even when its own
+  tests pass locally. See the 2026-09-08 notes in [`CHANGELOG.md`](./CHANGELOG.md)
+  and [`PROBLEMS.md`](./PROBLEMS.md).
+
+**Reference SHAs** (tags resolved to commits, 2026-09-12) for the actions used by
+`ci.yml`:
+
+```yaml
+uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262        # v4
+uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065    # v5
+uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238  # v4
+uses: github/codeql-action/init@faaca9a8f6edddba5725ffe5adefdab6669a2eca     # v3
+uses: github/codeql-action/analyze@faaca9a8f6edddba5725ffe5adefdab6669a2eca  # v3
+uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9     # v3
+uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
+```
+
+Fixing this requires write access to `.github/workflows/`, which the automation App
+does not hold — it must be applied by a maintainer or with elevated App permissions.
+See [`SECURITY.md`](./SECURITY.md) for the policy and how to report a supply-chain
+issue.
+
 ## License
 
 See [LICENSE](./LICENSE).
-🚀 ZyntroAI/fastapi-python-boilerplate
- 
-เทมเพลต FastAPI พร้อมใช้งานจริง — โครงสร้างมาตรฐาน, ความปลอดภัยสูง, รองรับ Async เต็มรูปแบบ
- 
- 
- 
-📋 ภาพรวมรีโป
- 
-เป็นแม่แบบเริ่มต้นสำหรับสร้าง API ที่ทันสมัย, มีโครงสร้างชัดเจน, มาพร้อมเครื่องมือพัฒนา & CI/CD ครบครัน ✅
- 
-- สถาปัตยกรรม: Clean Architecture / Modular
-- Python: 3.12+ | FastAPI: ล่าสุด
-- ฐานข้อมูล: Async SQLAlchemy 2.0 + PostgreSQL + Alembic
-- ความปลอดภัย: OAuth2/JWT, CORS, Rate Limit, Validation
-- CI/CD: GitHub Actions, Linting, Testing, Build, Security Scan
- 
- 
- 
-✨ คุณสมบัติหลัก
- 
-🏗️ โครงสร้าง & สแต็ก
- 
-- FastAPI: ประสิทธิภาพสูง, อัตโนมัติ OpenAPI/Docs
-- Pydantic v2: ตรวจสอบข้อมูลที่รวดเร็ว, จัดการการตั้งค่า
-- Async Ready: ฐานข้อมูล/คำขอทั้งหมดแบบ Async
-- SQLAlchemy 2.0: ORM ทรงพลัง + asyncpg
-- Alembic: การย้ายข้อมูล (Migration) อัตโนมัติ
- 
-🔐 ความปลอดภัย & การตรวจสอบสิทธิ์
- 
-- OAuth2 + JWT: ระบบล็อกอินที่ปลอดภัย
-- Role-Based Access: จัดการสิทธิ์ผู้ใช้
-- CORS Middleware: ตั้งค่าล่วงหน้า
-- การตรวจสอบข้อมูล: Input validation ที่เข้มงวด
-- รองรับ Supabase Auth: พร้อมผสานรวม
- 
-🧪 เครื่องมือพัฒนา & คุณภาพโค้ด
- 
-- Linting: Ruff + Black + isort
-- ทดสอบ: pytest + async support + coverage
-- คอนเทนเนอร์: Docker + Docker Compose พร้อมใช้
-- การตั้งค่า: .env, ตัวแปรสภาพแวดล้อม, ความลับ
-- เอกสาร: Swagger/Redoc อัตโนมัติ + README ครบถ้วน
- 
-🛠️ CI/CD & การปรับใช้
- 
-- GitHub Actions: Workflow สำหรับทดสอบ/บิลด์/ความปลอดภัย
-- Codecov: ตรวจสอบความครอบคลุมโค้ด
-- Security: CodeQL, Dependabot, SHA-pinning
-- Ready for Cloud: Docker image, Kubernetes-ready
- 
- 
- 
-📂 โครงสร้างโฟลเดอร์
- 
-plaintext
-  
-fastapi-python-boilerplate/
-├── .github/workflows/   # CI/CD YAML
-├── app/
-│   ├── api/             # เส้นทาง API (v1)
-│   ├── core/            # การตั้งค่า, ความปลอดภัย, ค่าคงที่
-│   ├── models/          # โมเดล Pydantic + SQLAlchemy
-│   ├── schemas/         # รูปแบบข้อมูล/การตอบกลับ
-│   ├── services/        # ตรรกะธุรกิจ
-│   └── main.py          # จุดเริ่มต้นแอป
-├── tests/               # ชุดทดสอบ
-├── alembic/             # การย้ายข้อมูล
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt / pyproject.toml
-└── .env.example
- 
- 
- 
- 
-🚀 เริ่มต้นใช้งาน
- 
-bash
-  
-# 1. โคลนรีโป
-git clone https://github.com/ZyntroAI/fastapi-python-boilerplate.git
-cd fastapi-python-boilerplate
-
-# 2. ติดตั้งข้อกำหนด
-pip install -r requirements.txt
-
-# 3. ตั้งค่า .env
-cp .env.example .env
-# แก้ไขค่า เช่น DATABASE_URL, SECRET_KEY
-
-# 4. รันฐานข้อมูล + เริ่มเซิร์ฟเวอร์
-docker compose up -d
-alembic upgrade head
-uvicorn app.main:app --reload
- 
- 
-🌐 เข้าใช้งาน:  http://localhost:8000/docs  (เอกสาร Swagger)
- 
- 
- 
-🛡️ สถานะรีโป
- 
-- License: MIT
-- CI/CD: ✅ ผ่าน
-- ความปลอดภัย: ✅ ตรวจสอบแล้ว
-- รองรับ: Python 3.12+
- 
- 
- 
-ต้องการให้ผมช่วย:
- 
-- 📄 สรุปไฟล์  README.md  ฉบับเต็ม/ปรับแต่ง
-- ⚙️ อธิบายการตั้งค่า  .env  / CI Workflow
-- 🧩 เปรียบเทียบกับต้นฉบับ tiangolo/fastapi-boilerplate
-- 📝 สร้างเทมเพลตเริ่มต้นโปรเจกต์ใหม่? 🧑‍💻🚀
-# 🚀 ZyntroAI FastAPI Boilerplate
-**มาตรฐานองค์กร • ปลอดภัย • พร้อมใช้งาน • SHA-pinned**
-
-## 🧩 คุณสมบัติหลัก (อัปเดต)
-- ✅ **CI/CD ปลอดภัย:** GitHub Actions ทั้งหมดใช้ **SHA-pinning เต็ม 40 ตัว**
-- ✅ **สิทธิ์น้อยที่สุด:** แยก `permissions` ตามงานในแต่ละ Job
-- ✅ **Workflow โปร่งใส:** รองรับ `workflow_dispatch` + ไอคอนชื่อ Job ชัดเจน
-- ✅ ลินต์: `ruff` + `black` + `isort`
-- ✅ ทดสอบ: `pytest` + ความครอบคลุม + Postgres บริการ
-- ✅ ความปลอดภัย: CodeQL + การอัปเกรด `pip` อัตโนมัติ
-- ✅ บิลด์: ด็อกเกอร์ไปยัง GHCR (เฉพาะสาขา `main`)
-
-## 🛠️ โครงสร้างไฟล์ CI
-
-
-## ⚙️ นโยบายความปลอดภัย (สำคัญ)
-- **🔒 SHA-pinning:** ห้ามใช้แท็ก `@vX` — ทุก `uses:` ต้องเป็นคอมมิต SHA เต็ม
-  ```yaml
-  uses: actions/checkout@11bd71903a754fa4acce1b6cd295a12fc38ffd4
-
----
-
-## 📄 `SECURITY.md` — เพิ่มนโยบาย SHA-Pinning
-```markdown
-# 🛡️ นโยบายความปลอดภัย — CI/CD
-**อัปเดต:** 12 กันยายน 2026
-
-## ✅ การปัก SHA (Supply Chain)
-- **บังคับ:** ทุก GitHub Actions ต้องใช้ **full commit SHA** (40 ตัว)
-- ❌ ห้าม: `@v4`, `@main`, `@latest`
-- ✅ ตัวอย่างที่ถูกต้อง:
-  ```yaml
-  uses: actions/checkout@11bd71903a754fa4acce1b6cd295a12fc38ffd4
-  uses: actions/setup-python@8d9ed9ac65efc6b600b45b871c877404878e487
-
