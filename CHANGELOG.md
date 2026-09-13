@@ -5,6 +5,107 @@ All notable changes to this repository. Dates are UTC.
 Open problems and known blockers are tracked separately in
 [`PROBLEMS.md`](./PROBLEMS.md), using the same date sections.
 
+## [2026-09-13]
+
+### Added
+- **PR #245** — docs(knowledge): gave the knowledge notes an index, a manifest and
+  front matter. Added `knowledge/README.md` (note table plus a tag table carrying
+  per-tag counts and members), `knowledge/manifest.yml`, and
+  `knowledge/sync_knowledge_index.py` (dry-run by default) to derive a machine-readable
+  index from the notes. YAML front matter added to the six Supabase notes so the index
+  and the vault agree on `title`/`description`/`tags`/`supabase_area`/`doc_kind`/`status`.
+- **PR #240** — skills: added `ci-workflow-authoring`, a skill for writing workflows
+  that run on the first attempt, plus `lint.py` to check them. `lint.py` validates YAML
+  parse, required top-level keys, per-job `runs-on`/`steps`, `uses`-or-`run` on every
+  step, full-SHA pinning, concatenated documents and hardcoded credentials, exiting
+  non-zero so it drops into CI as-is. Pointed at this repository it flagged 9 of the
+  10 workflows then on `main` — every one for the same reason, an unresolvable action
+  ref in `Set up job`, which is why every PR showed red checks regardless of its diff.
+  One subtlety it had to learn: PyYAML resolves a bare `on:` key to boolean `True`
+  (YAML 1.1), so a naive `"on" in doc` check reports every valid workflow as missing
+  its trigger — its first run flagged all three of its own examples. 16 tests. Three
+  corrected example workflows accompany it, each annotating what the draft it came
+  from got wrong; they live under `examples/` rather than `.github/workflows/` because
+  pushing there needs the `workflows` permission.
+- **PR #238** *(opened — pending merge)* — skills: added `pr-triage-automove`, the
+  automated form of `organize-misplaced-files`. A root file is relocated only when
+  all three hold: it is not canonical (`config.py` allow-list), no tracked `.py`
+  imports it as a module (**AST-parsed** — Python 3 resolves `import auth` inside
+  `app/api/auth.py` to top-level `auth`, so only the import graph separates a
+  sibling from root `auth.py`), and its name appears in no other tracked text file.
+  Wraps the move in an import probe: `classify → probe(before) → git mv →
+  probe(after) → regression?`, run in a child process so a poisoned import cannot
+  kill the run. A FAIL that was already a FAIL is **not** a regression (this repo's
+  `app.main` / `main` are deliberately not blocking), UNKNOWN never blocks, and on a
+  real regression every `git mv` is reversed with exit 2. Dry-run is the default;
+  `--apply` is required to move anything. 37 tests pass; an `--apply` run against a
+  copy of this repo moved 112 files as 112 renames with 0 deletions and identical
+  import health before/after. Reference workflow in `examples/` carries full-SHA
+  pins and is report-only by default.
+
+### Changed
+- **PR #237** *(opened — pending merge)* — chore: archived 109 misplaced root files
+  to `archive/root-2026-09/` via `git mv` (**no deletions** — the diff is 109
+  renames). A file moved only when it was not canonical, no tracked `.py` imported
+  it (AST-verified), and its name appeared in no other tracked file. 56 root files
+  were kept, several of which look like clutter and are not: `ci.yml`,
+  `codeql.yml` and `deployment.yaml` are named by `FILE-MANIFEST.md`,
+  `k8s/README.md` and `k8s/kustomization.yaml`; `Plan` by `ROADMAP.md`;
+  `context_guard_4060.py` by `app/core/context_guard.md`. Added `pyproject.toml` —
+  the Makefile ran `ruff check app tests` and declared black/isort/mypy in
+  `requirements-dev.txt`, but there was no config for any of them at the root, so
+  lint ran on defaults. Also added two skills, `organize-misplaced-files` and
+  `pr-full-lifecycle`.
+- **PR #236** — docs: rewrote `README.md` to describe the repository as it stands
+  rather than as it was intended. The previous text presented an OAuth2-only service;
+  the tree actually holds three FastAPI entrypoints (`main.py`, `app/main.py`,
+  `app/core/main.py`), a GraphQL service, a frontend, 20 deliverable suites, skills and
+  docs. The replacement adds a quick start that runs, a table of entrypoints naming
+  which one `app/Dockerfile` and `vercel.json` actually serve, a split between required
+  and optional configuration, the real test command, and a `Known state` section
+  recording what is genuinely broken — the tracked `.env` holding live keys, the root
+  Node tooling declared but not wired, the root `Dockerfile` being a Node build — with
+  counts that can be checked (20 `uses:` SHA-pinned, 61 still on tags).
+- **PR #233** — ci: activated the WhatsApp notification workflow. The workflow
+  action moved from `templates/workflows/notify-whatsapp.yml` (inert — `templates/`
+  is not read by Actions) to `.github/workflows/notify-whatsapp.yml`, with the
+  comment header updated to describe the live triggers (push to `main`, plus
+  completion of the `Test & Coverage` workflow) and the required secrets.
+  `docs/notifications/WHATSAPP.md` now documents the workflow as active instead
+  of a template to copy.
+
+### Fixed
+- **PR #243** — ci: repaired `auto-compress-manage.yml`, which had failed at
+  `Set up job` on all 781 runs. Five action refs pointed at SHAs that do not exist in
+  their upstream repositories (confirmed against the commit API, `No commit found for
+  SHA`): `calibreapp/image-actions`, `peter-evans/create-pull-request`,
+  `stefh/ghaction-CompressFiles`, `actions/checkout` and `actions/upload-artifact`.
+  Each was replaced with a verified commit. Four skip conditions were added at the same
+  time — `on.paths` globs so commits touching no image or web file skip the workflow
+  entirely, and a bot-loop guard so `scan` skips `auto/*` branches and commits carrying
+  `[skip ci]` — because adding the guard without fixing the refs would have left the
+  workflow failing anyway. Delivered under `deliverables/ci/` (workflow, README and a
+  validating script) for application to `.github/workflows/`.
+- **PR #237** *(opened — pending merge)* — the FastAPI app entrypoint could not be
+  imported. (1) `app/services/__init__.py` did `from .users import UserService`, a
+  class that has never existed in that package (`users.py` defines `UserRepo`,
+  `get_repo`, `fanout_profile`); because a package `__init__` runs before any
+  submodule import, that one wrong name broke every `from app.services.<x> import y`
+  and stopped `app.main` — the entrypoint in `app/Dockerfile` and `vercel.json` —
+  from importing at all. It now carries no package-level imports, matching
+  `app/__init__.py`. (2) `app/core/config.py` used the pydantic v1 `class Config`
+  and pydantic v2's default `extra="forbid"`, so the repo's own `.env` (WhatsApp and
+  BytePlus keys the app never declares) made `Settings` raise at import; switched to
+  `SettingsConfigDict` with `extra="ignore"`. (3) `requirements.txt` was missing ten
+  modules that `app/` imports — `pydantic-settings`, `python-jose`, `PyJWT`,
+  `python-json-logger`, `redis`, `sqlalchemy`, `alembic`, `requests`, `slowapi`,
+  `prometheus-fastapi-instrumentator` — so a fresh install failed at import.
+  Verified before/after with the same import probe: `main` and `app.main` go
+  FAIL → OK (8 routes). `app/core/main.py` was already broken on `main` and is left
+  that way: it imports `auth_router`, `init_db`/`close_db` and
+  `items_router`/`users_router` that no longer exist, and repairing it means
+  deciding what those APIs should be — recorded in `README.md` rather than guessed at.
+
 ## [2026-09-12]
 
 ### Added

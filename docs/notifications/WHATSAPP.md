@@ -6,7 +6,7 @@ Adapted for this repo: Python helper + a ready-to-enable GitHub Actions workflow
 ## Files
 - `scripts/whatsapp_notify.py` — client (`WhatsAppClient`), connection check, send.
 - `tests/test_whatsapp_notify.py` — 9 tests (mocked HTTP; no real calls).
-- `templates/workflows/notify-whatsapp.yml` — workflow **template** (see below).
+- `.github/workflows/notify-whatsapp.yml` — active workflow (fires when CI finishes).
 
 ## Configure (repo secrets)
 Settings → Secrets and variables → Actions, add:
@@ -56,7 +56,12 @@ validate token + phone id before sending.
 - Consent first; treat notifications as opt-in.
 
 ## Enabling the workflow
-`templates/workflows/notify-whatsapp.yml` is a **template**, kept outside
-`.github/workflows/` because the automation identity lacks the GitHub App
-`workflows` permission. To enable it, a repo admin copies it to
-`.github/workflows/notify-whatsapp.yml` (or grants the App **Workflows: Read and write**).
+`.github/workflows/notify-whatsapp.yml` is **active** — it runs on `push` to
+`main` and on completion of the `Test & Coverage` workflow. It needs the three
+repo secrets above; until they are set the send step fails while the build
+itself still passes. To pause it, disable the workflow in the Actions tab.
+
+> **Apply step (repo admin):** the workflow file itself cannot be pushed by the
+> automation identity (GitHub App without `workflows` permission). Apply
+> `patches/pr233-add-notify-whatsapp-workflow.patch` (adds the same action with
+> the comment header updated), or grant the App **Workflows: Read and write**.

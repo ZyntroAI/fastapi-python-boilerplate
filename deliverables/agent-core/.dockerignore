@@ -1,0 +1,21 @@
+# Keep the image lean and free of local secrets.
+.env
+.env.*
+*.pyc
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+tests/
+examples/
+charts/
+Dockerfile
+.dockerignore
+.git*
+README.md
+pytest.ini
+conftest.py
+schema.sql
+requirements-dev.txt
