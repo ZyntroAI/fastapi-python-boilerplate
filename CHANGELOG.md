@@ -7,7 +7,36 @@ Open problems and known blockers are tracked separately in
 
 ## [2026-09-13]
 
+### Added
+- **PR #238** *(opened — pending merge)* — skills: added `pr-triage-automove`, the
+  automated form of `organize-misplaced-files`. A root file is relocated only when
+  all three hold: it is not canonical (`config.py` allow-list), no tracked `.py`
+  imports it as a module (**AST-parsed** — Python 3 resolves `import auth` inside
+  `app/api/auth.py` to top-level `auth`, so only the import graph separates a
+  sibling from root `auth.py`), and its name appears in no other tracked text file.
+  Wraps the move in an import probe: `classify → probe(before) → git mv →
+  probe(after) → regression?`, run in a child process so a poisoned import cannot
+  kill the run. A FAIL that was already a FAIL is **not** a regression (this repo's
+  `app.main` / `main` are deliberately not blocking), UNKNOWN never blocks, and on a
+  real regression every `git mv` is reversed with exit 2. Dry-run is the default;
+  `--apply` is required to move anything. 37 tests pass; an `--apply` run against a
+  copy of this repo moved 112 files as 112 renames with 0 deletions and identical
+  import health before/after. Reference workflow in `examples/` carries full-SHA
+  pins and is report-only by default.
+
 ### Changed
+- **PR #237** *(opened — pending merge)* — chore: archived 109 misplaced root files
+  to `archive/root-2026-09/` via `git mv` (**no deletions** — the diff is 109
+  renames). A file moved only when it was not canonical, no tracked `.py` imported
+  it (AST-verified), and its name appeared in no other tracked file. 56 root files
+  were kept, several of which look like clutter and are not: `ci.yml`,
+  `codeql.yml` and `deployment.yaml` are named by `FILE-MANIFEST.md`,
+  `k8s/README.md` and `k8s/kustomization.yaml`; `Plan` by `ROADMAP.md`;
+  `context_guard_4060.py` by `app/core/context_guard.md`. Added `pyproject.toml` —
+  the Makefile ran `ruff check app tests` and declared black/isort/mypy in
+  `requirements-dev.txt`, but there was no config for any of them at the root, so
+  lint ran on defaults. Also added two skills, `organize-misplaced-files` and
+  `pr-full-lifecycle`.
 - **PR #233** — ci: activated the WhatsApp notification workflow. The workflow
   action moved from `templates/workflows/notify-whatsapp.yml` (inert — `templates/`
   is not read by Actions) to `.github/workflows/notify-whatsapp.yml`, with the
@@ -15,6 +44,27 @@ Open problems and known blockers are tracked separately in
   completion of the `Test & Coverage` workflow) and the required secrets.
   `docs/notifications/WHATSAPP.md` now documents the workflow as active instead
   of a template to copy.
+
+### Fixed
+- **PR #237** *(opened — pending merge)* — the FastAPI app entrypoint could not be
+  imported. (1) `app/services/__init__.py` did `from .users import UserService`, a
+  class that has never existed in that package (`users.py` defines `UserRepo`,
+  `get_repo`, `fanout_profile`); because a package `__init__` runs before any
+  submodule import, that one wrong name broke every `from app.services.<x> import y`
+  and stopped `app.main` — the entrypoint in `app/Dockerfile` and `vercel.json` —
+  from importing at all. It now carries no package-level imports, matching
+  `app/__init__.py`. (2) `app/core/config.py` used the pydantic v1 `class Config`
+  and pydantic v2's default `extra="forbid"`, so the repo's own `.env` (WhatsApp and
+  BytePlus keys the app never declares) made `Settings` raise at import; switched to
+  `SettingsConfigDict` with `extra="ignore"`. (3) `requirements.txt` was missing ten
+  modules that `app/` imports — `pydantic-settings`, `python-jose`, `PyJWT`,
+  `python-json-logger`, `redis`, `sqlalchemy`, `alembic`, `requests`, `slowapi`,
+  `prometheus-fastapi-instrumentator` — so a fresh install failed at import.
+  Verified before/after with the same import probe: `main` and `app.main` go
+  FAIL → OK (8 routes). `app/core/main.py` was already broken on `main` and is left
+  that way: it imports `auth_router`, `init_db`/`close_db` and
+  `items_router`/`users_router` that no longer exist, and repairing it means
+  deciding what those APIs should be — recorded in `README.md` rather than guessed at.
 
 ## [2026-09-12]
 
