@@ -1,0 +1,99 @@
+# Merge Queue — corrected.
+#
+# Differences from the draft this was based on:
+#
+#  1. `make ci` -> there is no `ci` target in this Makefile. The real targets are
+#     setup, install, test, lint, format, check, run, clean; the composite one is
+#     `make check`.
+#  2. `if [ $? -eq 0 ]` ran as a SEPARATE `run:` step, so `$?` was the exit code of
+#     the previous `echo`, not of `make`. A merge would have been attempted
+#     regardless of the CI result. Reads the conclusion from the API instead.
+#  3. `git push origin HEAD:main` -> bypasses review and fails outright on fork PRs
+#     (read-only token). Replaced with `gh pr merge --auto`, which lets the
+#     platform enforce the branch protection that already exists.
+#  4. Triggers on `workflow_run` completion rather than `pull_request`, so it
+#     reacts to checks finishing rather than racing them.
+#  5. `actions/checkout@v4` -> SHA-pinned.
+
+name: Merge Queue
+
+on:
+  # React to the check workflow finishing, not to the PR event itself — otherwise
+  # this runs before the checks it wants to gate on have produced a result.
+  workflow_run:
+    workflows: ["Test & Coverage", "FastAPI CI/CD"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+jobs:
+  merge-queue:
+    # Only for same-repo branches: a fork's token cannot merge, and auto-merging
+    # outside the repo is not something to attempt silently.
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve the pull request behind this run
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          number=$(gh api "repos/$REPO/commits/$HEAD_SHA/pulls" --jq '.[0].number // empty')
+          if [ -z "$number" ]; then
+            echo "no pull request for $HEAD_SHA — nothing to merge"
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=true"  >> "$GITHUB_OUTPUT"
+            echo "number=$number" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check every required check concluded successfully
+        id: checks
+        if: steps.pr.outputs.found == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR: ${{ steps.pr.outputs.number }}
+        run: |
+          set -euo pipefail
+          # Read the verdict, not the completion. A workflow can finish while its
+          # conclusion is failure — "the job completed" is not "the check passed".
+          summary=$(gh pr checks "$PR" --repo "$REPO" --json name,state \
+            --jq '[.[] | select(.state != "SUCCESS" and .state != "SKIPPED")] | length')
+          echo "non-successful checks: $summary"
+          if [ "$summary" != "0" ]; then
+            echo "not every check is green — refusing to queue"
+            echo "green=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "green=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Enable auto-merge
+        if: steps.checks.outputs.green == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR: ${{ steps.pr.outputs.number }}
+        run: |
+          set -euo pipefail
+          # Let the platform enforce branch protection instead of pushing to main
+          # from a workflow — that path bypasses review and breaks on forks.
+          gh pr merge "$PR" --repo "$REPO" --squash --auto --delete-branch
+
+      - name: Report a blocked queue
+        if: steps.checks.outputs.green == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR: ${{ steps.pr.outputs.number }}
+        run: |
+          gh pr comment "$PR" --repo "$REPO" --body \
+            "Merge queue: not all required checks are green, so auto-merge was not enabled."
