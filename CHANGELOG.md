@@ -5,6 +5,17 @@ All notable changes to this repository. Dates are UTC.
 Open problems and known blockers are tracked separately in
 [`PROBLEMS.md`](./PROBLEMS.md), using the same date sections.
 
+## [2026-09-13]
+
+### Changed
+- **PR #233** — ci: activated the WhatsApp notification workflow. The workflow
+  action moved from `templates/workflows/notify-whatsapp.yml` (inert — `templates/`
+  is not read by Actions) to `.github/workflows/notify-whatsapp.yml`, with the
+  comment header updated to describe the live triggers (push to `main`, plus
+  completion of the `Test & Coverage` workflow) and the required secrets.
+  `docs/notifications/WHATSAPP.md` now documents the workflow as active instead
+  of a template to copy.
+
 ## [2026-09-12]
 
 ### Added
