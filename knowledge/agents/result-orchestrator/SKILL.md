@@ -1,3 +1,17 @@
+---
+title: "Agent Skill: Result Orchestrator"
+description: "Collect subtask outcomes, apply quality gates, and reduce them to one verdict."
+tags:
+  - agents/execution
+  - agents/orchestration
+  - agents/skills
+doc_kind: "skill"
+status: "active"
+owner: "Platform Engineering"
+last_reviewed: "2026-09-13"
+review_frequency: "Annual"
+---
+
 # Result Orchestrator
 
 > Collect subtask outcomes, apply quality gates, and reduce them to a single verdict. A subtask only counts as passing when it succeeded AND cleared every gate.

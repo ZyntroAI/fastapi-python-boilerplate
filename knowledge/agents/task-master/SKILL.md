@@ -1,3 +1,17 @@
+---
+title: "Agent Skill: Task Master"
+description: "Decompose a goal into atomic subtasks, order by dependency, and refuse cycles."
+tags:
+  - agents/planning
+  - agents/decomposition
+  - agents/skills
+doc_kind: "skill"
+status: "active"
+owner: "Platform Engineering"
+last_reviewed: "2026-09-13"
+review_frequency: "Annual"
+---
+
 # Task Master
 
 > Break a goal into atomic subtasks, resolve dependencies, and emit a deterministic execution order. Refuses to schedule a plan containing a dependency cycle.

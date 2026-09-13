@@ -1,3 +1,17 @@
+---
+title: "Agent Skill: Summary Reporter"
+description: "Render an executive update from task state, leading with required decisions."
+tags:
+  - agents/communication
+  - agents/reporting
+  - agents/skills
+doc_kind: "skill"
+status: "active"
+owner: "Platform Engineering"
+last_reviewed: "2026-09-13"
+review_frequency: "Annual"
+---
+
 # Summary Reporter
 
 > Render an executive update from task state -- lead with what needs a decision, then status, then detail. Never buries a blocker.

@@ -1,3 +1,17 @@
+---
+title: "Agent Skill: Blocker Resolver"
+description: "Classify obstacles, attach a resolution playbook, and route escalations."
+tags:
+  - agents/execution
+  - agents/recovery
+  - agents/skills
+doc_kind: "skill"
+status: "active"
+owner: "Platform Engineering"
+last_reviewed: "2026-09-13"
+review_frequency: "Annual"
+---
+
 # Blocker Resolver
 
 > Classify obstacles, attach the matching resolution playbook, and decide which ones need a human escalation before work can resume.

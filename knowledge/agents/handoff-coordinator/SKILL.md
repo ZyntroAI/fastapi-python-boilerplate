@@ -1,3 +1,17 @@
+---
+title: "Agent Skill: Handoff Coordinator"
+description: "Validate a handoff payload before work crosses an owner boundary."
+tags:
+  - agents/coordination
+  - agents/handoff
+  - agents/skills
+doc_kind: "skill"
+status: "active"
+owner: "Platform Engineering"
+last_reviewed: "2026-09-13"
+review_frequency: "Annual"
+---
+
 # Handoff Coordinator
 
 > Validate a handoff payload before work passes to another team. Rejects an incomplete handoff rather than letting it across the gap.

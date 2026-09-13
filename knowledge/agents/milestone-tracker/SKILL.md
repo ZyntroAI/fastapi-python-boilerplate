@@ -1,3 +1,17 @@
+---
+title: "Agent Skill: Milestone Tracker"
+description: "Grade phase timeline health from slip against schedule and burn."
+tags:
+  - agents/planning
+  - agents/tracking
+  - agents/skills
+doc_kind: "skill"
+status: "active"
+owner: "Platform Engineering"
+last_reviewed: "2026-09-13"
+review_frequency: "Annual"
+---
+
 # Milestone Tracker
 
 > Track phases against a plan and grade timeline health from slip against schedule and elapsed-time burn.
