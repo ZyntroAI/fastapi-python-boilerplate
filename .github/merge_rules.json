@@ -1,0 +1,85 @@
+{
+  "$comment": "Machine-readable merge policy for this repository. Advisory configuration: the enforcement is .github/workflows/protect-merge.yml plus the branch-protection rules on main. Keep the two in step.",
+  "version": 1,
+  "updated": "2026-09-14",
+
+  "protected_branches": ["main"],
+
+  "merge_strategy": {
+    "allowed": ["merge_commit"],
+    "default": "MERGE_COMMIT",
+    "squash_allowed": false,
+    "rebase_allowed": false,
+    "$comment": "History is preserved on main. Feature branches may squash internally, but the commit that lands on main is a merge commit."
+  },
+
+  "reviews": {
+    "required_approving_review_count": 2,
+    "dismiss_stale_reviews_on_push": true,
+    "require_review_from_codeowners": true,
+    "require_conversation_resolution": true
+  },
+
+  "status_checks": {
+    "require_branches_up_to_date": true,
+    "require_status_checks": true,
+    "required_checks": [
+      "protect-merge",
+      "CI",
+      "secret-scan"
+    ]
+  },
+
+  "branch_rules": {
+    "require_linear_history": false,
+    "allow_force_pushes": false,
+    "allow_deletions": false,
+    "require_signed_commits": false
+  },
+
+  "protected_paths": [
+    {
+      "pattern": "knowledge/**",
+      "reason": "Curated knowledge notes are content-reviewed and sha256-indexed in knowledge/manifest.yml.",
+      "rules": ["require_codeowner_review", "block_force_push"]
+    },
+    {
+      "pattern": ".github/workflows/**",
+      "reason": "CI definitions can alter what runs on main. Changes here require explicit review.",
+      "rules": ["require_codeowner_review", "block_force_push", "require_additional_approval"]
+    },
+    {
+      "pattern": ".github/CODEOWNERS",
+      "reason": "Self-protecting: the review-routing rules themselves must be reviewed.",
+      "rules": ["require_codeowner_review"]
+    },
+    {
+      "pattern": ".github/merge_rules.json",
+      "reason": "Self-protecting: the merge policy itself must be reviewed.",
+      "rules": ["require_codeowner_review"]
+    },
+    {
+      "pattern": ".gitattributes",
+      "reason": "A wrong merge strategy can silently corrupt other files' merges.",
+      "rules": ["require_codeowner_review"]
+    },
+    {
+      "pattern": "security/**",
+      "reason": "Security controls and their tests.",
+      "rules": ["require_codeowner_review"]
+    }
+  ],
+
+  "safety": {
+    "block_on_secret_detection": true,
+    "block_on_delete_of_protected_path": true,
+    "require_additive_only_for": ["knowledge/**", "docs/**"],
+    "$comment": "require_additive_only_for means files under these paths may be added or modified in a PR, but a PR that DELETES one is flagged for manual review."
+  },
+
+  "delete_protection": {
+    "enabled": true,
+    "patterns": ["knowledge/**", "docs/**", "security/**"],
+    "on_delete": "flag_for_review"
+  }
+}
