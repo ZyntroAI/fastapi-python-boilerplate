@@ -1,5 +1,4 @@
 name: Auto Index Sync
-
 # ⏰ Triggers — Push, Nightly Schedule, Manual
 on:
   push:
@@ -8,10 +7,8 @@ on:
     paths:
       - "docs/**"
       - ".github/workflows/auto-index-sync.yml"
-
   schedule:
     - cron: "0 2 * * *"   # Daily at 02:00 UTC → 09:00 ICT
-
   workflow_dispatch:
     inputs:
       dry_run:
@@ -99,14 +96,11 @@ print("Source:", sys.argv[1])
         run: |
           git config user.name "index-bot"
           git config user.email "bot@example.com"
-
           git add affiliate.html policy_diff.md
-
           # Skip commit if no changes
           if git diff --staged --quiet; then
             echo "✅ No policy changes detected — nothing to commit"
             exit 0
           fi
-
           git commit -m "chore: update affiliate policy snapshot [skip ci]"
           git push
