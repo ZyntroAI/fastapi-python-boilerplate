@@ -8,6 +8,25 @@ Open problems and known blockers are tracked separately in
 ## [2026-09-13]
 
 ### Added
+- **PR #245** — docs(knowledge): gave the knowledge notes an index, a manifest and
+  front matter. Added `knowledge/README.md` (note table plus a tag table carrying
+  per-tag counts and members), `knowledge/manifest.yml`, and
+  `knowledge/sync_knowledge_index.py` (dry-run by default) to derive a machine-readable
+  index from the notes. YAML front matter added to the six Supabase notes so the index
+  and the vault agree on `title`/`description`/`tags`/`supabase_area`/`doc_kind`/`status`.
+- **PR #240** — skills: added `ci-workflow-authoring`, a skill for writing workflows
+  that run on the first attempt, plus `lint.py` to check them. `lint.py` validates YAML
+  parse, required top-level keys, per-job `runs-on`/`steps`, `uses`-or-`run` on every
+  step, full-SHA pinning, concatenated documents and hardcoded credentials, exiting
+  non-zero so it drops into CI as-is. Pointed at this repository it flagged 9 of the
+  10 workflows then on `main` — every one for the same reason, an unresolvable action
+  ref in `Set up job`, which is why every PR showed red checks regardless of its diff.
+  One subtlety it had to learn: PyYAML resolves a bare `on:` key to boolean `True`
+  (YAML 1.1), so a naive `"on" in doc` check reports every valid workflow as missing
+  its trigger — its first run flagged all three of its own examples. 16 tests. Three
+  corrected example workflows accompany it, each annotating what the draft it came
+  from got wrong; they live under `examples/` rather than `.github/workflows/` because
+  pushing there needs the `workflows` permission.
 - **PR #238** *(opened — pending merge)* — skills: added `pr-triage-automove`, the
   automated form of `organize-misplaced-files`. A root file is relocated only when
   all three hold: it is not canonical (`config.py` allow-list), no tracked `.py`
@@ -37,6 +56,16 @@ Open problems and known blockers are tracked separately in
   `requirements-dev.txt`, but there was no config for any of them at the root, so
   lint ran on defaults. Also added two skills, `organize-misplaced-files` and
   `pr-full-lifecycle`.
+- **PR #236** — docs: rewrote `README.md` to describe the repository as it stands
+  rather than as it was intended. The previous text presented an OAuth2-only service;
+  the tree actually holds three FastAPI entrypoints (`main.py`, `app/main.py`,
+  `app/core/main.py`), a GraphQL service, a frontend, 20 deliverable suites, skills and
+  docs. The replacement adds a quick start that runs, a table of entrypoints naming
+  which one `app/Dockerfile` and `vercel.json` actually serve, a split between required
+  and optional configuration, the real test command, and a `Known state` section
+  recording what is genuinely broken — the tracked `.env` holding live keys, the root
+  Node tooling declared but not wired, the root `Dockerfile` being a Node build — with
+  counts that can be checked (20 `uses:` SHA-pinned, 61 still on tags).
 - **PR #233** — ci: activated the WhatsApp notification workflow. The workflow
   action moved from `templates/workflows/notify-whatsapp.yml` (inert — `templates/`
   is not read by Actions) to `.github/workflows/notify-whatsapp.yml`, with the
@@ -46,6 +75,17 @@ Open problems and known blockers are tracked separately in
   of a template to copy.
 
 ### Fixed
+- **PR #243** — ci: repaired `auto-compress-manage.yml`, which had failed at
+  `Set up job` on all 781 runs. Five action refs pointed at SHAs that do not exist in
+  their upstream repositories (confirmed against the commit API, `No commit found for
+  SHA`): `calibreapp/image-actions`, `peter-evans/create-pull-request`,
+  `stefh/ghaction-CompressFiles`, `actions/checkout` and `actions/upload-artifact`.
+  Each was replaced with a verified commit. Four skip conditions were added at the same
+  time — `on.paths` globs so commits touching no image or web file skip the workflow
+  entirely, and a bot-loop guard so `scan` skips `auto/*` branches and commits carrying
+  `[skip ci]` — because adding the guard without fixing the refs would have left the
+  workflow failing anyway. Delivered under `deliverables/ci/` (workflow, README and a
+  validating script) for application to `.github/workflows/`.
 - **PR #237** *(opened — pending merge)* — the FastAPI app entrypoint could not be
   imported. (1) `app/services/__init__.py` did `from .users import UserService`, a
   class that has never existed in that package (`users.py` defines `UserRepo`,
