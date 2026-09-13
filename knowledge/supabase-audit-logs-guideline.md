@@ -1,3 +1,19 @@
+---
+title: "Supabase Audit Logs Guideline"
+description: "The three Supabase audit-log areas — Auth, Platform, and database/PGAudit — documented as separate controls."
+tags:
+  - knowledge/supabase
+  - knowledge/security
+  - knowledge/compliance
+supabase_area: "Auth / Platform / Database"
+doc_kind: "guideline"
+status: "active"
+owner: "Platform Engineering"
+last_reviewed: "2026-09-13"
+review_frequency: "Annual"
+source: "Supabase official documentation"
+---
+
 Supabase Audit Logs Document Guideline
 
 ## Supabase audit-log guidelines
