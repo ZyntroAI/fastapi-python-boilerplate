@@ -8,7 +8,7 @@ Open problems and known blockers are tracked separately in
 ## [2026-09-13]
 
 ### Changed
-- **PR #213** — ci: activated the WhatsApp notification workflow. The workflow
+- **PR #233** — ci: activated the WhatsApp notification workflow. The workflow
   action moved from `templates/workflows/notify-whatsapp.yml` (inert — `templates/`
   is not read by Actions) to `.github/workflows/notify-whatsapp.yml`, with the
   comment header updated to describe the live triggers (push to `main`, plus

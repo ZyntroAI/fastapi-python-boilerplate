@@ -63,5 +63,5 @@ itself still passes. To pause it, disable the workflow in the Actions tab.
 
 > **Apply step (repo admin):** the workflow file itself cannot be pushed by the
 > automation identity (GitHub App without `workflows` permission). Apply
-> `patches/pr213-add-notify-whatsapp-workflow.patch` (adds the same action with
+> `patches/pr233-add-notify-whatsapp-workflow.patch` (adds the same action with
 > the comment header updated), or grant the App **Workflows: Read and write**.
