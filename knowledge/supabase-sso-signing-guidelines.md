@@ -1,3 +1,19 @@
+---
+title: "Supabase SSO Signing Guidelines"
+description: "SAML 2.0 SSO with Supabase: core values, signing certificates, attribute mapping, and renewal."
+tags:
+  - knowledge/supabase
+  - knowledge/security
+  - knowledge/authentication
+supabase_area: "Auth / SSO"
+doc_kind: "guideline"
+status: "active"
+owner: "Platform Engineering"
+last_reviewed: "2026-09-13"
+review_frequency: "Annual"
+source: "Supabase official documentation"
+---
+
 Supabase single signing Document Guidelines
 
 ## Supabase SSO signing-document guidelines

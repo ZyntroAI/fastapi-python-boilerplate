@@ -1,3 +1,19 @@
+---
+title: "Supabase Audit Log Drains Guidelines"
+description: "Organization-level audit log drains: destinations, eligibility, and end-to-end routing."
+tags:
+  - knowledge/supabase
+  - knowledge/security
+  - knowledge/observability
+supabase_area: "Platform / Logging"
+doc_kind: "guideline"
+status: "active"
+owner: "Platform Engineering"
+last_reviewed: "2026-09-13"
+review_frequency: "Annual"
+source: "Supabase official documentation"
+---
+
 Supabase Audit Log Drains Document Guidelines
 
 ## Audit Log Drains guidelines

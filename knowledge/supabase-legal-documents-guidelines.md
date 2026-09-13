@@ -1,3 +1,19 @@
+---
+title: "Supabase Legal Documents Guidelines"
+description: "Legal register for ToS, DPA, subprocessors, privacy, and security evidence."
+tags:
+  - knowledge/supabase
+  - knowledge/legal
+  - knowledge/compliance
+supabase_area: "Legal / Compliance"
+doc_kind: "guideline"
+status: "active"
+owner: "Platform Engineering"
+last_reviewed: "2026-09-13"
+review_frequency: "Annual"
+source: "Supabase official documentation"
+---
+
 Supabase Legals Documents Guidelines
 
 ## Supabase legal-document guidelines

@@ -1,3 +1,19 @@
+---
+title: "Supabase Feature Preview Guidelines"
+description: "Feature-state record, safe-adoption policy, and production approval for Supabase previews."
+tags:
+  - knowledge/supabase
+  - knowledge/platform
+  - knowledge/change-control
+supabase_area: "Platform / Change Control"
+doc_kind: "guideline"
+status: "active"
+owner: "Platform Engineering"
+last_reviewed: "2026-09-13"
+review_frequency: "Annual"
+source: "Supabase official documentation"
+---
+
 Supabase Feature Request Preview
 
 ## Supabase Feature Preview guidelines

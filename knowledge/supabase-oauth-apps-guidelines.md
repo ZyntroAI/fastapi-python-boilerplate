@@ -1,3 +1,19 @@
+---
+title: "Supabase OAuth Apps Guidelines"
+description: "OAuth app records, redirect-URI rules, client types, scopes, and the OAuth 2.1 server."
+tags:
+  - knowledge/supabase
+  - knowledge/security
+  - knowledge/authentication
+supabase_area: "Auth / OAuth"
+doc_kind: "guideline"
+status: "active"
+owner: "Platform Engineering"
+last_reviewed: "2026-09-13"
+review_frequency: "Annual"
+source: "Supabase official documentation"
+---
+
 Supabase Oauth Apps Documents Guidelines
 
 ## Supabase OAuth app guidelines
