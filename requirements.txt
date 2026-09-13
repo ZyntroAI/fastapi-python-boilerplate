@@ -7,3 +7,18 @@ openai>=3.9.0
 langgraph>=1.2.11          # ✅ LangGraph
 langchain>=1.4.0          # ✅ LangChain Base
 langchain-openai>=1.6.1   # ✅ OpenAI Integration
+
+# ---- Runtime deps imported by app/ but previously undeclared ----
+# Found by scripts/missing_deps.py — every one of these is imported by
+# app/** and was missing from this file, so a fresh install would fail at
+# import time. Pin with the same floor style as the rest of the file.
+pydantic-settings>=2.6.0            # app/core/config.py, app/config.py
+python-jose[cryptography]>=3.3.0    # app/core/security.py  (import jose)
+PyJWT>=2.9.0                        # app/services/token_service.py
+python-json-logger>=2.0.7           # app/core/logging.py  (import pythonjsonlogger)
+redis>=5.0.0                        # app/core/performance.py
+sqlalchemy>=2.0.0                   # app/core/lifespan.py
+alembic>=1.13.0                     # app/env.py
+requests>=2.32.0                    # app/integrations/slack.py
+slowapi>=0.1.9                      # app/core/rate_limiter.py
+prometheus-fastapi-instrumentator>=7.0.0   # app/monitoring/prometheus.py

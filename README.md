@@ -222,8 +222,17 @@ permissions. See [`SECURITY.md`](./SECURITY.md) for the policy.
   its own `app/Dockerfile`, and `Dockerfile.txt` is a quoted Dockerfile stored as text
   (with an Alpine/pgloader importer stage and a uv-based Python agent stage) rather than
   a usable file.
-- **`uvicorn main:app --reload` starts the OAuth API, not the main application.**
-  See [Entrypoints](#entrypoints--there-are-three).
+- **`app/services/__init__.py` used to break every service import.** It did
+  `from .users import UserService`, a class that has never existed in this package
+  (`users.py` defines `UserRepo`, `get_repo`, `fanout_profile`). Because a package
+  `__init__` runs first, that one wrong name stopped `app.main` — the entrypoint in
+  `app/Dockerfile` — from importing at all. It now carries no package-level imports,
+  matching `app/__init__.py`.
+- **`settings` has two sources.** `app/core/config.py` (the fuller one, requires
+  `OAUTH_CLIENT_ID`) and `app/config.py` (a thin one that defaults `ENV` to
+  `production`). `app/core/security.py` and `token_service.py` read `JWT_SECRET_KEY`
+  from the first and `JWT_SECRET` from the second — two different keys. Worth unifying.
+- **The root suite does not collect.** Covered under [Tests](#tests).
 
 ---
 

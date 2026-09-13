@@ -63,3 +63,6 @@ docker-compose.override.yml
 
 # FastAPI specific
 uvicorn.log
+
+# Local gate virtualenv (created by the import-health check)
+.gatevenv/

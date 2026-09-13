@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 
 ALLOWED_ORIGINS = {
@@ -55,9 +55,15 @@ class Settings(BaseSettings):
     CREDENTIAL_BROKER_URL: str | None = None
     BROKER_TOKEN: str | None = None
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+        # The repo's .env carries keys this app does not declare (BytePlus,
+        # WhatsApp Cloud API, …). Pydantic v2 defaults to `extra="forbid"`,
+        # which made the app refuse to start with those keys present.
+        extra="ignore",
+    )
 
 
 @lru_cache()
