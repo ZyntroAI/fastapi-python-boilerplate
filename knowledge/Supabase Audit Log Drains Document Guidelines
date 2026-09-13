@@ -1,0 +1,360 @@
+Supabase Audit Log Drains Document Guidelines
+
+## Audit Log Drains guidelines
+
+Supabase uses **Audit Log Drains** to stream organization-level Platform Audit Logs to an external destination for security monitoring, SIEM ingestion, alerting, and long-term retention. Platform Audit Logs include dashboard and Platform API actions such as project creation, member invitations, Edge Function changes, and project-setting changes.[1]
+
+Do not confuse these with project Log Drains: project drains export service logs such as Postgres, Auth, Storage, Edge Functions, Realtime, and API Gateway logs. Audit Log Drains are configured at the organization level.[2]
+
+## Document-control template
+
+```markdown
+# Supabase Audit Log Drain Configuration
+
+## Document control
+
+- Document owner:
+- Security owner:
+- Supabase organization:
+- Environment:
+- Version:
+- Effective date:
+- Last reviewed:
+- Next review:
+- Approval ticket:
+
+## Purpose
+
+Stream Supabase Platform Audit Logs to an approved external destination
+for centralized monitoring, alerting, investigation, and retention.
+
+## Scope
+
+- Organization:
+- Projects covered:
+- Organization-member actions:
+- Dashboard actions:
+- Platform API actions:
+- Included action categories:
+- Excluded events, if any:
+
+## Destination
+
+- Destination type:
+- Destination name:
+- Endpoint or bucket reference:
+- Region:
+- Account or tenant:
+- Authentication method:
+- Encryption:
+- Data owner:
+- Retention:
+```
+
+## Eligibility and access
+
+Confirm the organization’s plan before implementation. Supabase documents Platform Audit Logs and Audit Log Drains as available on Team and Enterprise plans.[1]
+
+Record who can:
+
+- View audit logs.
+- Configure or delete drains.
+- Access the external destination.
+- Rotate destination credentials.
+- Approve changes.
+- Investigate events.
+
+Use least privilege. The person who can configure a drain should not automatically have unrestricted access to all exported security logs.
+
+## Supported destinations
+
+Supabase’s Log Drains documentation lists these destination types:
+
+- Custom HTTP endpoint.
+- OpenTelemetry over HTTP using Protocol Buffers.
+- Datadog.
+- Grafana Loki.
+- Amazon S3.
+- Sentry.
+- Axiom.
+- Last9.
+- Syslog over TCP or TLS.[2]
+
+Choose the destination based on the operational requirement:
+
+| Requirement | Suitable destination |
+|---|---|
+| SIEM or custom security pipeline | OTLP or custom HTTP endpoint |
+| Long-term archive | Amazon S3 |
+| Existing observability platform | Datadog, Sentry, Axiom, Loki, or Last9 |
+| Legacy security infrastructure | Syslog with TLS |
+| Provider-neutral telemetry | OpenTelemetry |
+
+## Destination record
+
+Use a destination-specific record instead of storing secrets in prose.
+
+### Custom HTTP
+
+```yaml
+destination:
+  type: custom_http
+  url_reference: "secret://security/supabase-audit-drain-url"
+  http_version: "HTTP/2"
+  gzip: true
+  authentication: "Bearer token stored in secret manager"
+  request_format: "JSON array"
+  batching: "Up to 250 events or 1 second"
+  signature: "Not available; use TLS and authenticated headers"
+```
+
+Supabase sends custom HTTP logs as batched JSON arrays. HTTP/1 and HTTP/2 are supported, and custom headers can be used for authentication or routing. Current documentation states that custom requests are unsigned, so protect the endpoint with HTTPS, authentication headers, network controls, and replay protection on the receiving side.[2]
+
+### OpenTelemetry
+
+```yaml
+destination:
+  type: otlp_http
+  endpoint_reference: "secret://observability/otlp-endpoint"
+  path: "/v1/logs"
+  protocol: "http/protobuf"
+  gzip: true
+  authentication: "Headers stored in secret manager"
+  content_type: "application/x-protobuf"
+```
+
+The receiving endpoint must accept OTLP logs at `/v1/logs` using `application/x-protobuf`. Gzip is recommended to reduce bandwidth.[2]
+
+### Amazon S3
+
+```yaml
+destination:
+  type: s3
+  bucket: "security-audit-archive"
+  region: "ap-southeast-1"
+  prefix: "supabase/platform-audit/"
+  credentials_reference: "secret://aws/supabase-audit-drain"
+  batch_timeout_ms: 3000
+  encryption: "SSE-KMS"
+  lifecycle_policy: "Defined in AWS"
+  object_lock: "Enabled if required"
+```
+
+The bucket must already exist, and the AWS identity must have write permission to it. Prefer a dedicated IAM identity with write-only access to a dedicated prefix; do not use an administrator credential.[2]
+
+### Syslog
+
+```yaml
+destination:
+  type: syslog
+  host_reference: "secret://security/syslog-host"
+  port: 6514
+  tls: true
+  mutual_tls: true
+  ca_certificate_reference: "secret://security/syslog-ca"
+  client_certificate_reference: "secret://security/syslog-client-cert"
+  client_key_reference: "secret://security/syslog-client-key"
+```
+
+Use TLS for production. Supabase supports CA verification and mutual TLS when the receiver requires client authentication.[2]
+
+## Security requirements
+
+- Use HTTPS, OTLP TLS, S3 encryption, or Syslog TLS.
+- Store API keys, tokens, passwords, access keys, and private keys in a secrets manager.
+- Never place credentials in the document, source code, tickets, or screenshots.
+- Use a dedicated destination credential.
+- Restrict the credential to ingestion only.
+- Rotate credentials according to the organization’s security policy.
+- Restrict the receiving endpoint by network policy where possible.
+- Alert if the drain is deleted, modified, disabled, or stops receiving events.
+- Treat audit logs as sensitive because they can contain actor emails, IP addresses, token types, routes, response status, and target metadata.[1]
+
+## Event coverage
+
+Document the expected audit-event fields:
+
+```markdown
+## Expected event fields
+
+- Event timestamp
+- Actor email
+- Actor IP address
+- Token type
+- Action name
+- Action metadata
+- Request route
+- Response status
+- Action target
+- Organization or project identifier
+- Correlation or event identifier, if available
+```
+
+The Platform Audit Log view exposes the timestamp, actor details, action name and metadata, and target information.[1]
+
+Do not assume that an Audit Log Drain replaces every other logging control. It is intended for Platform Audit Logs; Auth events and project service logs have separate audit and Log Drain mechanisms.[1][2]
+
+## Validation checklist
+
+Before production use:
+
+```markdown
+## Deployment validation
+
+- [ ] Organization plan supports Audit Log Drains.
+- [ ] Destination exists and is owned by the organization.
+- [ ] Credentials are stored outside the document.
+- [ ] TLS or equivalent transport protection is enabled.
+- [ ] Least-privilege destination permissions are verified.
+- [ ] A test administrative action generated an event.
+- [ ] The event arrived at the destination.
+- [ ] Actor, action, target, timestamp, and status were preserved.
+- [ ] Destination parsing and field mapping were verified.
+- [ ] Duplicate handling was tested.
+- [ ] Delayed delivery was tested.
+- [ ] Destination outage behavior was documented.
+- [ ] Alerts for drain failure were configured.
+- [ ] Retention and deletion policies were approved.
+- [ ] Security and platform owners approved the change.
+```
+
+For custom endpoints, test JSON-array parsing and authentication because the current service does not sign requests. For S3, verify object creation, IAM permissions, encryption, lifecycle, and auditability. For OTLP, verify the `/v1/logs` path, protobuf content type, headers, and gzip handling.[2]
+
+## Operations runbook
+
+```markdown
+## Operational procedure
+
+### Daily monitoring
+
+- Confirm events are arriving.
+- Check ingestion errors.
+- Check destination latency.
+- Review failed authentication or authorization.
+- Confirm no unexpected configuration changes.
+
+### Credential rotation
+
+1. Create the replacement credential.
+2. Store it in the approved secrets manager.
+3. Update the drain during an approved change window.
+4. Generate a test audit event.
+5. Confirm receipt.
+6. Revoke the old credential.
+7. Record the change.
+
+### Destination outage
+
+1. Confirm whether Supabase configuration or the destination is failing.
+2. Open an incident if security coverage is affected.
+3. Preserve locally available audit evidence.
+4. Restore delivery or switch to the approved secondary destination.
+5. Identify any event gap.
+6. Record the incident and corrective action.
+
+### Decommissioning
+
+1. Obtain owner and security approval.
+2. Export or preserve required evidence.
+3. Disable the drain.
+4. Revoke destination credentials.
+5. Remove unused IAM permissions.
+6. Verify billing and configuration status.
+7. Update this document and the change register.
+```
+
+## Cost and retention notes
+
+Log drains are separately billed. Supabase documents charges for configured drain hours, exported log events, and egress; Log Drains are not covered by the Spend Cap. Usage can be reviewed from the organization’s usage page.[3]
+
+Record these values in the document:
+
+```markdown
+## Cost controls
+
+- Number of active drains:
+- Expected events per month:
+- Expected egress:
+- Estimated monthly drain-hour cost:
+- Estimated event cost:
+- Budget owner:
+- Usage-alert threshold:
+- Review frequency:
+```
+
+Supabase currently documents a per-drain hourly charge and event-based billing, but pricing can change. Confirm the current organization usage and pricing view before approving a production configuration.[3]
+
+## Recommended final record
+
+```markdown
+# Supabase Audit Log Drain — Production
+
+## Summary
+
+- Organization:
+- Drain name:
+- Purpose:
+- Destination:
+- Owner:
+- Status:
+- Created:
+- Last tested:
+- Next review:
+
+## Coverage
+
+- Platform Audit Logs: Yes
+- Organization-member activity: Yes
+- Dashboard activity: Yes
+- Platform API activity: Yes
+- Auth Audit Logs: Separate control
+- Project service logs: Separate control
+
+## Security
+
+- Transport encryption:
+- Destination authentication:
+- Credential reference:
+- IAM or access policy:
+- Secret-rotation schedule:
+- Sensitive-data handling:
+
+## Reliability
+
+- Batch behavior:
+- Expected delivery:
+- Failure alert:
+- Retry or recovery process:
+- Secondary destination:
+
+## Compliance
+
+- Retention:
+- Immutability:
+- Legal hold:
+- Access review:
+- Evidence export process:
+
+## Approval
+
+- Platform owner:
+- Security owner:
+- Compliance reviewer:
+- Approval date:
+```
+
+The central principle is to treat an Audit Log Drain as a **security control with a defined owner, protected destination, tested delivery path, retention policy, and failure response**, not merely as a forwarding URL.
+
+การอ้างอิง:
+[1] Platform Audit Logs | Supabase Docs https://supabase.com/docs/guides/security/platform-audit-logs
+[2] Log Drains | Supabase Docs https://supabase.com/docs/guides/observability/log-drains
+[3] Manage Log Drain usage | Supabase Docs https://supabase.com/docs/guides/platform/manage-your-usage/log-drains
+[4] Manage Logs usage | Supabase Docs https://supabase.com/docs/guides/platform/manage-your-usage/logs
+[5] sitemap.xml https://supabase.com/docs/sitemap.xml
+[6] Create log drain | Management API Reference | Supabase Docs https://supabase.com/docs/reference/api/v2-create-log-drain
+[7] Supabase Docs https://supabase.com/docs
+[8] Manage Egress usage | Supabase Docs https://supabase.com/docs/guides/platform/manage-your-usage/egress
+[9] Access Control | Supabase Docs https://supabase.com/docs/guides/platform/access-control
+[10] Log Drains | Supabase Features https://supabase.com/features/log-drains
+[11] Introducing Log Drains https://supabase.com/blog/log-drains
+[12] Releases · supabase/supabase https://github.com/supabase/supabase/releases
