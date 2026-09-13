@@ -1,0 +1,150 @@
+# PR Triage Automove — report-only by default.
+#
+# This file lives in the skill folder rather than .github/workflows/ because
+# pushing there requires the `workflows` permission, which automation tokens
+# commonly lack. Copy it to .github/workflows/ when you have those rights.
+#
+# Every `uses:` is pinned to a full 40-character commit SHA — an org policy that
+# requires SHA pinning will reject a workflow with tag pins, and the failure
+# shows up as "the job never ran", not as a helpful error.
+#
+# Behaviour:
+#   default      -> classify + probe + print the report as an artifact. Moves nothing.
+#   with --apply -> actually git mv + roll back on import regression (opt-in).
+#                   Enable by setting the repository variable AUTO_APPLY=true.
+
+name: PR Triage — Misplaced Files
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read            # the default run only reads; it never pushes
+  pull-requests: write      # to post the triage comment
+
+concurrency:
+  group: pr-triage-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Check out the pull request
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
+        with:
+          python-version: "3.11"
+
+      - name: Install the app's runtime deps
+        # The import probe imports the real entrypoints, so the app's own
+        # dependencies must be present — otherwise every target reports FAIL for
+        # a missing module and the probe says nothing about the move.
+        run: |
+          if [ -f requirements.txt ]; then
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+          fi
+
+      - name: Run the automove skill (dry-run)
+        id: automove
+        env:
+          APPLY: ${{ vars.AUTO_APPLY == 'true' && '--apply' || '' }}
+        run: |
+          ARGS="--repo . --stamp $(date -u +%Y-%m) --report triage-report.json --comment triage-comment.md"
+          echo "running: python skills/pr-triage-automove/automove.py $ARGS $APPLY"
+          # Exit code 2 means a regression was found AND the move was rolled back.
+          # That is a real finding to report, not an infrastructure failure.
+          set +e
+          python skills/pr-triage-automove/automove.py $ARGS $APPLY
+          rc=$?
+          set -e
+          echo "rc=$rc"
+          if [ "$rc" = "2" ]; then
+            echo "regression=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "regression=false" >> "$GITHUB_OUTPUT"
+          fi
+          test -f triage-comment.md
+
+      - name: Post the triage comment
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          if [ -s triage-comment.md ]; then
+            gh pr comment "$PR" --body-file triage-comment.md --edit-last --create-if-none
+          else
+            echo "no comment produced"
+          fi
+
+      - name: Upload the evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        with:
+          name: pr-triage-report
+          path: |
+            triage-report.json
+            triage-comment.md
+          if-no-files-found: warn
+
+      - name: Fail only on a detected import regression
+        # Report-only means green on clutter. A regression that forced a rollback
+        # is worth stopping the run for, because it means the tree was one move
+        # away from being broken.
+        if: always() && steps.automove.outputs.regression == 'true'
+        run: |
+          echo "::error::import regression detected — the move was rolled back"
+          exit 1
+
+  # Optional second job: only runs when AUTO_APPLY is on. Kept separate so the
+  # read-only path above never gains write permissions by accident.
+  apply:
+    needs: triage
+    if: vars.AUTO_APPLY == 'true' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write        # scoped to this job only
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
+        with:
+          python-version: "3.11"
+
+      - run: pip install -r requirements.txt || true
+
+      - name: Apply the move and roll back on regression
+        id: apply
+        run: |
+          python skills/pr-triage-automove/automove.py --repo . --apply \
+            --stamp "$(date -u +%Y-%m)" --report triage-report.json || rc=$?
+          if [ "${rc:-0}" = "2" ]; then
+            echo "regression=true" >> "$GITHUB_OUTPUT"
+            git checkout -- . || true
+          else
+            echo "regression=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit the relocation
+        if: steps.apply.outputs.regression == 'false'
+        run: |
+          if git diff --quiet; then
+            echo "nothing to move — the root is already clean"
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore(triage): relocate misplaced root files to archive/"
+          git push
