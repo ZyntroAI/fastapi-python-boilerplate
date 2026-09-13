@@ -105,9 +105,24 @@ grep -nE "^[a-z-]+:" Makefile                 # targets
 ls scripts/ skills/                           # scripts
 ls helm/ charts/                              # charts
 
-# 3. do the SHAs resolve?
-gh api repos/OWNER/ACTION/commits/REF --jq .sha
+# 3. do the SHAs resolve?  (lint.py only checks that a pin LOOKS like a SHA)
+python skills/ci-workflow-authoring/verify-pins.py .github/workflows/*.yml
 ```
+
+Step 3 is the one that matters most, and the one `lint.py` cannot do. A
+fabricated 40-hex string satisfies every pattern check and still fails at
+`Set up job` with "Unable to find version", so a green lint is not evidence the
+pins are real. `verify-pins.py` asks GitHub whether each commit exists in **that
+action's own repository** and exits non-zero if any does not.
+
+It uses the HTML commit endpoint rather than the REST API, because the anonymous
+API allows 60 requests/hour — enough to exhaust halfway through a repository of
+any size. Two details it handles:
+
+- **subdirectory actions** (`owner/repo/subdir@sha`) are looked up against
+  `owner/repo`; querying the three-segment path 404s even for a real commit
+- **a network error is reported as unverifiable, not as fake** — an unreachable
+  GitHub is not evidence about a SHA
 
 If a check cannot run in your environment (no `workflows` permission to push),
 say so in the PR — do not report it as passing.
