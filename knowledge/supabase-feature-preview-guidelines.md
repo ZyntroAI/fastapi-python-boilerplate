@@ -1,0 +1,318 @@
+---
+title: "Supabase Feature Preview Guidelines"
+description: "Feature-state record, safe-adoption policy, and production approval for Supabase previews."
+tags:
+  - knowledge/supabase
+  - knowledge/platform
+  - knowledge/change-control
+supabase_area: "Platform / Change Control"
+doc_kind: "guideline"
+status: "active"
+owner: "Platform Engineering"
+last_reviewed: "2026-09-13"
+review_frequency: "Annual"
+source: "Supabase official documentation"
+---
+
+Supabase Feature Request Preview
+
+## Supabase Feature Preview guidelines
+
+Supabase uses **Feature Previews** to expose early features before general availability, gather feedback, and iterate on the product. A preview should be treated as experimental: functionality may change, and it may not have the same stability or support guarantees as a generally available feature.[1][2]
+
+## Feature-state record
+
+Supabase documentation distinguishes feature stages such as:
+
+- Private Alpha.
+- Public Alpha.
+- Beta.
+- Generally Available.
+
+The stage determines how cautiously the feature should be adopted. Supabase’s feature documentation indicates that generally available features are the stable production tier, while alpha and beta features are still evolving.[3]
+
+Use this record:
+
+```yaml
+supabase_feature:
+  name: "Feature name"
+  product_area: "Database / Auth / Studio / Platform / Storage"
+  stage: "Private Alpha | Public Alpha | Beta | GA"
+  preview_enabled: false
+  project:
+    name: "Project name"
+    ref: "project-ref"
+    environment: "Development"
+  owner: "Team or person"
+  purpose: "Why this preview is being evaluated"
+  enabled_date: "YYYY-MM-DD"
+  review_date: "YYYY-MM-DD"
+  rollback_method: "How to disable or revert it"
+  feedback_url: "Official discussion or issue URL"
+  production_approved: false
+```
+
+## Safe adoption policy
+
+### Development first
+
+Enable a Feature Preview in a development or test project before using it in staging. Do not enable it directly in production unless the feature has been evaluated, the rollback path is known, and the owner has approved the risk.
+
+### Staging validation
+
+Test:
+
+- Existing database schema and migrations.
+- Authentication and authorization.
+- RLS behavior.
+- API responses.
+- Performance and query plans.
+- Backups and restoration.
+- Logs and monitoring.
+- CI/CD and branch workflows.
+- Integrations and SDK compatibility.
+
+### Production approval
+
+Require explicit approval for:
+
+- Features marked alpha or beta.
+- Features that alter database behavior.
+- Features that affect authentication or authorization.
+- Features that change billing or usage.
+- Features that modify networking, backups, branching, or deployment.
+- Features without a tested rollback process.
+
+Supabase currently labels dashboard Branching as public alpha and notes that its functionality may change; the documented process requires opting in through Feature Previews.[2]
+
+## Enablement record
+
+Document exactly how the preview was enabled:
+
+```markdown
+## Enablement
+
+1. Sign in to the Supabase Dashboard.
+2. Open the user menu or profile menu.
+3. Select Feature Previews.
+4. Select the required feature.
+5. Review the warning and description.
+6. Click Enable feature.
+7. Confirm the feature appears in the project.
+8. Run the validation checklist.
+```
+
+The location and wording of the menu may change. Record the current dashboard path and capture the official documentation or discussion link rather than relying on screenshots alone. Supabase has historically exposed Feature Previews through the user-avatar menu in Studio.[1][4]
+
+## Risk assessment
+
+```markdown
+## Feature Preview risk assessment
+
+### Business impact
+
+- Feature purpose:
+- Business process affected:
+- User groups affected:
+- Revenue or SLA impact:
+- Compliance impact:
+
+### Technical impact
+
+- Database changes:
+- API changes:
+- Auth changes:
+- RLS changes:
+- Network changes:
+- Backup or recovery impact:
+- Billing or usage impact:
+- External integrations affected:
+
+### Risks
+
+- Known limitations:
+- Expected breaking changes:
+- Data-loss risk:
+- Availability risk:
+- Security risk:
+- Vendor-support limitation:
+
+### Controls
+
+- Development test completed:
+- Staging test completed:
+- Monitoring added:
+- Rollback tested:
+- Owner assigned:
+- Approval obtained:
+```
+
+## Rollback plan
+
+Every preview should have a written rollback plan before enablement:
+
+```markdown
+## Rollback
+
+### Trigger conditions
+
+- Data integrity issue.
+- Unexpected permission behavior.
+- Error-rate increase.
+- Performance regression.
+- Incompatible SDK or integration.
+- Preview removed or materially changed.
+- Security or compliance concern.
+
+### Procedure
+
+1. Disable the Feature Preview if a disable control exists.
+2. Revert application configuration or feature flags.
+3. Restore the prior migration or deployment if required.
+4. Validate authentication, RLS, APIs, and critical workflows.
+5. Check logs and audit events.
+6. Notify affected owners.
+7. Record the incident and final decision.
+
+### Limitations
+
+- Can the feature be disabled without data migration?
+- Are created resources backward-compatible?
+- Is a database restore required?
+- Is vendor support available?
+```
+
+Do not assume that disabling a preview reverses schema changes or data migrations. If the preview changes persistent data, treat rollback as a migration or recovery operation.
+
+## Feedback and change tracking
+
+Supabase Feature Previews commonly include a feedback or GitHub Discussion link. Record:
+
+- Feedback URL.
+- Date tested.
+- Version or dashboard state.
+- Reproduction steps.
+- Expected behavior.
+- Actual behavior.
+- Logs or screenshots.
+- Impact.
+- Workaround.
+- Follow-up owner.
+
+Supabase describes Feature Previews as a mechanism for gathering UX/UI feedback and links preview features to discussions for user feedback.[1]
+
+## Ready-to-use document
+
+```markdown
+# Supabase Feature Preview Evaluation
+
+## Overview
+
+- Feature:
+- Product area:
+- Supabase feature stage:
+- Official documentation:
+- Feedback or issue link:
+- Project:
+- Project reference:
+- Environment:
+- Evaluation owner:
+- Business owner:
+- Security reviewer:
+- Start date:
+- Review date:
+
+## Purpose
+
+Describe the problem this preview is expected to solve.
+
+## Scope
+
+- Included users:
+- Included projects:
+- Included environments:
+- Excluded production workflows:
+- Expected evaluation period:
+
+## Prerequisites
+
+- [ ] Development project available.
+- [ ] Staging project available.
+- [ ] Backup or recovery plan verified.
+- [ ] Logs and monitoring available.
+- [ ] Required permissions confirmed.
+- [ ] Documentation reviewed.
+- [ ] Rollback plan approved.
+
+## Test plan
+
+- [ ] Enablement tested.
+- [ ] Existing workflows tested.
+- [ ] New feature behavior tested.
+- [ ] RLS and permissions tested.
+- [ ] API and SDK compatibility tested.
+- [ ] Performance tested.
+- [ ] Failure behavior tested.
+- [ ] Monitoring tested.
+- [ ] Rollback tested.
+
+## Results
+
+- Expected behavior:
+- Actual behavior:
+- Performance:
+- Errors:
+- Security findings:
+- Data-integrity findings:
+- User feedback:
+- Open issues:
+
+## Decision
+
+- [ ] Do not adopt.
+- [ ] Continue evaluation.
+- [ ] Use in development only.
+- [ ] Use in staging.
+- [ ] Approve for production.
+- [ ] Remove and roll back.
+
+## Approval
+
+- Engineering:
+- Security:
+- Operations:
+- Product:
+- Date:
+```
+
+## Preview versus production
+
+| Question | Preview | Production |
+|---|---|---|
+| Stability | May change | Expected to be stable |
+| Feature behavior | May be incomplete | Supported operating behavior |
+| API compatibility | May change | Versioned or documented |
+| SLA assumption | Do not assume full coverage | Check applicable service terms |
+| Rollback | Must be explicitly planned | Required for material changes |
+| Data use | Prefer non-production data | Requires formal approval |
+| Monitoring | Required before broader use | Continuous monitoring |
+
+## Key rule
+
+Treat a Supabase Feature Preview as a **time-limited experiment with an owner, test scope, feedback path, monitoring, and rollback plan**. Do not promote it to production merely because it works in a simple test; first confirm its security, data, performance, operational, and contractual implications.
+
+การอ้างอิง:
+[1] Feature Previews https://supabase.com/blog/studio-introducing-assistant
+[2] Branching via the dashboard | Supabase Docs https://supabase.com/docs/guides/deployment/branching/dashboard
+[3] supabase/apps/docs/content/guides/getting-started/features.mdx at master · supabase/supabase https://github.com/supabase/supabase/blob/master/apps/docs/content/guides/getting-started/features.mdx
+[4] Keeping Tabs on What's New in Supabase Studio https://supabase.com/blog/tabs-dashboard-updates
+[5] Changelog https://supabase.com/changelog
+[6] The Postgres Development Platform - Supabase https://supabase.com/contribute
+[7] Changelog https://supabase.com/changelog?next=Y3Vyc29yOnYyOpK0MjAyNC0wOC0zMFQxNjowMzo0NVrOAGyKbA==&restPage=2
+[8] Vercel Integration: Environment variables explained - Supabase https://supabase.com/docs/guides/troubleshooting/vercel-integration-environment-variables-not-syncing-for-persistent-git-branches-b9191e
+[9] Supabase Platform | Supabase Docs https://supabase.com/docs/guides/platform
+[10] Changelog - Supabase https://supabase.com/changelog?next=Y3Vyc29yOnYyOpK0MjAyNC0wNy0xOFQwOToxODo0NlrOAGoHsA==&restPage=2
+[11] Auth Settings Added Option... https://supabase.com/changelog/19827-dashboard-weekly-updates-11th-dec-18th-dec
+[12] Supabase Branching https://supabase.com/blog/supabase-branching
+[13] github.com-supabase-supabase_-_2021-11-21_09-43-08 https://archive.org/details/github.com-supabase-supabase_-_2021-11-21_09-43-08
+[14] Real-time Preview - Newly.app https://docs.newly.app/features/preview
