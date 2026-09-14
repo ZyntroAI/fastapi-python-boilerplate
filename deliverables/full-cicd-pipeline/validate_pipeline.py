@@ -67,7 +67,9 @@ def check_graph(doc: dict, path: Path) -> None:
     for job, spec in jobs.items():
         for need in _needs(spec):
             if need not in jobs:
-                findings.append(f"[graph] {path.name}: job '{job}' needs unknown '{need}'")
+                findings.append(
+                    f"[graph] {path.name}: job '{job}' needs unknown '{need}'"
+                )
 
     seen: set[str] = set()
     stack: set[str] = set()
