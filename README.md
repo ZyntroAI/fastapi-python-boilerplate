@@ -1,23 +1,345 @@
-# FastAPI Python Boilerplate — AI-Driven
-
-An opinionated FastAPI monorepo used by ZyntroAI as the starting point for production
-AI services, agent tooling, and reference documentation. It ships an OAuth2 PKCE API
-core, a GraphQL layer, a React frontend, a library of reusable AI-agent skills,
-self-contained deliverable suites, and a reference docs library.
-
-> This README reflects the repository as it actually stands on `main`. Sections marked
-> **Known state** record things that are incomplete or broken rather than describing
-> intent. Individual suites under `deliverables/` carry their own READMEs with more detail.
+Here’s **การออกแบบ GitHub Actions Workflows สำหรับ `Origin`** (หลังจากเปลี่ยนเป็น default branch แล้ว) ที่แยก **CI** และ **Workflows อื่นๆ** อย่างชัดเจน พร้อมคำแนะนำสำหรับ FastAPI project ของคุณ:
 
 ---
 
-## What's inside
+---
 
-| Path | Purpose |
-| ---- | ------- |
-| `main.py` | OAuth2 PKCE API entrypoint — `uvicorn main:app` (`/auth`, `/auth/callback`, `/health`) |
-| `app/` | Application package (75 files): `api/`, `core/`, `services/`, `db/`, `routes/`, `integrations/` |
-| `app/core/main.py` | A second, fuller FastAPI app (items/users routers, DB session, origin middleware) |
+## 📁 **โครงสร้างไฟล์ Workflows**
+```
+.github/
+└── workflows/
+    ├── ci.yml                # CI (Test, Lint, Build)
+    ├── cd-deploy.yml         # CD (Deploy to Staging/Production)
+    ├── scheduled-cleanup.yml # Scheduled Jobs
+    ├── release.yml           # Release Management
+    └── notify.yml            # Notifications (Slack/Email)
+```
+
+---
+
+---
+
+## 🔧 **1. CI Workflow (`ci.yml`)**
+**หน้าที่:** รัน **Test, Lint, Build** ทุกครั้งที่มี `push` หรือ `pull_request` ไปยัง `Origin` หรือ branch อื่นๆ
+
+```yaml
+# .github/workflows/ci.yml
+name: CI - Test & Lint
+
+on:
+  push:
+    branches: [ Origin, main ]  # รันทั้ง Origin และ main (ถ้ายังใช้ main ร่วมด้วย)
+  pull_request:
+    branches: [ Origin ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11"]  # ตัวอย่างสำหรับ Python
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov flake8 black
+
+      - name: Run Lint (Flake8)
+        run: flake8 .
+
+      - name: Run Formatter (Black)
+        run: black --check .
+
+      - name: Run Tests with Coverage
+        run: |
+          pytest --cov=./ --cov-report=xml
+          # Upload coverage to Codecov (ถ้าต้องการ)
+          curl -Os https://uploader.codecov.io/latest/linux/codecov
+          chmod +x codecov
+          ./codecov -t ${{ secrets.CODECOV_TOKEN }}
+
+  build:
+    needs: test  # รอให้ test เสร็จก่อน
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker Image (ตัวอย่าง)
+        run: |
+          docker build -t zyntroai/fastapi-project:latest .
+          docker images
+```
+
+---
+
+---
+
+## 🚀 **2. CD Workflow (`cd-deploy.yml`)**
+**หน้าที่:** Deploy โค้ดไปยัง **Staging** และ **Production** หลังจาก CI ผ่าน
+
+```yaml
+# .github/workflows/cd-deploy.yml
+name: CD - Deploy
+
+on:
+  push:
+    branches: [ Origin ]  # Deploy เฉพาะเมื่อ push ไปยัง Origin
+  workflow_dispatch:      # หรือกด manual deploy ใน GitHub UI
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.zyntroai.com
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Staging (Vercel)
+        run: |
+          vercel --token ${{ secrets.VERCEL_TOKEN }} --env staging
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+
+  deploy-production:
+    needs: deploy-staging  # รอ staging deploy เสร็จก่อน
+    if: github.ref == 'refs/heads/Origin'  # Deploy เฉพาะเมื่อ push ไป Origin
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://api.zyntroai.com
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Production (Vercel)
+        run: |
+          vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+```
+
+---
+
+---
+
+## ⏰ **3. Scheduled Workflow (`scheduled-cleanup.yml`)**
+**หน้าที่:** รันงานบำรุงรักษา (เช่น ลบ cache, backup database) ตามกำหนดการ
+
+```yaml
+# .github/workflows/scheduled-cleanup.yml
+name: Scheduled - Cleanup & Backup
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'  # รันทุกวันจันทร์ เวลา 00:00 UTC (07:00 ICT)
+  workflow_dispatch:      # หรือกด manual ใน GitHub UI
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clean old Docker images
+        run: |
+          docker system prune -af
+
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Backup Database
+        run: |
+          pg_dump -U ${{ secrets.DB_USER }} -h ${{ secrets.DB_HOST }} ${{ secrets.DB_NAME }} > backup.sql
+          # Upload backup ไปยัง S3/Google Drive (ตัวอย่าง)
+          aws s3 cp backup.sql s3://zyntroai-backups/backup-$(date +%Y%m%d).sql
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+```
+
+---
+
+---
+
+## 📦 **4. Release Workflow (`release.yml`)**
+**หน้าที่:** สร้าง **Release** และ Publish Package (เช่น Docker Image, PyPI) เมื่อมี tag ใหม่
+
+```yaml
+# .github/workflows/release.yml
+name: Release - Publish
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger เมื่อ push tag เช่น v1.0.0
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker Image
+        run: |
+          docker build -t zyntroai/fastapi-project:${{ github.ref_name }} .
+          docker tag zyntroai/fastapi-project:${{ github.ref_name }} zyntroai/fastapi-project:latest
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Push Docker Image
+        run: |
+          docker push zyntroai/fastapi-project:${{ github.ref_name }}
+          docker push zyntroai/fastapi-project:latest
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            Changes in this release:
+            - Fix bug in API endpoint
+            - Update dependencies
+```
+
+---
+
+---
+
+## 📢 **5. Notification Workflow (`notify.yml`)**
+**หน้าที่:** ส่งแจ้งเตือนไปยัง **Slack** หรือ **Email** เมื่อ CI/CD สำเร็จ/ล้มเหลว
+
+```yaml
+# .github/workflows/notify.yml
+name: Notify - Slack Alerts
+
+on:
+  workflow_run:
+    workflows: ["CI - Test & Lint", "CD - Deploy"]  # รันหลัง CI/CD
+    types:
+      - completed
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion != 'neutral' }}
+    steps:
+      - name: Send Slack Notification
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_COLOR: ${{ github.event.workflow_run.conclusion == 'success' && 'good' || 'danger' }}
+          SLACK_TITLE: "Workflow ${{ github.event.workflow_run.conclusion }}"
+          SLACK_MESSAGE: |
+            Workflow *${{ github.event.workflow_run.name }}* ${{ github.event.workflow_run.conclusion == 'success' && '✅ Success' || '❌ Failed' }}
+            Commit: ${{ github.event.workflow_run.head_commit.message }}
+            Branch: ${{ github.event.workflow_run.head_branch }}
+            Link: ${{ github.event.workflow_run.html_url }}
+```
+
+---
+
+---
+
+## 🔐 **Secrets ที่จำเป็น**
+ไปที่ **Settings > Secrets > Actions** เพื่อเพิ่ม:
+| **Secret Name**          | **คำอธิบาย**                          |
+|--------------------------|----------------------------------------|
+| `VERCEL_TOKEN`           | Token สำหรับ Vercel Deployment         |
+| `VERCEL_PROJECT_ID`      | Project ID ใน Vercel                   |
+| `VERCEL_ORG_ID`          | Organization ID ใน Vercel              |
+| `DOCKER_USERNAME`        | Username Docker Hub                     |
+| `DOCKER_PASSWORD`        | Password Docker Hub                    |
+| `CODECOV_TOKEN`          | Token สำหรับ Codecov (ถ้าใช้)          |
+| `SLACK_WEBHOOK`         | Slack Incoming Webhook URL             |
+| `AWS_ACCESS_KEY_ID`      | AWS Key สำหรับ Backup                  |
+| `AWS_SECRET_ACCESS_KEY`  | AWS Secret Key                         |
+| `DB_USER`, `DB_HOST`, `DB_NAME` | ข้อมูล database สำหรับ Backup |
+
+---
+
+---
+
+## 📌 **คำแนะนำเพิ่มเติม**
+1. **Environment Protection**
+   - ใน `cd-deploy.yml` ใช้ `environment:` เพื่อกำหนด **approval** ก่อน deploy production:
+     ```yaml
+     environment:
+       name: production
+       url: https://api.zyntroai.com
+     ```
+     (GitHub จะขอ approval ก่อนรัน job นี้)
+
+2. **Matrix Testing**
+   - ใน `ci.yml` ใช้ `matrix` เพื่อทดสอบกับ **Python version หลายๆ เวอร์ชัน** หรือ **OS หลายๆ ตัว**
+
+3. **Artifacts**
+   - ถ้าต้องการเก็บผลลัพธ์จาก CI (เช่น test report, coverage):
+     ```yaml
+     - name: Upload Test Report
+       uses: actions/upload-artifact@v4
+       with:
+         name: pytest-report
+         path: test-results/
+     ```
+
+4. **Cache Dependencies**
+   - เพิ่ม cache สำหรับ `pip` เพื่อเร่งความเร็ว:
+     ```yaml
+     - name: Cache pip
+       uses: actions/cache@v3
+       with:
+         path: ~/.cache/pip
+         key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+     ```
+
+5. **Auto-merge Dependabot**
+   - สร้าง workflow สำหรับ auto-merge Dependabot PR ถ้า CI ผ่าน:
+     ```yaml
+     # .github/workflows/dependabot-auto-merge.yml
+     name: Dependabot Auto Merge
+     on:
+       pull_request:
+         branches: [ Origin ]
+     jobs:
+       auto-merge:
+         if: github.actor == 'dependabot[bot]'
+         runs-on: ubuntu-latest
+         steps:
+           - uses: actions/github-script@v7
+             with:
+               script: |
+                 github.pulls.merge({
+                   owner: context.repo.owner,
+                   repo: context.repo.repo,
+                   pull_number: context.issue.number,
+                   merge_method: 'squash'
+                 })
+     ```
+
+---
+
+---
+## ✅ **สรุปการทำงาน**
+1. **Developer push code → `Origin`**
+   → **CI Workflow** รัน (Test, Lint, Build)
+   → ถ้า **CI ผ่าน** → **CD Workflow** รัน (Deploy to Staging)
+   → ถ้า **Staging OK** → **CD Workflow** Deploy to Production (หรือรอ approval)
+2. **ทุกวันจันทร์** → **Scheduled Workflow** รัน (Cleanup, Backup)
+3. **เมื่อมี tag ใหม่** → **Release Workflow** รัน (Publish Docker Image, Create Release)
+4. **หลัง CI/CD เสร็จ** → **Notification Workflow** ส่งแจ้งเตือนไปยัง Slack
+
+---
+**✨ พร้อมใช้งาน!**
+คุณสามารถ copy code นี้ไปวางใน `.github/workflows/` ของ repo ได้เลย ครับ
+ถ้าต้องการปรับแต่ง (เช่น ใช้ AWS ECS แทน Vercel) ให้บอกมาได้นะ!| `app/core/main.py` | A second, fuller FastAPI app (items/users routers, DB session, origin middleware) |
 | `graphql_api/` | Standalone GraphQL service — Strawberry + async SQLAlchemy + JWT + Alembic, own `requirements.txt`, `docker-compose.yml`, tests |
 | `frontend/` | React 18 + Vite 8 + TypeScript frontend (own `package.json`, `Dockerfile`, `tsconfig.json`) |
 | `skills/` | Reusable AI-agent skill definitions (`fetching`, `changelog-auto-update`, `credential-management`, `patch`, `research`, …) |
