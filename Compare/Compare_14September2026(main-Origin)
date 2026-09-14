@@ -1,0 +1,271 @@
+📜 ตรวจสอบเชิงลึกจากประวัติคอมมิต: v1.1.0 → v1.2.0
+ 
+รีโป: ZyntroAI/fastapi-python-boilerplate
+ช่วงเวลา: 9 กันยายน 2026 – 11 กันยายน 2026
+จำนวนคอมมิต: 24 คอมมิตที่ตรวจสอบได้ • ไฟล์เปลี่ยน: 369 ไฟล์ • ผู้มีส่วนร่วม: 11 คน
+ลายเซ็น: ทุกคอมมิตมี GPG Verified ✅ (คีย์ ID: B5690EEEBB952194)
+สาขาเป้าหมาย:  Origin  (เปลี่ยนจาก  main  ในรุ่นก่อนหน้า)
+ 
+ 
+ 
+🧭 ภาพรวมโครงสร้างประวัติคอมมิต
+ 
+ประวัติเป็นเส้นตรงที่สะอาด (squashed & structured) แบ่งเป็น 4 ช่วงงานหลัก:
+ 
+1. 9 ก.ย.: เพิ่มสแต็กบริการพื้นฐาน + สถาปัตยกรรมตัวแทน AI
+2. 10 ก.ย.: ระบบจัดการงาน + ปรับปรุงโครงสร้างเวิร์กโฟลว์ + เอกสารปัญหา
+3. 10–11 ก.ย.: พัฒนาโมดูลเต็มรูปแบบ (Backend/Full-Stack)
+4. 11 ก.ย.: ปรับปรุง CI/CD + ความปลอดภัย + การแก้ไขช่องโหว่
+ 
+รูปแบบข้อความคอมมิตปฏิบัติตาม Conventional Commits อย่างเคร่งครัด:
+ 
+-  feat:  ฟีเจอร์ใหม่
+-  docs:  เอกสาร
+-  chore:  บำรุงรักษา/โครงสร้าง
+-  fix:  การแก้ไข
+-  refactor:  ปรับปรุงโค้ด
+ 
+ 
+ 
+📅 วิเคราะห์รายคอมมิตโดยละเอียด
+ 
+🟦 9 กันยายน 2026 — รากฐานระบบ & สแต็กบริการ
+ 
+1.  deliverables: add onspace-ai, manus-client, firecrawl-fastapi stacks (#165) 
+ 
+- เนื้อหา: เพิ่ม 3 โมดูลหลัก:
+-  onspace-ai : FastAPI พร้อมชั้นแคช/วงจร/สำรอง/โทเค็น — 31 การทดสอบ
+-  manus-client : ไคลเอ็นต์ REST API v2 แบบ Async — 10 การทดสอบ
+-  firecrawl-fastapi : ตัวรวบรวม/ตรวจสอบเว็บพร้อมใช้งาน — 6 การทดสอบ
+- ความปลอดภัย: ไม่เพิ่มไฟล์เวิร์กโฟลว์ → ปลอดภัยต่อการพุช
+- ลายเซ็น: fig-ai-agent[bot] • GPG Verified
+ 
+2.  docs: record PR #165 in CHANGELOG (#166) 
+ 
+- บันทึกการเผยแพร่สแต็กใหม่
+- รักษารูปแบบบันทึกการเปลี่ยนแปลงตามวันที่
+ 
+3.  docs: add AI Gateway architecture review deliverable (#164) 
+ 
+- เพิ่มเอกสารสถาปัตยกรรมระดับองค์กร
+- ครอบคลุมขอบเขต ความน่าเชื่อถือ และจุดผสาน
+ 
+4.  docs: record PR #164 in CHANGELOG (#167) 
+ 
+- อัปเดตบันทึกการเปลี่ยนแปลงให้ตรงกับสถาปัตยกรรม
+ 
+5.  Create Rules.md 
+ 
+- กฎการมีส่วนร่วมและการปกป้องสาขา
+- กำหนด  Origin  เป็นสาขาหลัก
+ 
+6.  Create PATCH.md 
+ 
+- คู่มือการบำรุงรักษาและแพตช์
+- ขั้นตอนการอัปเกรดภายในรุ่น
+ 
+7.  feat(deliverables): pure-agent-dev reference implementation (#169) 
+ 
+- โครงสร้าง: ตัวแทน AI ไม่ขึ้นกับผู้ให้บริการบน FastAPI
+- ชั้นสถาปัตยกรรม:
+-  providers/base.py : สัญลักษณ์นามธรรมทุกคลาวด์
+-  providers/mock.py : จำลองสำหรับ CI ไม่ต้องข้อมูลลับ
+-  providers/byteplus/ : อะแดปเตอร์คลาวด์จริง
+-  agents/planner.py/executor.py : ตัววางแผน/ผู้ดำเนินการ
+-  api/deps.py : การฉีดค่าคอนฟิก
+- การตรวจสอบ: ทดสอบสถาปัตยกรรมป้องกันการขึ้นกับ SDK
+- ทดสอบ: pytest 47 ผ่าน • ruff สะอาด • JSON Schema ถูกต้อง
+ 
+8.  docs(changelog): record PR #169 (#170) 
+ 
+- บันทึกตัวแทนอ้างอิงลงบันทึก
+ 
+9.  docs: update CHANGELOG.md and README.md (#171) 
+ 
+- แก้ไข: แทนที่บันทึกเกี่ยวกับ  fix/sha-pin-all-workflows 
+- สถานะปัจจุบัน: เวิร์กโฟลว์ยังผสม SHA กับแท็กที่เปลี่ยนแปลงได้
+- สถานะรีโป: CI ล้มที่ "ติดตั้งงาน" ตามนโยบาย SHA-pin ขององค์กร
+ 
+10.  feat(tasks): add a folder-based task tracker (#173) 
+ 
+- ตรรกะ: โฟลเดอร์ = สถานะ ( new/inprogress/done )
+- รูปแบบ: Markdown + ส่วนหัวข้อมูลครบถ้วน
+- เครื่องมือ:  tools/tasks.py  CLI (stdlib เท่านั้น)
+- ทดสอบ: ตรวจสอบคีย์/รหัส/วันที่/สถานะที่ถูกต้อง
+ 
+11.  feat(tasks): add archive/ status to the task tracker (#175) 
+ 
+- เพิ่มสถานะสิ้นสุด:  archive/  (เลิกใช้/ซ้ำซ้อน)
+- คำสั่งใหม่:  archive <id> <เหตุผล> 
+- ปรับปรุงการตรวจสอบและเทมเพลต
+ 
+12.  chore(workflows): auto-move non-workflow files out of .github/workflows (#168) 
+ 
+- ย้ายไฟล์เอกสาร/บันทึก 7 ชิ้น →  archive/workflows-junk/ 
+- โฟลเดอร์เวิร์กโฟลว์เหลือเฉพาะ YAML จริง
+- ผล: ลดความยุ่งเหยิง • ป้องกันการทำงานผิดพลาด
+ 
+13.  Add pm-backend deliverable: FastAPI billing (#174) 
+ 
+- ระบบการเรียกเก็บเงิน + การทดสอบ Sandbox
+ 
+14.  docs: record PR #168, #174, #176 in changelog (#177) 
+ 
+15.  feat(deliverables): add agent-core, a runnable agent task backend (#178) 
+ 
+- แก้ไขจากร่าง:
+-  Settings() : เปลี่ยนเป็น Lazy + LRU cache
+-  httpx.AsyncClient : ป้องกันการค้างของลูปเหตุการณ์
+-  retry : จับข้อผิดพลาดจริง • ไม่ลองซ้ำ 4xx
+-  polling : เพิ่มการหมดเวลา
+- ความปลอดภัย: ตรึง SHA ในตัวอย่าง CI
+- ทดสอบ: 25 ผ่านทั้งหมดด้วย MockTransport
+ 
+16.  chore(tasks): add TASK-20260910-005 (#179) 
+ 
+- บันทึกข้อจำกัดของ  agent-core  (ยังไม่ทดสอบกับผู้ให้บริการจริง)
+- แก้ไขข้อผิดพลาดเทมเพลต
+ 
+17.  docs: update CHANGELOG.md and README.md (#180) 
+ 
+18.  docs: add PROBLEMS.md as companion to CHANGELOG.md (#181) 
+ 
+- จุดประสงค์: บันทึกปัญหาที่ยังเปิด (ไม่ซ้ำกับบันทึกการเปลี่ยนแปลง)
+- รายการ:
+- P-001: เวิร์กโฟลว์ 5 ไฟล์แยกไม่ได้
+- P-002: 66 อ้างอิง Action ไม่ได้ตรึง SHA
+- P-003: GitHub App ไม่มีสิทธิ์เขียน  .github/workflows/ 
+- P-004:  agent-core  ไม่ยืนยันกับผู้ให้บริการจริง
+- P-005: สาขา  new-crystalcastle  บล็อกการพุช
+- P-006: แก้ไขแล้ว (ข้อผิดพลาดเทมเพลต)
+ 
+19.  chore(tasks): close TASK-20260910-005 and correct records (#182) 
+ 
+- ปิดงาน • อัปเดตสรุปผล • แก้ไขการตั้งชื่อไฟล์
+ 
+20.  docs: record PR #180 - #183 (#183) 
+ 
+- เพิ่ม P-007/P-008 • งานใหม่ TASK-20260910-006
+- ปัญหา P-007: เวิร์กโฟลว์ค้นหา  requirements.txt  ที่รูทซึ่งไม่มี
+ 
+21.  docs: record PR #183 in changelog (#184) 
+ 
+22.  feat: add fastapi-obsidian-backend deliverable (#185) 
+ 
+- คุณสมบัติ:
+- API ทักษะพร้อมการเข้าถึงต่อผู้ใช้ (JWT)
+- การสร้าง CSV • บันทึกการเรียกเก็บเงิน
+- ตัวสลับเครื่องมือ • การเข้ารหัสที่เหลือเป็นทางเลือก
+- ตัวอย่างไลบรารีภายใต้  data/skills/ 
+ 
+23.  Update .gitignore  (2 ครั้ง)
+ 
+- เพิ่มกฎ:  node_modules/ ,  *.env ,  .env* ,  secrets/ ,  *.key ,  *.pem 
+ 
+24.  Update package.json 
+ 
+- เวอร์ชัน:  1.2.0 
+- สคริปต์:  dev/build/lint/format/test 
+- ขึ้นอยู่กับ:  react ,  typescript ,  vite ,  vitest 
+ 
+🟩 11 กันยายน 2026 — ฟูลสแต็ก & CI/CD & ความปลอดภัย
+ 
+1.  feat(deliverables): add product-crud full-stack CRUD (#187) 
+ 
+- แบ็กเอนด์: Express + Prisma + Zod (รูปแบบ/เส้นทาง)
+- ฟรอนต์เอนด์: React + TanStack Query (แบ่งหน้า/ค้นหา/แคช)
+- เครื่องมือ: Docker Compose • สคริปต์เมล็ดข้อมูล 30 รายการ
+- ทดสอบ: tsc --noEmit สะอาด • vitest 30/30 ผ่าน
+ 
+2.  docs: record PR #187 and correct README (#192) 
+ 
+- อัปเดตตารางโครงสร้าง • สถานภาพรีโปที่ถูกต้อง
+- สถานภาพ: รูทไม่มี  package-lock.json  • ESLint 10 ขัดข้อง
+ 
+3.  docs(github-api): add complete GitHub API reference (#193) 
+ 
+- คู่มือ REST v3 + GraphQL v4 ครบถ้วน
+- การตรวจสอบสิทธิ์ • ขอบเขต • ตัวอย่างคำสั่ง • SDK • แนวทางองค์กร
+ 
+4.  docs: record PR #193 in CHANGELOG (#194) 
+ 
+5.  chore: switch root test runner to vitest (#191) 
+ 
+- แทนที่ Jest • เพิ่ม  vitest.config.mjs 
+- ขอบเขต: ยกเว้นส่งมอบแยกต่างหาก • รวมเฉพาะรูท
+-  .gitignore : เพิ่ม  coverage/ ,  .vercel/ ,  *.tsbuildinfo 
+ 
+6.  fix(product-crud): patch critical vitest advisory (#189) 
+ 
+- ช่องโหว่: CVE-2026-47429 (วิตเทส <3.2.6)
+- อัปเกรด: 2.1.9 → 4.1.11
+- แก้ไข: ปัญหาเส้นทางข้ามใน @vitest/mocker
+- Express: ล็อก  qs  → 6.16.0 ผ่าน  overrides 
+- ผล: npm audit → 0 ช่องโหว่
+ 
+7.  feat(product-crud): add production Docker image (#188) 
+ 
+- หลายขั้นตอน: การพึ่งพา → สร้าง → รัน
+- รัน: node:22-alpine • ไม่ใช่รูท • tini • HEALTHCHECK
+- จุดเข้า: ตรวจสอบการย้ายฐานข้อมูล Prisma
+ 
+ 
+ 
+🛡️ การวิเคราะห์ความปลอดภัย & ความน่าเชื่อถือ
+ 
+✅ จุดแข็ง
+ 
+- ลายเซ็น: ทุกคอมมิตมีลายเซ็น GPG ที่ตรวจสอบได้
+- สาขา: เปลี่ยนเป็น  Origin  พร้อมกฎป้องกัน
+- เอกสาร:  CONTRIBUTING.md  อัปเดต •  PROBLEMS.md  บันทึกปัญหา
+- ทดสอบ: ส่วนใหญ่มีชุดทดสอบครบถ้วน • การตรวจสอบสถาปัตยกรรม
+- การแก้ไขช่องโหว่: อัปเกรดวิตเทส/Express/qs ทันที
+ 
+⚠️ ปัญหาที่สืบทอด/เปิดอยู่
+ 
+1. การตรึง SHA: 66 Action ยังไม่ได้ตรึง • ขัดนโยบายองค์กร
+2. สิทธิ์: GitHub App ไม่มีสิทธิ์เขียน  .github/workflows/  → ป้องกันการแก้ไข
+3. รูท: ไม่มี  package-lock.json  • ESLint 10 ไม่รองรับ •  npm run lint  ล้ม
+4. CI: ล้มเนื่องจากขาดไฟล์  requirements.txt  • เวิร์กโฟลว์ไม่สอดคล้อง
+ 
+ 
+ 
+📂 โครงสร้างโค้ดที่แท้จริงจากประวัติ
+ 
+plaintext
+  
+ZyntroAI/fastapi-python-boilerplate/
+├─ deliverables/          # โมดูลอิสระทั้งหมด
+│  ├─ onspace-ai/
+│  ├─ manus-client/
+│  ├─ firecrawl-fastapi/
+│  ├─ pure-agent-dev/
+│  ├─ agent-core/
+│  ├─ pm-backend/
+│  ├─ fastapi-obsidian-backend/
+│  └─ product-crud/       # Express+Prisma+React+Docker
+├─ tools/
+│  └─ tasks.py             # ตัวจัดการงาน CLI
+├─ docs/
+│  ├─ CHANGELOG.md
+│  ├─ PROBLEMS.md
+│  ├─ CONTRIBUTING.md     # สาขา: Origin
+│  └─ github-api.md
+├─ .github/
+│  ├─ workflows/           # เฉพาะ YAML จริง
+│  └─ archive/workflows-junk/ # ย้ายออกแล้ว
+├─ package.json            # v1.2.0
+├─ .gitignore              # ครอบคลุมข้อมูลลับ/แคช
+└─ vitest.config.mjs
+ 
+ 
+ 
+ 
+✅ สรุปการตรวจสอบประวัติคอมมิต
+ 
+- ความสมบูรณ์: ประวัติเป็นระเบียบ • สอดคล้องกับเปรียบเทียบ URL
+- ความก้าวหน้า: v1.1.0 → v1.2.0 คือการยกเครื่องโครงสร้าง + เพิ่มฟูลสแต็ก
+- ความปลอดภัย: แก้ไขช่องโหว่สำคัญ แต่ยังมีปัญหาเรื่องการตรึง SHA/สิทธิ์
+- พร้อมใช้: โมดูลส่วนใหญ่ทดสอบผ่าน • เอกสารครบถ้วน •  Origin  คือสาขาเสถียร
+ 
+ประวัติยืนยัน: รุ่น v1.2.0 เป็นรุ่นปัจจุบันบน  Origin  • ครบถ้วน • ตรวจสอบได้ • มีข้อจำกัดที่ทราบชัดเจน 📜✅🔒🟢

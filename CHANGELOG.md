@@ -5,6 +5,231 @@ All notable changes to this repository. Dates are UTC.
 Open problems and known blockers are tracked separately in
 [`PROBLEMS.md`](./PROBLEMS.md), using the same date sections.
 
+## [2026-09-14]
+
+### Added
+- **PR #281** — `deliverables/docs-verify/` — a read-only tool that checks the
+  repository's own documentation against the tree. PRs #269/#274/#276 each cited
+  `scripts/verify_readme_facts.py` as evidence, but that script lived only in the
+  author's workspace, so the evidence could not be re-run by anyone; it is now in
+  the repo. Checks README-declared counts (deliverables, docs, workflows — both
+  numeral and spelled-out forms), every deliverable being named, backticked paths
+  resolving, workflow YAML parse state, the SHA-pin split, the LICENSE holder,
+  `package.json`'s `license`, and PROBLEMS.md's structure (unique ids, unique and
+  descending date sections). Counts compare against what the README itself
+  declares rather than a frozen number, so the checks survive the tree changing
+  legitimately and fail only on real drift. 17 tests over synthetic fixture trees.
+  On its first run it caught two live drifts from concurrent merges —
+  deliverables 25→26 and docs 32→34, both corrected in the same PR. The one
+  remaining failure is the known P-001 defect (5 of 11 workflows do not parse).
+- **PR #266** — deliverables: added `deliverables/official-docs/`, an official
+  documentation registry for the tools and services this project depends on.
+  `src/official-docs.json` carries the registry and `src/official_docs.py`
+  (Python) plus `src/official-docs.js` / `src/utils.ts` (JS/TS) read it from
+  either side of the stack. Every link is verified rather than assumed:
+  `scripts/verify_links.py` checks the registry against the live URLs and
+  `tests/test_official_docs.py` / `tests/official-docs.test.mjs` cover the
+  loaders. The React side (`src/Company.jsx` + `Company.module.css`) renders a
+  docs bar and an image gallery from the same registry, so the UI cannot drift
+  from the data; `scripts/export_registry.mjs` and `scripts/render_smoke.mjs`
+  round out the build-and-check path.
+- **PR #265** — deliverables: added `deliverables/fig-best-practices/`, a
+  quality gate for projects built on the Fig platform. `BEST-PRACTICES.md` is the
+  policy, `SKILL.yaml` wires it up as a skill, and the checker engine runs it
+  against a project tree; `ci/quality-gate.yml` is the GitHub Actions entry
+  point. Six agent briefs (`agents/developer.md`, `reviewer.md`, `security.md`,
+  `designer.md`, `performance.md`, `deployment.md`) state what each role is
+  expected to enforce, and `design/design-tokens.json` holds the shared tokens.
+  Two fixture projects ship with it — `examples/broken-project/` and
+  `examples/clean-project/` — so the gate is exercised against a known-bad and a
+  known-good tree rather than only in the happy path. 69 tests.
+
+- **PR #283** — recorded TASK-20260914-001 for today's documentation work
+  (README rewrite, `LICENSE` holder, `package.json` licence, `PROBLEMS.md`
+  repair, `docs-verify`). The work had merged across twelve PRs but left no
+  trace in the repo's own task tracker, which its Definition of Done requires.
+  Filed under `inprogress/` rather than `done/` because the out-of-scope items
+  — P-001 workflow repair, `.env` key rotation, branch pruning — are still open
+  and need an owner call on whether they fold in or split out. Tracker suite
+  passes at 20 tests.
+### Changed
+- **PR #278** — repaired three defects in `PROBLEMS.md`. P-002 claimed 66
+  unpinned action refs and its own `[2026-09-11]` re-verify said 23; measured
+  today the tree has 60 unpinned of 73 (30 distinct `uses:` values), and neither
+  earlier figure reproduces — the entry now carries the per-file breakdown, the
+  measurement date, and says plainly that both prior counts are stale rather
+  than substituting one unverifiable number for another. `P-009` was shared by
+  two unrelated problems (the root `tests/` suite that never collects, and
+  `release_drafter.yaml` sitting in `workflows/`), so the latter is now `P-011`
+  with a breadcrumb; `docs/releases/v1.2.0.md` cited that ambiguous id. Two
+  `## [2026-09-11]` sections also existed on opposite sides of `[2026-09-10]`,
+  breaking reverse-chronological order — consolidated into one, with no entry
+  changing date. Verified: 12 entry headings and 11 code fences before and
+  after, ids `P-001`..`P-011` all present and unique.
+- **PR #276** — declared the MIT license in `package.json`. The root
+  `package.json` carried no `license` field at all, so npm tooling and GitHub's
+  license detection had nothing to read even though `LICENSE` has been MIT from
+  the start; added `"license": "MIT"` after `version`. `"private": true` is
+  unchanged. Removed the completed item from the README order-of-attack list and
+  renumbered the remaining four, and the fact-check script gained an assertion so
+  the field cannot drift back: 71 checks, 0 failed. Edit is a single inserted
+  line — key order, quoting and trailing-newline style preserved.
+- **PR #274** — filled in the `LICENSE` copyright holder. Line 3 read
+  `Copyright (c) 2026 [zyntromedia]`, placeholder brackets never removed, so the
+  file named no real holder; it now reads `Copyright (c) 2026 Zyntro Media`,
+  matching the ZyntroAI organisation display name (the placeholder text was that
+  same name, uncleaned). Removed the README bullet that reported the placeholder
+  as outstanding, and inverted the fact-check assertion with it —
+  `scripts/verify_readme_facts.py` used to assert the placeholder was present,
+  it now asserts the holder is filled: 70 checks, 0 failed.
+- **PR #269** — rewrote `README.md` so it matches the repository as it stands
+  (+119/−767). The previous content was a pasted CI/CD-and-branch-strategy draft
+  that described controls, workflows and branches this repo does not have: it named
+  `Origin` as the primary integration branch (`main` is the default and the only PR
+  target; `Origin` is not in sync and triggers nothing), listed six workflows that do
+  not exist (`cd-deploy.yml`, `scheduled-cleanup.yml`, `notify.yml`, `codeql.yml`,
+  `container-scan.yml`, `masterfiles-guard.yml`), and asserted protected paths
+  (`masterfiles/`, `config/`, `system/`, `settings/`) that are absent from the tree.
+  The rewrite states the true CI/CD position — 13 of 73 `uses:` refs SHA-pinned,
+  60 still tagged, 5 of 11 workflow files unparseable so they never run — adds a
+  deployment-environment table from the live Environments API (`main` has a 15-minute
+  wait timer; `Production`/`Preview`/`copilot` have none), and moves every
+  not-yet-implemented governance item into an explicit **Target state** section with a
+  "Present? No" column. Verified by `scripts/verify_readme_facts.py`: 68 checks, 0
+  failed.
+
+- **PR #267** — hardened JWT secret validation and moved users onto a database.
+  `app/security.py` now rejects a signing key shorter than 32 characters and
+  refuses a set of known placeholder values (`changeme`, `secret`, `jwt-secret`,
+  …), so a misconfigured deployment fails loudly instead of signing tokens with
+  a guessable key; the local fallback generates a full-strength key written to a
+  git-ignored file. Added `app/user_store.py`, a SQLAlchemy-backed user table that
+  imports legacy JSON users on first init, keeping the existing
+  `{username, hashed_password, allowed_skills}` shape so the API surface and
+  per-user skill gating are unchanged. `DATABASE_URL` selects Postgres, otherwise
+  SQLite. Verified: 43 tests pass in a clean venv.
+
+### Fixed
+- **PR #262** — chore(lint): dropped the unused `import sys` from
+  `knowledge/scripts/diff_policy.py`, the only unreferenced import left in the file.
+  Supersedes **#253**, which asked for the same cleanup but branched from an older
+  59-line snapshot of the file while `main` had moved on to 188 lines — the diff no
+  longer applied, so it sat `CONFLICTING / DIRTY` as a draft. `import os`, the other
+  name #253 removed, is not imported on `main` at all. Verified: the file compiles
+  and an AST pass reports no unused imports beyond `__future__.annotations`.
+
+- **PR #287** — recorded the P-001 workflow repair and shipped it as a verified
+  patch. Five files under `.github/workflows/` were not valid YAML so GitHub never
+  ran them; the repair is complete and `git apply --check` confirms
+  `patches/pr-repair-workflows.patch` applies clean to `main`, after which
+  `yaml.safe_load` parses 10/10 files. It cannot be pushed as a PR — the App lacks
+  the installation-scoped `workflows` scope (P-003). Two false claims were
+  corrected while verifying: `ci.yml` was never broken (PR #230 repaired it before
+  P-001 was filed) and the README asserted all eleven files parse when only six do.
+  P-001 is marked **FIX PREPARED**, not FIXED — nothing is applied on `main` yet.
+
+
+## [2026-09-13]
+
+### Added
+- **PR #245** — docs(knowledge): gave the knowledge notes an index, a manifest and
+  front matter. Added `knowledge/README.md` (note table plus a tag table carrying
+  per-tag counts and members), `knowledge/manifest.yml`, and
+  `knowledge/sync_knowledge_index.py` (dry-run by default) to derive a machine-readable
+  index from the notes. YAML front matter added to the six Supabase notes so the index
+  and the vault agree on `title`/`description`/`tags`/`supabase_area`/`doc_kind`/`status`.
+- **PR #240** — skills: added `ci-workflow-authoring`, a skill for writing workflows
+  that run on the first attempt, plus `lint.py` to check them. `lint.py` validates YAML
+  parse, required top-level keys, per-job `runs-on`/`steps`, `uses`-or-`run` on every
+  step, full-SHA pinning, concatenated documents and hardcoded credentials, exiting
+  non-zero so it drops into CI as-is. Pointed at this repository it flagged 9 of the
+  10 workflows then on `main` — every one for the same reason, an unresolvable action
+  ref in `Set up job`, which is why every PR showed red checks regardless of its diff.
+  One subtlety it had to learn: PyYAML resolves a bare `on:` key to boolean `True`
+  (YAML 1.1), so a naive `"on" in doc` check reports every valid workflow as missing
+  its trigger — its first run flagged all three of its own examples. 16 tests. Three
+  corrected example workflows accompany it, each annotating what the draft it came
+  from got wrong; they live under `examples/` rather than `.github/workflows/` because
+  pushing there needs the `workflows` permission.
+- **PR #238** *(opened — pending merge)* — skills: added `pr-triage-automove`, the
+  automated form of `organize-misplaced-files`. A root file is relocated only when
+  all three hold: it is not canonical (`config.py` allow-list), no tracked `.py`
+  imports it as a module (**AST-parsed** — Python 3 resolves `import auth` inside
+  `app/api/auth.py` to top-level `auth`, so only the import graph separates a
+  sibling from root `auth.py`), and its name appears in no other tracked text file.
+  Wraps the move in an import probe: `classify → probe(before) → git mv →
+  probe(after) → regression?`, run in a child process so a poisoned import cannot
+  kill the run. A FAIL that was already a FAIL is **not** a regression (this repo's
+  `app.main` / `main` are deliberately not blocking), UNKNOWN never blocks, and on a
+  real regression every `git mv` is reversed with exit 2. Dry-run is the default;
+  `--apply` is required to move anything. 37 tests pass; an `--apply` run against a
+  copy of this repo moved 112 files as 112 renames with 0 deletions and identical
+  import health before/after. Reference workflow in `examples/` carries full-SHA
+  pins and is report-only by default.
+
+### Changed
+- **PR #237** *(opened — pending merge)* — chore: archived 109 misplaced root files
+  to `archive/root-2026-09/` via `git mv` (**no deletions** — the diff is 109
+  renames). A file moved only when it was not canonical, no tracked `.py` imported
+  it (AST-verified), and its name appeared in no other tracked file. 56 root files
+  were kept, several of which look like clutter and are not: `ci.yml`,
+  `codeql.yml` and `deployment.yaml` are named by `FILE-MANIFEST.md`,
+  `k8s/README.md` and `k8s/kustomization.yaml`; `Plan` by `ROADMAP.md`;
+  `context_guard_4060.py` by `app/core/context_guard.md`. Added `pyproject.toml` —
+  the Makefile ran `ruff check app tests` and declared black/isort/mypy in
+  `requirements-dev.txt`, but there was no config for any of them at the root, so
+  lint ran on defaults. Also added two skills, `organize-misplaced-files` and
+  `pr-full-lifecycle`.
+- **PR #236** — docs: rewrote `README.md` to describe the repository as it stands
+  rather than as it was intended. The previous text presented an OAuth2-only service;
+  the tree actually holds three FastAPI entrypoints (`main.py`, `app/main.py`,
+  `app/core/main.py`), a GraphQL service, a frontend, 20 deliverable suites, skills and
+  docs. The replacement adds a quick start that runs, a table of entrypoints naming
+  which one `app/Dockerfile` and `vercel.json` actually serve, a split between required
+  and optional configuration, the real test command, and a `Known state` section
+  recording what is genuinely broken — the tracked `.env` holding live keys, the root
+  Node tooling declared but not wired, the root `Dockerfile` being a Node build — with
+  counts that can be checked (20 `uses:` SHA-pinned, 61 still on tags).
+- **PR #233** — ci: activated the WhatsApp notification workflow. The workflow
+  action moved from `templates/workflows/notify-whatsapp.yml` (inert — `templates/`
+  is not read by Actions) to `.github/workflows/notify-whatsapp.yml`, with the
+  comment header updated to describe the live triggers (push to `main`, plus
+  completion of the `Test & Coverage` workflow) and the required secrets.
+  `docs/notifications/WHATSAPP.md` now documents the workflow as active instead
+  of a template to copy.
+
+### Fixed
+- **PR #243** — ci: repaired `auto-compress-manage.yml`, which had failed at
+  `Set up job` on all 781 runs. Five action refs pointed at SHAs that do not exist in
+  their upstream repositories (confirmed against the commit API, `No commit found for
+  SHA`): `calibreapp/image-actions`, `peter-evans/create-pull-request`,
+  `stefh/ghaction-CompressFiles`, `actions/checkout` and `actions/upload-artifact`.
+  Each was replaced with a verified commit. Four skip conditions were added at the same
+  time — `on.paths` globs so commits touching no image or web file skip the workflow
+  entirely, and a bot-loop guard so `scan` skips `auto/*` branches and commits carrying
+  `[skip ci]` — because adding the guard without fixing the refs would have left the
+  workflow failing anyway. Delivered under `deliverables/ci/` (workflow, README and a
+  validating script) for application to `.github/workflows/`.
+- **PR #237** *(opened — pending merge)* — the FastAPI app entrypoint could not be
+  imported. (1) `app/services/__init__.py` did `from .users import UserService`, a
+  class that has never existed in that package (`users.py` defines `UserRepo`,
+  `get_repo`, `fanout_profile`); because a package `__init__` runs before any
+  submodule import, that one wrong name broke every `from app.services.<x> import y`
+  and stopped `app.main` — the entrypoint in `app/Dockerfile` and `vercel.json` —
+  from importing at all. It now carries no package-level imports, matching
+  `app/__init__.py`. (2) `app/core/config.py` used the pydantic v1 `class Config`
+  and pydantic v2's default `extra="forbid"`, so the repo's own `.env` (WhatsApp and
+  BytePlus keys the app never declares) made `Settings` raise at import; switched to
+  `SettingsConfigDict` with `extra="ignore"`. (3) `requirements.txt` was missing ten
+  modules that `app/` imports — `pydantic-settings`, `python-jose`, `PyJWT`,
+  `python-json-logger`, `redis`, `sqlalchemy`, `alembic`, `requests`, `slowapi`,
+  `prometheus-fastapi-instrumentator` — so a fresh install failed at import.
+  Verified before/after with the same import probe: `main` and `app.main` go
+  FAIL → OK (8 routes). `app/core/main.py` was already broken on `main` and is left
+  that way: it imports `auth_router`, `init_db`/`close_db` and
+  `items_router`/`users_router` that no longer exist, and repairing it means
+  deciding what those APIs should be — recorded in `README.md` rather than guessed at.
+
 ## [2026-09-12]
 
 ### Added

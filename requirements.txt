@@ -7,3 +7,10 @@ openai>=1.54.0              # ← Major ver update (3.x → 1.x is actually olde
 langgraph>=1.3.3            # ← Minor update
 langchain>=1.6.4            # ← Minor update
 langchain-openai>=1.10.3    # ← Minor update
+openai>=3.9.0
+langgraph>=1.2.11          # ✅ LangGraph
+langchain>=1.4.0          # ✅ LangChain Base
+langchain-openai>=1.6.1   # ✅ OpenAI Integration
+pytest==8.0.2          # เพิ่ม
+pytest-cov==4.1.0      # เพิ่ม
+flake8==6.1.0          # เพิ่ม

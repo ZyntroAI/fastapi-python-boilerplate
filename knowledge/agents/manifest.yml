@@ -1,0 +1,60 @@
+# knowledge/agents/manifest.yml -- machine-readable index of agent task skills
+# Each skill is a self-contained module: SKILL.md (contract) + main.py (logic) + tests/.
+
+version: 1
+kind: agent-skills
+conventions:
+  layout: "<skill>/SKILL.md + <skill>/main.py + <skill>/tests/test_<skill>.py"
+  entrypoint: "<skill>.main"
+  tests: pytest
+  python: ">=3.12"
+
+skills:
+- id: task-master
+  name: Task Master
+  path: task-master
+  module: knowledge.agents.task_master.main
+  type: agents/planning/decomposition
+  responsibility: "Decompose a goal into subtasks, order by dependency, refuse cycles."
+  inputs: [goal, subtasks]
+  outputs: [waves, critical_path_hours, plan]
+- id: result-orchestrator
+  name: Result Orchestrator
+  path: result-orchestrator
+  module: knowledge.agents.result_orchestrator.main
+  type: agents/execution/orchestration
+  responsibility: "Collect outcomes, apply quality gates, reduce to one verdict."
+  inputs: [subtask_results]
+  outputs: [verdict, pass_ratio, failure_reasons]
+- id: milestone-tracker
+  name: Milestone Tracker
+  path: milestone-tracker
+  module: knowledge.agents.milestone_tracker.main
+  type: agents/planning/tracking
+  responsibility: "Grade phase timeline health from slip against schedule."
+  inputs: [milestones]
+  outputs: [overall, grade_counts, total_slip_days]
+- id: blocker-resolver
+  name: Blocker Resolver
+  path: blocker-resolver
+  module: knowledge.agents.blocker_resolver.main
+  type: agents/execution/recovery
+  responsibility: "Classify obstacles, attach a playbook, route escalations."
+  inputs: [blockers]
+  outputs: [resolutions, escalation_ids]
+- id: handoff-coordinator
+  name: Handoff Coordinator
+  path: handoff-coordinator
+  module: knowledge.agents.handoff_coordinator.main
+  type: agents/coordination/handoff
+  responsibility: "Validate a handoff payload before work crosses an owner boundary."
+  inputs: [handoff]
+  outputs: [status, problems, receiver_next_step]
+- id: summary-reporter
+  name: Summary Reporter
+  path: summary-reporter
+  module: knowledge.agents.summary_reporter.main
+  type: agents/communication/reporting
+  responsibility: "Render an executive update that leads with required decisions."
+  inputs: [tasks]
+  outputs: [headline, markdown_report]

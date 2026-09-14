@@ -1,0 +1,527 @@
+Skills แปลง docs เป็น skills books ไว้ใช้
+
+น่าจะหมายถึง book-to-skill — เครื่องมือสำหรับแปลง PDF, EPUB, DOCX, HTML, Markdown และเอกสารยาว ๆ ให้เป็น Agent Skill ที่เรียกใช้ซ้ำได้ โดยเน้นดึง framework, decision rules, mental models, checklist และ anti-patterns ไม่ใช่แค่สรุปหนังสือ[1][2]
+
+ตัวที่แนะนำ
+
+• Repository:virgiliojr94/book-to-skill บน GitHub
+• เว็บไซต์:booktoskill.com
+• ใช้กับ Claude Code, GitHub Copilot CLI และ Amp ได้
+• ผลลัพธ์มักประกอบด้วย SKILL.md, โฟลเดอร์ chapters/, glossary, patterns และ cheatsheet[2]
+
+วิธีติดตั้ง
+
+bash
+npx skills add virgiliojr94/book-to-skill
+
+
+หรือถ้าใช้ Claude Code แบบติดตั้งเอง:
+
+bash
+git clone https://github.com/virgiliojr94/book-to-skill.git \
+  ~/.claude/skills/book-to-skill
+
+
+ถ้าต้องการใช้เป็น CLI:
+
+bash
+pip install "book-to-skill[pdf,epub,docx] @ git+https://github.com/virgiliojr94/book-to-skill.git"
+
+
+วิธีแปลงเอกสาร
+
+แปลงหนังสือหนึ่งเล่ม:
+
+bash
+/book-to-skill ~/books/design-patterns.pdf
+
+
+ตั้งชื่อ skill เอง:
+
+bash
+/book-to-skill ~/books/design-patterns.pdf software-design
+
+
+แปลงหลายไฟล์รวมเป็น skill เดียว:
+
+bash
+/book-to-skill \
+  ~/docs/manual.pdf \
+  ~/docs/notes.md \
+  ~/docs/examples/ \
+  project-knowledge
+
+
+แปลงไฟล์ทั้งหมดในโฟลเดอร์:
+
+bash
+/book-to-skill "~/books/*.epub" my-library
+
+
+คำสั่ง CLI โดยตรง:
+
+bash
+book-to-skill ~/books/book.pdf --mode text
+
+
+โครงสร้างผลลัพธ์
+
+โดยทั่วไปจะได้ลักษณะประมาณนี้:
+
+text
+software-design/
+├── SKILL.md
+├── chapters/
+│   ├── chapter-01-foundations.md
+│   ├── chapter-02-patterns.md
+│   └── chapter-03-examples.md
+├── glossary.md
+├── patterns.md
+└── cheatsheet.md
+
+
+ไฟล์ SKILL.md จะเป็น entry point ขนาดสั้น ส่วนรายละเอียดจะแยกไว้ในไฟล์บทต่าง ๆ เพื่อให้ agent เปิดอ่านเฉพาะส่วนที่เกี่ยวข้อง ลดการยัดเอกสารทั้งเล่มเข้า context window[3][4]
+
+รูปแบบการใช้งานที่เหมาะ
+
+ตัวอย่างเช่น แปลงหนังสือเกี่ยวกับ product management แล้วได้ skill ชื่อ product-discovery จากนั้นถาม agent ว่า:
+
+text
+ใช้ framework จาก product-discovery
+ช่วยวิเคราะห์ปัญหาของฟีเจอร์นี้
+
+
+หรือ:
+
+text
+เปิด decision rules จาก product-discovery
+แล้วช่วยออกแบบขั้นตอนสัมภาษณ์ลูกค้า
+
+
+จุดสำคัญคือควรใช้กับเอกสารที่คุณมีสิทธิ์ใช้งาน และตรวจสอบผลลัพธ์ก่อนนำไปใช้จริง เพราะการแปลงเอกสารอาจตีความ framework หรือข้อสรุปบางส่วนคลาดเคลื่อนได้[5]
+
+การอ้างอิง:
+[1] book-to-skill • virgiliojr94 • Skills • Registry https://tessl.io/registry/skills/github/virgiliojr94/book-to-skill/book-to-skill/security
+[2] SKILL.md https://www.booktoskill.com/skill
+[3] book-to-skill: Stop Rereading PDFs Turn Any Book into an ... https://www.booktoskill.com/
+[4] วิธีเปลี่ยนไฟล์เอกสารเทคนิคให้เป็นทักษะสำหรับ AI Agent https://www.ssdnodes.com/learn/lang/th/book-to-skill-pdfs-into-agent-skills
+[5] book-to-skill (Grade A) - Claude Skill https://www.skillsdirectory.com/skills/markoblogo-book-to-skill
+[6] Readme https://www.booktoskill.com/readme
+[7] virgiliojr94/book-to-skill - Claude Skills Hub https://claudeskillsgithub.com/repositories/book-to-skill
+[8] book-to-skill https://explainx.ai/skills/OWNER/REPO/book-to-skill
+[9] 12 สกิล AI PDF สำหรับทำเวิร์กโฟลว์เอกสารแบบอัตโนมัติ https://www.kimi.com/th/resources/pdf-skills-for-agents
+[10] book-to-skill - Turn Any Book Into an AI Agent Skill https://booktoskill.is-a.dev/
+
+book-to-skill รองรับ AI tool ตัวไหนบ้างนอกจาก Claude Code
+
+นอกจาก Claude Code แล้ว book-to-skill รองรับหลัก ๆ ดังนี้:
+
+
+AI tool / agent
+รองรับ
+วิธีทำงาน
+
+GitHub Copilot CLI
+✅
+ใช้ /book-to-skill ในเซสชัน Copilot
+
+Amp
+✅
+อ่าน skill ผ่านโฟลเดอร์ cross-agent
+
+Hermes Agent
+✅
+รองรับมาตรฐาน Agent Skills และไฟล์ SKILL.md
+
+Codex
+✅ ในระดับการค้นพบ skill
+สร้างไว้ที่ ~/.agents/skills/ แล้ว Codex ค้นพบได้ตามมาตรฐานเดียวกัน
+
+Cursor
+ไม่ได้ระบุเป็นตัวรองรับโดยตรง
+อาจใช้ไฟล์ skill ที่สร้างแล้วได้ หากตั้งค่าให้ Cursor อ่าน Agent Skills
+
+ChatGPT / Gemini / Perplexity
+ไม่ได้รองรับโดยตรง
+ไม่ใช่ปลั๊กอินหรือ integration สำเร็จรูปของ book-to-skill
+
+
+
+เอกสารและ README ล่าสุดระบุชื่อที่รองรับโดยตรงคือ GitHub Copilot CLI, Amp, Claude Code และ Hermes Agent โดยทั้งหมดอ่านโครงสร้างมาตรฐานเดียวกันคือ SKILL.md[1][2]
+
+จุดสำคัญ
+
+book-to-skill ไม่ได้ผูกกับโมเดล Claude โดยตรง แต่สร้างไฟล์ Agent Skill แบบเปิด ดังนั้นตัว agent ที่รองรับมาตรฐานนี้สามารถนำผลลัพธ์ไปใช้ได้ แม้คำสั่ง /book-to-skill และตำแหน่งติดตั้งจะแตกต่างกันตามเครื่องมือ[1]
+
+ตัวอย่างตำแหน่งติดตั้ง:
+
+bash
+# GitHub Copilot CLI
+~/.copilot/skills/book-to-skill/
+
+# Amp / cross-agent
+~/.agents/skills/book-to-skill/
+
+# Claude Code
+~/.claude/skills/book-to-skill/
+
+
+สำหรับ Codex ให้เก็บ skill ที่:
+
+bash
+~/.agents/skills/<ชื่อ-sกิลล์>/
+
+
+README ระบุว่าโฟลเดอร์ cross-agent นี้ถูกค้นพบโดย Copilot CLI, Amp และ Codex ขณะที่ Claude Code จะใช้ symlink ไปยังโฟลเดอร์ของตัวเองเมื่อทำได้[1][3]
+
+สรุปสั้น ๆ
+
+ถ้าต้องการใช้ตอนนี้แบบมีเอกสารรองรับชัดเจน ให้เลือก:
+
+1. GitHub Copilot CLI
+2. Amp
+3. Hermes Agent
+4. Codex สำหรับนำ skill ที่สร้างแล้วไปใช้
+
+ส่วน Cursor หรือเครื่องมือแชตทั่วไปอาจนำเนื้อหาใน SKILL.md ไปใช้ได้ด้วยการวางไฟล์หรือแปลง workflow เอง แต่ยังไม่ควรเรียกว่าเป็นการรองรับอย่างเป็นทางการของ book-to-skill จากข้อมูลที่พบ[1][2]
+
+การอ้างอิง:
+[1] GitHub - virgiliojr94/book-to-skill: Turn any technical book PDF into a ... https://github.com/virgiliojr94/book-to-skill
+[2] book-to-skill/SKILL.md at master · virgiliojr94/book-to-skill - GitHub https://github.com/virgiliojr94/book-to-skill/blob/master/SKILL.md
+[3] book-to-skill/docs/install.md at master - GitHub https://github.com/virgiliojr94/book-to-skill/blob/master/docs/install.md
+[4] Virgilio Junior virgiliojr94 - GitHub https://github.com/virgiliojr94
+[5] Releases · virgiliojr94/book-to-skill - GitHub https://github.com/virgiliojr94/book-to-skill/releases
+[6] book-to-skill/docs/ARCHITECTURE.md at master · virgiliojr94/book ... https://github.com/virgiliojr94/book-to-skill/blob/master/docs/ARCHITECTURE.md
+[7] PERFORMANCE.md - virgiliojr94/book-to-skill - GitHub https://github.com/virgiliojr94/book-to-skill/blob/master/docs/performance.md
+[8] SECURITY.md - virgiliojr94/book-to-skill - GitHub https://github.com/virgiliojr94/book-to-skill/blob/master/SECURITY.md
+[9] agent-skills · GitHub Topics · GitHub https://github.com/topics/agent-skills
+[10] Getting Started & Installation | virgiliojr94/book-to-skill | DeepWiki https://deepwiki.com/virgiliojr94/book-to-skill/1.1-getting-started-and-installation
+[11] virgiliojr94/book-to-skill | DeepWiki https://deepwiki.com/virgiliojr94/book-to-skill
+[12] Usage & Generated Skill Interface | virgiliojr94/book-to-skill | DeepWiki https://deepwiki.com/virgiliojr94/book-to-skill/1.2-usage-and-generated-skill-interface
+[13] Anand Butani https://x.com/AnandButani/status/2085788292310589749
+
+มาตรฐาน Agent Skills แตกต่างจาก MCP อย่างไร
+
+สั้น ๆ คือ Agent Skills สอน AI ว่า “ควรทำงานอย่างไร” ส่วน MCP ทำให้ AI “เข้าถึงและสั่งงานระบบภายนอกได้” ทั้งสองอย่างจึงมักใช้ร่วมกัน ไม่ได้เป็นมาตรฐานที่มาแทนกัน[1][2]
+
+เปรียบเทียบหลัก
+
+
+ประเด็น
+Agent Skills
+MCP
+
+หน้าที่
+บรรจุความรู้ ขั้นตอน กฎ และแนวทางปฏิบัติ
+เชื่อม AI กับเครื่องมือ ข้อมูล และบริการภายนอก
+
+รูปแบบ
+โฟลเดอร์ที่มี SKILL.md และไฟล์ประกอบ
+โปรโตคอล client-server สำหรับเรียก tools, resources และ prompts
+
+AI ได้อะไร
+วิธีคิดและวิธีทำงานที่เป็นระบบ
+ความสามารถในการอ่าน/เขียน/เรียกใช้งานระบบจริง
+
+ข้อมูล
+โดยมากเป็นคำสั่งและความรู้แบบ static
+ข้อมูล live จากฐานข้อมูล API ไฟล์ หรือบริการภายนอก
+
+การติดตั้ง
+คัดลอกไฟล์หรือวางไว้ในโฟลเดอร์ skills
+ต้องตั้งค่า MCP server, การเชื่อมต่อ และบางกรณีต้องมี authentication
+
+การใช้งาน
+Agent อ่านเมื่อพบว่างานตรงกับ skill
+Agent เรียก tool เมื่อจำเป็นระหว่างทำงาน
+
+ตัวอย่าง
+ขั้นตอนทำ code review ตามมาตรฐานบริษัท
+เรียก GitHub เพื่ออ่าน PR และโพสต์ comment
+
+
+
+มาตรฐาน Agent Skills กำหนดโครงสร้าง SKILL.md ที่มี YAML frontmatter ตามด้วย Markdown และออกแบบให้โหลดแบบค่อยเป็นค่อยไป: เริ่มจากชื่อ/คำอธิบาย แล้วจึงอ่านคำสั่งและไฟล์อ้างอิงเมื่อจำเป็น[3]
+
+ตัวอย่างให้เห็นภาพ
+
+สมมติสร้างระบบให้ AI ตรวจสอบใบแจ้งหนี้:
+
+Agent Skill อาจบอกว่า:
+
+text
+1. ตรวจเลขผู้ขายกับข้อมูลในระบบ
+2. ตรวจยอดก่อนภาษี ภาษี และยอดสุทธิ
+3. หากยอดเกิน 100,000 บาท ให้ส่งต่อผู้จัดการ
+4. ห้ามอนุมัติเอกสารที่เลขบัญชีไม่ตรง
+
+
+MCP server อาจเปิดเครื่องมือให้ AI เรียกใช้:
+
+text
+get_vendor(vendor_id)
+get_invoice(invoice_id)
+check_bank_account(account_number)
+submit_for_approval(invoice_id, approver_id)
+
+
+Skill บอก ลำดับขั้นตอนและกฎการตัดสินใจ ส่วน MCP ทำให้ AI มีช่องทางเรียกข้อมูลและดำเนินการจริง
+
+ใช้ร่วมกันอย่างไร
+
+สถาปัตยกรรมที่เหมาะมักเป็น:
+
+text
+Agent Skill
+  └── บอก workflow และกฎ
+        └── เรียก MCP tools
+              ├── อ่านฐานข้อมูล
+              ├── ค้นเอกสาร
+              └── อัปเดตระบบภายนอก
+
+
+ตัวอย่างเช่น skill customer-support อาจสอนวิธีจัดลำดับความสำคัญของ ticket และรูปแบบคำตอบ ขณะที่ MCP เชื่อมต่อ Zendesk, CRM และระบบค้นหาความรู้ การใช้สองชั้นนี้ทำให้เปลี่ยนขั้นตอนการทำงานได้โดยแก้ skill และเปลี่ยนระบบปลายทางได้โดยแก้ MCP server แยกจากกัน[2][4]
+
+เลือกใช้อะไรดี
+
+ใช้ Agent Skills เมื่อ:
+
+• ต้องการสอน workflow หรือมาตรฐานเฉพาะของทีม
+• ต้องการแปลงหนังสือ คู่มือ หรือเอกสารเป็นความรู้ที่ agent เรียกใช้ซ้ำ
+• งานยังทำได้ด้วยไฟล์ คำสั่ง shell หรือความสามารถเดิมของ agent
+• ต้องการ portability สูงและไม่อยากดูแล server
+
+ใช้ MCP เมื่อ:
+
+• ต้องเข้าถึงข้อมูลสดจาก API, database หรือ SaaS
+• ต้องการให้ agent สร้าง แก้ไข หรือส่งข้อมูลไปยังระบบอื่น
+• ต้องการกำหนดเครื่องมือและ schema อย่างชัดเจน
+• ต้องการแยกสิทธิ์ การยืนยันตัวตน และขอบเขตการเข้าถึงออกจาก agent
+
+สำหรับ book-to-skill
+
+book-to-skill สร้าง Agent Skill ไม่ใช่ MCP server ดังนั้นผลลัพธ์จะสอน agent ให้ใช้หลักการจากหนังสือหรือเอกสาร หากต้องการให้ skill นั้นไปอ่านข้อมูลจริงหรือแก้ไขระบบภายนอก ก็เพิ่ม MCP เข้าไปภายหลังได้
+
+พูดแบบจำง่าย:
+
+Skill = คู่มือการทำงาน
+MCP = ปลั๊กหรือช่องเชื่อมต่อระบบ
+Agent = คนที่อ่านคู่มือแล้วใช้ปลั๊กทำงานจริง
+
+การอ้างอิง:
+[1] Agent Skills vs MCP: Architecture and Decision Guide [2026] - Atlan https://atlan.com/know/ai-agent/ai-agent-skills/agent-skills-vs-mcp/
+[2] MCP vs Agent Skills: What Each Is For and When to Use Both https://www.testmuai.com/blog/mcp-vs-agent-skills/
+[3] Specification - Agent Skills https://agentskills.io/specification
+[4] Build with Agent Skills - Model Context Protocol https://modelcontextprotocol.io/docs/2026-07-28/develop/build-with-agent-skills
+[5] agentskills.io https://agentskills.io/skill.md
+[6] Skills Vs Mcp: What Would I... https://jannikreinhard.com/agent-skills-vs-mcp/
+[7] Agent skills vs Model Context Protocol - [How] do you ... https://ravichaganti.com/blog/agent-skills-vs-model-context-protocol-how-do-you-choose/
+[8] MCP vs Agent Skills: The Key... https://www.cosmicjs.com/blog/mcp-vs-agent-skills
+[9] Agent Skills vs MCP Architecture | AI/Technical Use Case | K ... https://www.k-dense.ai/use-cases/agent-skills-vs-mcp-architecture
+[10] Agent Skills vs MCP: Two Standards, Two Security Models https://www.friedrichs-it.de/blog/agent-skills-vs-model-context-protocol/
+[11] Agent Skills vs MCP — AgentSkills.site https://www.agentskills.site/agent-skills-vs-mcp/
+[12] MCP vs. Agent Skills: A Decision Framework for Context ... https://dev.to/shakti_mishra_308e9f36b5d/mcp-vs-agent-skills-a-decision-framework-for-context-engineering-ljf
+[13] Model Context Protocol (MCP) vs Agent Skills - ByteBridge https://bytebridge.medium.com/model-context-protocol-mcp-vs-agent-skills-empowering-ai-agents-with-tools-and-expertise-3062acafd4f7
+[14] Agent Skills (SKILL.md) vs MCP: What's the Difference? (2... - Agensi https://www.agensi.io/learn/agent-skills-vs-mcp
+[15] What Are Agent Skills? The Complete 2026 Guide https://www.articsledge.com/post/agent-skills
+
+ตัวอย่างการเขียน SKILL md เพื่อทำงานร่วมกับ MCP server
+
+ได้ครับ แนวคิดคือให้ SKILL.md ระบุ workflow, กฎ, ลำดับการเรียกใช้ และเงื่อนไขความปลอดภัย ส่วน MCP server เป็นผู้ให้ tools สำหรับเข้าถึงระบบจริง เช่น GitHub, database หรือ CRM โดยมาตรฐานขั้นต่ำของไฟล์คือมี name และ description ใน YAML frontmatter[1][2]
+
+ตัวอย่างโครงสร้าง
+
+text
+invoice-audit/
+├── SKILL.md
+├── references/
+│   └── approval-policy.md
+└── examples/
+    └── sample-invoice.json
+
+
+ตัวอย่าง SKILL.md
+
+markdown
+---
+name: invoice-audit
+description: >
+  ตรวจสอบใบแจ้งหนี้กับข้อมูลผู้ขายและนโยบายอนุมัติ
+  ใช้เมื่อผู้ใช้ต้องการตรวจ invoice, ตรวจยอด, ตรวจบัญชีธนาคาร
+  หรือเตรียมเอกสารเพื่อส่งอนุมัติผ่านระบบบัญชี
+---
+
+# Invoice Audit
+
+## เป้าหมาย
+
+ตรวจสอบใบแจ้งหนี้อย่างเป็นระบบโดยใช้ข้อมูลจาก MCP server
+ห้ามอนุมัติหรือส่งเอกสารโดยไม่มีการยืนยันจากผู้ใช้
+
+## MCP tools ที่ใช้
+
+ใช้ tools ที่ MCP server เปิดให้ใช้ โดยชื่อจริงอาจแตกต่างกันตาม server:
+
+- `get_invoice`
+  - อ่านรายละเอียดใบแจ้งหนี้
+- `get_vendor`
+  - อ่านข้อมูลผู้ขายที่บันทึกไว้
+- `check_bank_account`
+  - ตรวจสอบเลขบัญชีกับข้อมูลผู้ขาย
+- `get_approval_policy`
+  - อ่านเกณฑ์และลำดับการอนุมัติ
+- `submit_for_approval`
+  - ส่งใบแจ้งหนี้เข้าสู่ขั้นตอนอนุมัติ
+
+อย่าสมมติว่ามี tool อื่นนอกเหนือจากรายการนี้
+ให้ตรวจสอบ tool schema ก่อนเรียกทุกครั้ง
+
+## ขั้นตอนการทำงาน
+
+1. ขอ `invoice_id` หากผู้ใช้ยังไม่ได้ระบุ
+2. เรียก `get_invoice(invoice_id)`
+3. ตรวจว่ามีข้อมูลต่อไปนี้:
+   - เลขใบแจ้งหนี้
+   - รหัสผู้ขาย
+   - ยอดก่อนภาษี
+   - ภาษี
+   - ยอดสุทธิ
+   - เลขบัญชีปลายทาง
+4. เรียก `get_vendor(vendor_id)`
+5. เปรียบเทียบ:
+   - ชื่อผู้ขาย
+   - เลขประจำตัวผู้เสียภาษี
+   - เลขบัญชีธนาคาร
+6. เรียก `check_bank_account(account_number)`
+7. เรียก `get_approval_policy(total_amount)`
+8. สรุปผลเป็น:
+   - ผ่าน
+   - ต้องตรวจสอบเพิ่มเติม
+   - ไม่ผ่าน
+9. หากผลเป็น “ผ่าน” ให้แสดงสิ่งที่จะส่งอนุมัติและขอการยืนยันจากผู้ใช้
+10. เรียก `submit_for_approval` เฉพาะหลังผู้ใช้ยืนยันแล้ว
+
+## กฎความปลอดภัย
+
+- ห้ามแก้ไขข้อมูลผู้ขายโดยอัตโนมัติ
+- ห้ามเปลี่ยนเลขบัญชีในใบแจ้งหนี้
+- ห้ามส่งอนุมัติหากชื่อผู้ขายหรือเลขบัญชีไม่ตรง
+- หากยอดเงินในเอกสารคำนวณไม่ตรง ให้หยุดและแจ้งผู้ใช้
+- หาก MCP tool ตอบข้อผิดพลาด ให้รายงานข้อผิดพลาดตามจริง
+- ห้ามลองเรียก tool ซ้ำแบบสุ่มเมื่อเกิดข้อผิดพลาด
+- การเรียก `submit_for_approval` เป็นการเปลี่ยนแปลงข้อมูลภายนอก ต้องขอการยืนยันก่อนเสมอ
+
+## รูปแบบผลลัพธ์
+
+รายงานผลดังนี้:
+
+### Invoice
+- ID:
+- Vendor:
+- Total:
+- Currency:
+
+### Checks
+- Vendor identity: PASS / FAIL / NEEDS REVIEW
+- Bank account: PASS / FAIL / NEEDS REVIEW
+- Amount calculation: PASS / FAIL
+- Approval policy: PASS / NEEDS REVIEW
+
+### Recommendation
+อธิบายว่าควรส่งอนุมัติหรือไม่ และเพราะเหตุใด
+
+หากต้องส่งอนุมัติ ให้แสดง:
+- invoice ID
+- ผู้อนุมัติ
+- จำนวนเงิน
+- หมายเหตุที่จะส่งไปพร้อมเอกสาร
+
+จากนั้นรอการยืนยันจากผู้ใช้
+
+
+MCP configuration ตัวอย่าง
+
+ตัวอย่างนี้เป็นแนวคิดทั่วไป ตำแหน่งไฟล์จริงขึ้นกับ AI client ที่ใช้:
+
+json
+{
+  "mcpServers": {
+    "accounting": {
+      "command": "npx",
+      "args": ["-y", "@example/accounting-mcp"],
+      "env": {
+        "ACCOUNTING_API_KEY": "${ACCOUNTING_API_KEY}"
+      }
+    }
+  }
+}
+
+
+หลังตั้งค่าแล้ว agent จะเห็น tools จาก MCP server เช่น:
+
+text
+accounting.get_invoice
+accounting.get_vendor
+accounting.check_bank_account
+accounting.get_approval_policy
+accounting.submit_for_approval
+
+
+ชื่อจริงของ tool ต้องยึดตาม MCP server ที่ติดตั้ง ไม่ควรเขียนชื่อสมมติใน SKILL.md แล้วคาดหวังว่าจะใช้งานได้เอง
+
+ตัวอย่างการทำงานจริง
+
+ผู้ใช้:
+
+text
+ตรวจ invoice INV-2026-0042 ให้หน่อย
+
+
+Agent ควรทำตามลำดับ:
+
+text
+1. เรียก accounting.get_invoice
+2. เรียก accounting.get_vendor
+3. เรียก accounting.check_bank_account
+4. เรียก accounting.get_approval_policy
+5. รายงานผลตรวจสอบ
+6. ถ้าจะส่งอนุมัติ ให้ขอยืนยันก่อน
+
+
+ถ้าผู้ใช้ตอบว่า:
+
+text
+ยืนยัน ส่งอนุมัติได้
+
+
+agent จึงค่อยเรียก:
+
+text
+accounting.submit_for_approval
+
+
+หลักการเขียนที่สำคัญ
+
+• เขียนชื่อและคำอธิบายให้ชัด เพื่อให้ agent รู้ว่าเมื่อใดควรเปิดใช้ skill
+• ระบุ MCP tools ที่คาดว่าจะใช้ แต่ต้องเตือนให้ตรวจสอบ schema จริงก่อนเรียก
+• แยก “อ่านข้อมูล” กับ “เปลี่ยนแปลงข้อมูล”
+• กำหนดจุดที่ต้องหยุดและขอการยืนยัน
+• อย่าใส่ API key หรือ credential ไว้ใน SKILL.md
+• เก็บรายละเอียดนโยบายยาว ๆ ไว้ใน references/ แล้วให้ skill เปิดอ่านเมื่อจำเป็น
+
+สรุปคือ SKILL.md ไม่ได้เรียก MCP โดยตรงแบบโค้ด แต่ทำหน้าที่เป็น คู่มือควบคุมการใช้ MCP tools ขณะที่ MCP server เป็นชั้นที่ประกาศและดำเนินการ tools จริง แนวทางนี้สอดคล้องกับรูปแบบการใช้งานที่ให้ skill กำหนดวิธีทำงาน และให้ MCP จัดหา data/tools ระหว่างการทำงาน[2][3]
+
+การอ้างอิง:
+[1] GitHub - agentskills/agentskills: Specification and ... https://github.com/agentskills/agentskills
+[2] How MCP and SKILL.md Work Together: Practical Examples - Agensi https://www.agensi.io/learn/mcp-and-skill-md-working-together
+[3] 2640-skills-extension.md https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/refs/heads/sep/skills-extension/seps/2640-skills-extension.md
+[4] How to Build an MCP Server That Serves SKILL.md Skills… https://www.agensi.io/learn/how-to-build-mcp-server-for-skills
+[5] Docs | skills.md https://skills.md/docs
+[6] SKILL.md Format Specification: Complete YAML ... https://www.agensi.io/learn/skill-md-format-reference
+[7] skills.md | API-based skills for agents https://skills.md/
+[8] Agent Integrations https://skills.md/docs/agents
+[9] Complete Guide to 17 Open-Source Agent Skills https://claude-world.com/articles/anthropic-official-skills-complete-guide/
+[10] Session 5: Skills, Extensions & MCP - Hacking with AI Workshop https://hack.l3.ai/session/5
+[11] skills - Claude Skill | MCP Hub | Model Context Protocol Hub https://www.aimcp.info/en/skills/44eed011-5ee2-4c08-9f26-512627453e16
+[12] Agent Skills: SKILL.md Files for AI Coding Agents | mdskills.ai https://www.mdskills.ai/skills
+

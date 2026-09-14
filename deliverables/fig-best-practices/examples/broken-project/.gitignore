@@ -1,0 +1,6 @@
+# This fixture must ship a committed .env — that is the defect SECURITY exists
+# to catch. The repository root ignores .env and .env.*, so re-include it here.
+#
+# Negation works because only the *file* pattern is excluded upstream, not a
+# parent directory.
+!.env

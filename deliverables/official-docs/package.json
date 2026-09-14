@@ -1,0 +1,11 @@
+{
+  "name": "zyntroai-official-docs",
+  "version": "1.2.0-origin",
+  "private": true,
+  "type": "module",
+  "description": "Official documentation registry — shared by the React front end and the FastAPI back end.",
+  "scripts": {
+    "export": "node scripts/export_registry.mjs",
+    "test": "node tests/official-docs.test.mjs"
+  }
+}
