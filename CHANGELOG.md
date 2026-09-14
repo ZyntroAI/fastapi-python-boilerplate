@@ -5,6 +5,30 @@ All notable changes to this repository. Dates are UTC.
 Open problems and known blockers are tracked separately in
 [`PROBLEMS.md`](./PROBLEMS.md), using the same date sections.
 
+## [2026-09-15]
+
+### Added
+- **PR #285** — `deliverables/dev-helpers/` — four small tools for the friction points in
+  automated GitHub work, each stdlib-only and each answering one question the
+  agent currently learns the hard way. `perm_checker` decides whether a push will
+  be accepted *before* it is attempted, from the changed paths plus the token's
+  permission map — including the case where one workflow file in a commit rejects
+  the whole push, not just that file. `ci_workflow` audits `.github/workflows/`
+  for unpinned actions (a 40-hex SHA counts as pinned; local `./` and `docker://`
+  refs are excluded) and for files that do not parse, reporting which engine
+  decided so a lenient fallback is never mistaken for a thorough check.
+  `approval_doc` turns a permission block into a request someone can grant in one
+  reading, with the no-grant alternative stated. `pr_helper` builds a pull-request
+  body whose Definition-of-Done gaps are visible, because an unmentioned item
+  defaults to unchecked rather than asserted. 25 stdlib `unittest` tests.
+
+### Docs
+- **PR #285** — `deliverables/dev-helpers/GUIDE.md` (Thai) and `GUIDE.en.md` (English) — each
+  helper documented as problem → mechanism → usage → real gotchas, including the
+  `str.lstrip("./")` trap (it takes a character set, not a prefix, and eats the
+  leading dot of `.github/`) which quietly turns a blocked push into a reported
+  pass.
+
 ## [2026-09-14]
 
 ### Added

@@ -1,0 +1,23 @@
+{
+  "id": "dev-helpers-suite-v1",
+  "name": "Dev Helpers — GitHub automation friction tools",
+  "version": "1.0.0",
+  "tags": [
+    "github",
+    "ci",
+    "permissions",
+    "pull-request"
+  ],
+  "status": "stable",
+  "input": [
+    "changed_paths",
+    "token_permissions",
+    "workflow_dir"
+  ],
+  "output": [
+    "push_verdict",
+    "workflow_audit",
+    "approval_request",
+    "pull_request_body"
+  ]
+}

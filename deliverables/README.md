@@ -13,6 +13,7 @@
 | `ai-agent-skills/` | [AI Agent Skills Bundle](./ai-agent-skills/README.md) — ชุด 20 agent skills + AI Context engine (progressive disclosure, least-privilege scopes, matcher/router, 13 tests) |
 | `ai-agents-decision-pack/` | ชุด decision pack สำหรับงาน AI agents |
 | `gh-devops-toolkit/` | ชุดเครื่องมือ DevOps บน GitHub CLI |
+| `dev-helpers/` | ชุดตัวช่วยงาน GitHub อัตโนมัติ 4 ตัว: ตรวจสิทธิ์ก่อน push, ตรวจ workflow pin/parse, สร้างคำขอสิทธิ์, ประกอบ PR + DoD (25 tests) |
 | `notebooklm-access-suite/` | ชุดทักษะเข้าถึง NotebookLM (link share, artifact normalization) |
 | `ai-gateway-architecture-review/` | [AI Gateway Architecture Review — resilience & cost control](./ai-gateway-architecture-review/README.md) — Risk Register 32 จุดอ่อน, สถาปัตยกรรมที่ปรับปรุง (M1–M21), rollout 6 ระยะ |
 | `notebooklm-link-share/` | ทักษะแยก share ลิงก์ NotebookLM |
