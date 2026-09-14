@@ -1,0 +1,61 @@
+name: fig-best-practices
+title: FIG / hellofig.ai Best-Practices Gate
+version: 1.0.0-origin
+verified_on: "2026-09-14"
+description: >-
+  The FIG best-practices standard as an executable gate. Six layers, eight
+  criteria, one policy file that the prose standard and the CI gate both
+  derive from. Includes a clean fixture (8/8) and a deliberately broken
+  fixture (1/8) used to prove the gate actually discriminates.
+
+entrypoints:
+  cli: quality_gate.py
+  policy: policy/fig-best-practices.yaml
+  engine: figbp/gate.py
+  prose: BEST-PRACTICES.md
+
+commands:
+  run: python quality_gate.py --root <project>
+  json: python quality_gate.py --root <project> --json
+  list: python quality_gate.py --list
+  test: python -m pytest tests -q
+  fixtures: python scripts/make_fixtures.py
+
+machine_policy:
+  layers: 6
+  criteria: 8
+  roles: 6
+  source_of_truth: policy/fig-best-practices.yaml
+
+criteria:
+  - id: STRUCTURE
+    layer: "01-structure"
+  - id: DESIGN
+    layer: "02-design"
+  - id: SECURITY
+    layer: "03-security"
+  - id: PERFORMANCE
+    layer: "04-performance"
+  - id: TESTING
+    layer: "05-team"
+  - id: PERMISSIONS
+    layer: "05-team"
+  - id: BACKUP
+    layer: "06-deployment"
+  - id: DEPLOYMENT
+    layer: "06-deployment"
+
+permissions:
+  network: none
+  writes: none
+  reads: [project tree]
+
+security:
+  contrast_math: "WCAG 2.1 relative luminance (computed, not asserted)"
+  secret_findings: redacted to a 4-character prefix
+  policy_failure_exit_code: 2
+
+notes: >-
+  Exit 0 = every blocking criterion passed, 1 = at least one failed,
+  2 = the policy could not be loaded or is structurally invalid. The broken
+  example is intentional and must fail; if it ever passes, the gate is broken.
