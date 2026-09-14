@@ -1,7 +1,53 @@
-[project]
-name = "my-python-api"
-version = "0.1.0"
-requires-python = ">=3.12"
-dependencies = [
-    "fastapi>=0.117.1",
+# Tooling configuration for this repo.
+#
+# Before this file existed the Makefile ran `ruff check app tests` and
+# `ruff format app tests`, but there was no ruff config anywhere at the root —
+# so lint ran on defaults and the `black` / `isort` / `mypy` deps declared in
+# requirements-dev.txt were never wired up. Config here matches the Makefile.
+#
+# Runtime deps stay declared in requirements.txt; test/lint deps in
+# requirements-dev.txt; pytest keeps its own pytest.ini (asyncio_mode = auto).
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = [
+    "archive",          # retired material moved out of the root
+    "deliverables",     # self-contained suites, each with its own tooling
+    "graphql_api",
+    "frontend",
+    ".gatevenv",
 ]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "C4", "SIM"]
+ignore = [
+    "E501",   # line length is enforced by the formatter
+    "B008",   # FastAPI Depends() in defaults is the documented pattern
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "B011"]
+"__init__.py" = ["F401"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+extend-exclude = '''
+/(
+    archive
+  | deliverables
+  | graphql_api
+  | frontend
+  | \.gatevenv
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+known_first_party = ["app"]
+skip_glob = ["archive/*", "deliverables/*", "graphql_api/*", "frontend/*"]

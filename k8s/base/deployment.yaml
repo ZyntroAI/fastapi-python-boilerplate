@@ -1,0 +1,14 @@
+spec:
+  template:
+    spec:
+      nodeSelector:
+        dola.ai/role: ai-runtime
+      tolerations:
+      - key: "dola.ai/workload"
+        operator: "Equal"
+        value: "dola"
+        effect: "NoSchedule"
+      - key: "dola.ai/critical"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 3600 # Grace period

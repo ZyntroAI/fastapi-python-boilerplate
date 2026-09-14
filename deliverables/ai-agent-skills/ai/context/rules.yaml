@@ -1,0 +1,205 @@
+# Keyword -> skill routing rules (first match wins within a tier)
+version: 1.0.0
+tier_weights:
+  exact_target: 100
+  keyword: 40
+  category: 10
+rules:
+  - id: rule-schedule-management
+    skill: schedule-management
+    category: automation
+    mutates: true
+    keywords:
+      - "schedule"
+      - "cron"
+      - "ตามกำหนด"
+      - "ตั้งเวลา"
+      - "timed job"
+  - id: rule-connection-manager
+    skill: connection-manager
+    category: core
+    mutates: true
+    keywords:
+      - "connect"
+      - "connection"
+      - "เชื่อมต่อ"
+      - "integration"
+      - "credential"
+  - id: rule-github
+    skill: github
+    category: development
+    mutates: true
+    keywords:
+      - "github"
+      - "repo"
+      - "pull request"
+      - "pr"
+      - "issue"
+      - "commit"
+  - id: rule-stripe-payments
+    skill: stripe-payments
+    category: finance
+    mutates: true
+    keywords:
+      - "stripe"
+      - "payment"
+      - "ชำระเงิน"
+      - "refund"
+      - "checkout"
+  - id: rule-shopify-commerce
+    skill: shopify-commerce
+    category: commerce
+    mutates: true
+    keywords:
+      - "shopify"
+      - "product"
+      - "order"
+      - "ส่วนลด"
+      - "discount"
+  - id: rule-anthropic
+    skill: anthropic
+    category: ai-core
+    mutates: true
+    keywords:
+      - "anthropic"
+      - "claude"
+      - "llm"
+      - "model"
+  - id: rule-openai
+    skill: openai
+    category: ai-core
+    mutates: true
+    keywords:
+      - "openai"
+      - "gpt"
+      - "llm"
+      - "model"
+  - id: rule-resend-email
+    skill: resend-email
+    category: communication
+    mutates: true
+    keywords:
+      - "email"
+      - "resend"
+      - "อีเมล"
+      - "send mail"
+  - id: rule-jira
+    skill: jira
+    category: project-management
+    mutates: true
+    keywords:
+      - "jira"
+      - "issue"
+      - "sprint"
+      - "ticket"
+      - "งาน"
+  - id: rule-notion
+    skill: notion
+    category: knowledge-work
+    mutates: true
+    keywords:
+      - "notion"
+      - "page"
+      - "database"
+      - "โน้ต"
+      - "wiki"
+  - id: rule-slack
+    skill: slack
+    category: communication
+    mutates: true
+    keywords:
+      - "slack"
+      - "message"
+      - "channel"
+      - "ข้อความ"
+      - "แจ้งเตือน"
+  - id: rule-aws
+    skill: aws
+    category: cloud
+    mutates: true
+    keywords:
+      - "aws"
+      - "s3"
+      - "ec2"
+      - "lambda"
+      - "cloud"
+  - id: rule-vercel
+    skill: vercel
+    category: deployment
+    mutates: true
+    keywords:
+      - "vercel"
+      - "deploy"
+      - "deployment"
+      - "โดเมน"
+      - "preview"
+  - id: rule-cloudflare
+    skill: cloudflare
+    category: networking
+    mutates: true
+    keywords:
+      - "cloudflare"
+      - "dns"
+      - "cache"
+      - "firewall"
+      - "waf"
+  - id: rule-linear
+    skill: linear
+    category: project-management
+    mutates: true
+    keywords:
+      - "linear"
+      - "issue"
+      - "cycle"
+      - "project"
+      - "งาน"
+  - id: rule-supabase
+    skill: supabase
+    category: data
+    mutates: true
+    keywords:
+      - "supabase"
+      - "database"
+      - "table"
+      - "row"
+      - "rls"
+  - id: rule-discord
+    skill: discord
+    category: communication
+    mutates: true
+    keywords:
+      - "discord"
+      - "message"
+      - "guild"
+      - "channel"
+      - "บอท"
+  - id: rule-google-workspace
+    skill: google-workspace
+    category: productivity
+    mutates: true
+    keywords:
+      - "gmail"
+      - "calendar"
+      - "drive"
+      - "google"
+      - "ปฏิทิน"
+      - "ไฟล์"
+  - id: rule-webhook
+    skill: webhook
+    category: integration
+    mutates: true
+    keywords:
+      - "webhook"
+      - "callback"
+      - "hook"
+      - "postback"
+  - id: rule-oauth
+    skill: oauth
+    category: security
+    mutates: true
+    keywords:
+      - "oauth"
+      - "login"
+      - "token"
+      - "authorize"
+      - "เข้าสู่ระบบ"

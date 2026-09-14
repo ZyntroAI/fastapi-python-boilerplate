@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>🚨 แดชบอร์ดเหตุการณ์ความปลอดภัย</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
+    <div class="max-w-7xl mx-auto p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold">🚨 ศูนย์ควบคุมเหตุการณ์</h1>
+            <a href="/dola/security" class="text-blue-500">← กลับหน้าหลัก</a>
+        </div>
+
+        <!-- 📊 สถิติรวม -->
+        <div class="grid grid-cols-4 gap-4 mb-8">
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+                <div class="text-2xl font-bold">{{stats.total}}</div><div class="text-gray-500">ทั้งหมด</div>
+            </div>
+            <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg shadow">
+                <div class="text-2xl font-bold text-red-600">{{stats.active}}</div><div class="text-red-500">กำลังดำเนิน</div>
+            </div>
+            <div class="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg shadow">
+                <div class="text-2xl font-bold text-orange-600">{{stats.critical}}</div><div class="text-orange-500">ระดับสูง</div>
+            </div>
+            <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg shadow">
+                <div class="text-2xl font-bold text-green-600">{{stats.resolved}}</div><div class="text-green-500">แก้ไขแล้ว</div>
+            </div>
+        </div>
+
+        <!-- 📋 ตัวกรอง + รายการ -->
+        <div class="mb-4 flex gap-2">
+            <a href="?filter=all" class="px-3 py-1 rounded {{'bg-blue-600 text-white' if filter=='all'}}">ทั้งหมด</a>
+            <a href="?filter=active" class="px-3 py-1 rounded {{'bg-blue-600 text-white' if filter=='active'}}">กำลังดำเนิน</a>
+            <a href="?filter=CRITICAL" class="px-3 py-1 rounded {{'bg-red-600 text-white' if filter=='CRITICAL'}}">วิกฤต</a>
+        </div>
+
+        <div class="space-y-3">
+            {% for inc in incidents %}
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow border-l-4 
+                {{ 'border-red-500' if inc.level == 'CRITICAL' else 'border-orange-400' }}">
+                <div class="flex justify-between">
+                    <span class="font-bold text-lg">{{inc.title}}</span>
+                    <span class="text-sm px-2 py-1 rounded bg-gray-100 dark:bg-gray-700">{{inc.time}}</span>
+                </div>
+                <div class="flex gap-4 mt-2 text-sm">
+                    <span class="font-semibold">สถานะ: 
+                        <span class="{{'text-green-500' if inc.status=='resolved' else 'text-red-500'}}">{{inc.status}}</span>
+                    </span>
+                    <span>ระดับ: {{inc.level}}</span>
+                    {% if inc.assignee %}<span>ผู้รับผิดชอบ: {{inc.assignee}}</span>{% endif %}
+                </div>
+                <p class="mt-2 text-gray-600 dark:text-gray-300 text-sm">• {{inc.details.join("<br>• ")}}</p>
+                <a href="/incident/{{inc.id}}" class="text-blue-500 text-sm mt-2 inline-block">ดูรายละเอียด →</a>
+            </div>
+            {% else %}
+            <p class="text-center text-gray-500 py-10">✅ ไม่มีเหตุการณ์ — ระบบปลอดภัย</p>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

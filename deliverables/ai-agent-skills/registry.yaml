@@ -1,0 +1,324 @@
+# AI Agent Skills — registry
+# 20 skills · progressive disclosure · least-privilege
+version: 1.0.0
+context_schema: ai.context.schema.json
+engine:
+  matcher: "ai/context/matcher.js"
+  router: "ai/context/router.js"
+  rules: "ai/context/rules.yaml"
+categories:
+  automation: "งานอัตโนมัติและกำหนดเวลา"
+  core: "แกนกลางของระบบ"
+  development: "พัฒนาและดูแลโค้ด"
+  finance: "การเงินและการชำระเงิน"
+  commerce: "พาณิชย์อิเล็กทรอนิกส์"
+  ai-core: "โมเดลและผู้ให้บริการ AI"
+  communication: "การสื่อสารและแจ้งเตือน"
+  project-management: "บริหารงานและโปรเจกต์"
+  knowledge-work: "จัดการองค์ความรู้"
+  cloud: "โครงสร้างพื้นฐานคลาวด์"
+  deployment: "การนำขึ้นใช้งาน"
+  networking: "เครือข่ายและความปลอดภัยขอบเขต"
+  data: "ข้อมูลและฐานข้อมูล"
+  productivity: "เครื่องมือเพิ่มผลผลิต"
+  integration: "เชื่อมระบบเข้าด้วยกัน"
+  security: "ความปลอดภัยและการยืนยันตัวตน"
+skills:
+  - id: schedule-management
+    name: "Schedule Management"
+    category: automation
+    version: "1.0.0"
+    path: "skills/schedule-management"
+    schema: "skills/schedule-management/schema.yaml"
+    tool: cron
+    scopes: [schedule:read, schedule:write]
+    triggers:
+      - "schedule"
+      - "cron"
+      - "ตามกำหนด"
+      - "ตั้งเวลา"
+      - "timed job"
+    layers: [core, essential, situational]
+  - id: connection-manager
+    name: "Connection Manager"
+    category: core
+    version: "1.0.0"
+    path: "skills/connection-manager"
+    schema: "skills/connection-manager/schema.yaml"
+    tool: connections
+    scopes: [connection:read, connection:write]
+    triggers:
+      - "connect"
+      - "connection"
+      - "เชื่อมต่อ"
+      - "integration"
+      - "credential"
+    layers: [core, essential, situational]
+  - id: github
+    name: "GitHub"
+    category: development
+    version: "1.0.0"
+    path: "skills/github"
+    schema: "skills/github/schema.yaml"
+    tool: gh-cli
+    scopes: [repo:read, issue:write, pr:write]
+    triggers:
+      - "github"
+      - "repo"
+      - "pull request"
+      - "PR"
+      - "issue"
+      - "commit"
+    layers: [core, essential, situational]
+  - id: stripe-payments
+    name: "Stripe Payments"
+    category: finance
+    version: "1.0.0"
+    path: "skills/stripe-payments"
+    schema: "skills/stripe-payments/schema.yaml"
+    tool: stripe
+    scopes: [payment:read, payment:write]
+    triggers:
+      - "stripe"
+      - "payment"
+      - "ชำระเงิน"
+      - "refund"
+      - "checkout"
+    layers: [core, essential, situational]
+  - id: shopify-commerce
+    name: "Shopify Commerce"
+    category: commerce
+    version: "1.0.0"
+    path: "skills/shopify-commerce"
+    schema: "skills/shopify-commerce/schema.yaml"
+    tool: shopify
+    scopes: [product:read, product:write, order:read]
+    triggers:
+      - "shopify"
+      - "product"
+      - "order"
+      - "ส่วนลด"
+      - "discount"
+    layers: [core, essential, situational]
+  - id: anthropic
+    name: "Anthropic"
+    category: ai-core
+    version: "1.0.0"
+    path: "skills/anthropic"
+    schema: "skills/anthropic/schema.yaml"
+    tool: anthropic
+    scopes: [model:invoke]
+    triggers:
+      - "anthropic"
+      - "claude"
+      - "llm"
+      - "model"
+    layers: [core, essential, situational]
+  - id: openai
+    name: "OpenAI"
+    category: ai-core
+    version: "1.0.0"
+    path: "skills/openai"
+    schema: "skills/openai/schema.yaml"
+    tool: openai
+    scopes: [model:invoke]
+    triggers:
+      - "openai"
+      - "gpt"
+      - "llm"
+      - "model"
+    layers: [core, essential, situational]
+  - id: resend-email
+    name: "Resend Email"
+    category: communication
+    version: "1.0.0"
+    path: "skills/resend-email"
+    schema: "skills/resend-email/schema.yaml"
+    tool: resend
+    scopes: [email:send]
+    triggers:
+      - "email"
+      - "resend"
+      - "อีเมล"
+      - "send mail"
+    layers: [core, essential, situational]
+  - id: jira
+    name: "Jira"
+    category: project-management
+    version: "1.0.0"
+    path: "skills/jira"
+    schema: "skills/jira/schema.yaml"
+    tool: jira
+    scopes: [issue:read, issue:write]
+    triggers:
+      - "jira"
+      - "issue"
+      - "sprint"
+      - "ticket"
+      - "งาน"
+    layers: [core, essential, situational]
+  - id: notion
+    name: "Notion"
+    category: knowledge-work
+    version: "1.0.0"
+    path: "skills/notion"
+    schema: "skills/notion/schema.yaml"
+    tool: notion
+    scopes: [page:read, page:write]
+    triggers:
+      - "notion"
+      - "page"
+      - "database"
+      - "โน้ต"
+      - "wiki"
+    layers: [core, essential, situational]
+  - id: slack
+    name: "Slack"
+    category: communication
+    version: "1.0.0"
+    path: "skills/slack"
+    schema: "skills/slack/schema.yaml"
+    tool: slack
+    scopes: [message:write, channel:read]
+    triggers:
+      - "slack"
+      - "message"
+      - "channel"
+      - "ข้อความ"
+      - "แจ้งเตือน"
+    layers: [core, essential, situational]
+  - id: aws
+    name: "AWS"
+    category: cloud
+    version: "1.0.0"
+    path: "skills/aws"
+    schema: "skills/aws/schema.yaml"
+    tool: aws-cli
+    scopes: [resource:read, resource:write]
+    triggers:
+      - "aws"
+      - "s3"
+      - "ec2"
+      - "lambda"
+      - "cloud"
+    layers: [core, essential, situational]
+  - id: vercel
+    name: "Vercel"
+    category: deployment
+    version: "1.0.0"
+    path: "skills/vercel"
+    schema: "skills/vercel/schema.yaml"
+    tool: vercel
+    scopes: [deployment:read, deployment:write]
+    triggers:
+      - "vercel"
+      - "deploy"
+      - "deployment"
+      - "โดเมน"
+      - "preview"
+    layers: [core, essential, situational]
+  - id: cloudflare
+    name: "Cloudflare"
+    category: networking
+    version: "1.0.0"
+    path: "skills/cloudflare"
+    schema: "skills/cloudflare/schema.yaml"
+    tool: cloudflare
+    scopes: [dns:read, dns:write, cache:purge]
+    triggers:
+      - "cloudflare"
+      - "dns"
+      - "cache"
+      - "firewall"
+      - "waf"
+    layers: [core, essential, situational]
+  - id: linear
+    name: "Linear"
+    category: project-management
+    version: "1.0.0"
+    path: "skills/linear"
+    schema: "skills/linear/schema.yaml"
+    tool: linear
+    scopes: [issue:read, issue:write]
+    triggers:
+      - "linear"
+      - "issue"
+      - "cycle"
+      - "project"
+      - "งาน"
+    layers: [core, essential, situational]
+  - id: supabase
+    name: "Supabase"
+    category: data
+    version: "1.0.0"
+    path: "skills/supabase"
+    schema: "skills/supabase/schema.yaml"
+    tool: supabase
+    scopes: [table:read, table:write]
+    triggers:
+      - "supabase"
+      - "database"
+      - "table"
+      - "row"
+      - "rls"
+    layers: [core, essential, situational]
+  - id: discord
+    name: "Discord"
+    category: communication
+    version: "1.0.0"
+    path: "skills/discord"
+    schema: "skills/discord/schema.yaml"
+    tool: discord
+    scopes: [message:write, channel:read]
+    triggers:
+      - "discord"
+      - "message"
+      - "guild"
+      - "channel"
+      - "บอท"
+    layers: [core, essential, situational]
+  - id: google-workspace
+    name: "Google Workspace"
+    category: productivity
+    version: "1.0.0"
+    path: "skills/google-workspace"
+    schema: "skills/google-workspace/schema.yaml"
+    tool: google
+    scopes: [mail:send, calendar:write, file:read]
+    triggers:
+      - "gmail"
+      - "calendar"
+      - "drive"
+      - "google"
+      - "ปฏิทิน"
+      - "ไฟล์"
+    layers: [core, essential, situational]
+  - id: webhook
+    name: "Webhook"
+    category: integration
+    version: "1.0.0"
+    path: "skills/webhook"
+    schema: "skills/webhook/schema.yaml"
+    tool: http
+    scopes: [webhook:receive, webhook:send]
+    triggers:
+      - "webhook"
+      - "callback"
+      - "hook"
+      - "postback"
+    layers: [core, essential, situational]
+  - id: oauth
+    name: "OAuth"
+    category: security
+    version: "1.0.0"
+    path: "skills/oauth"
+    schema: "skills/oauth/schema.yaml"
+    tool: oauth2
+    scopes: [oauth:authorize, oauth:refresh]
+    triggers:
+      - "oauth"
+      - "login"
+      - "token"
+      - "authorize"
+      - "เข้าสู่ระบบ"
+    layers: [core, essential, situational]

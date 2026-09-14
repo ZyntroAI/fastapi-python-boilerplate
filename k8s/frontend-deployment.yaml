@@ -1,0 +1,55 @@
+# ZyntroAI frontend Deployment + Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zyntroai-frontend
+  labels:
+    app: zyntroai
+    tier: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: zyntroai
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: zyntroai
+        tier: frontend
+    spec:
+      containers:
+        - name: web
+          image: ghcr.io/zyntroai/fastapi-python-boilerplate/frontend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zyntroai-frontend
+  labels:
+    app: zyntroai
+    tier: frontend
+spec:
+  selector:
+    app: zyntroai
+    tier: frontend
+  ports:
+    - port: 80
+      targetPort: 3000
+  type: ClusterIP

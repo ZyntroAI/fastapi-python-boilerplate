@@ -1,0 +1,68 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+.eggs/
+*.egg
+*.manifest
+*.spec
+.env
+# Virtual environments
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+
+# Build & packaging
+build/
+dist/
+wheels/
+*.whl
+
+# Testing & coverage
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+.pyre/
+
+# Logs & temp files
+*.log
+*.tmp
+*.swp
+
+# IDE & OS artifacts
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Environment & secrets
+.env
+.env.*
+*.pem
+*.key
+*.csv
+# Node
+node_modules/
+coverage/
+.vercel/
+*.tsbuildinfo
+
+# Deployment & containers
+docker-compose.override.yml
+*.pid
+*.sock
+
+# FastAPI specific
+uvicorn.log
+
+# Local gate virtualenv (created by the import-health check)
+.gatevenv/

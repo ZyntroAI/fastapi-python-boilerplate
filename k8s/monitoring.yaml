@@ -1,0 +1,17 @@
+# k8s/monitoring.yaml
+apiVersion: v1
+kind: ServiceMonitor
+metadata:
+  name: fastapi-metrics
+spec:
+  selector:
+    matchLabels:
+      app: fastapi-oauth
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s
+เพิ่ม prometheus-fastapi-instrumentator ใน requirements.txt และติดตั้งใน main.py:
+from prometheus_fastapi_instrumentator import Instrumentator
+
+Instrumentator().instrument(app).expose(app, endpoint="/metrics")

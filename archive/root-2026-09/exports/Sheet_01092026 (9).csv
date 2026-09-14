@@ -1,0 +1,5 @@
+﻿Method,Requirements,Speed
+Git provider recovery,Linked GitHub/GitLab/Bitbucket,⚡ Instant
+Recovery code,Saved code from 2FA setup,⚡ Instant
+Passkey,Registered passkey on another device,⚡ Instant
+Support recovery form,Verify account ownership,⏳ Days

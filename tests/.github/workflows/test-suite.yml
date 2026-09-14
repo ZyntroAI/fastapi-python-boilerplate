@@ -1,0 +1,98 @@
+name: 🧪 Test Suite
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+env:
+  DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/fastapi_test
+  REDIS_URL: redis://redis:6379/0
+  # API Base URL — through Traefik (real ingress path)
+  API_BASE_URL: http://traefik:80
+  COMPOSE_FILE: docker-compose.yml
+  COMPOSE_PROJECT_NAME: testsuite
+
+jobs:
+  test:
+    name: 🧪 Full Stack + E2E API Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 🐳 Spin Up FULL Stack (API + DB + Redis + Traefik)
+        run: |
+          docker compose up -d --build
+          echo "⏳ All services starting..."
+
+      - name: ⏳ Wait for PostgreSQL
+        run: |
+          until docker compose exec -T postgres pg_isready -U postgres -d fastapi_test; do
+            echo "Waiting for PostgreSQL..."
+            sleep 3
+          done
+          echo "✅ PostgreSQL Ready"
+
+      - name: ⏳ Wait for Redis
+        run: |
+          until docker compose exec -T redis redis-cli ping | grep PONG; do
+            echo "Waiting for Redis..."
+            sleep 2
+          done
+          echo "✅ Redis Ready"
+
+      - name: ⏳ Wait for API (via Traefik)
+        run: |
+          until curl -s -o /dev/null -w "%{http_code}" ${{ env.API_BASE_URL }}/health | grep -E "200|401"; do
+            echo "Waiting for API via Traefik..."
+            sleep 3
+          done
+          echo "✅ API + Traefik Ready"
+
+      - name: 📊 Run Database Migrations
+        run: alembic upgrade head
+
+      - name: 🧪 Run Unit & Integration Tests (direct DB access)
+        run: |
+          pytest tests/ \
+            --cov=app \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage-unit.xml \
+            -v -k "not e2e"
+
+      - name: 🔗 Run End-to-End API Tests (through Traefik)
+        run: |
+          pytest tests/e2e/ \
+            --cov=app \
+            --cov-append \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml \
+            -v -k "e2e"
+
+      - name: 📤 Upload Combined Coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage-unit.xml,./coverage.xml
+          flags: unit,e2e,full-stack
+          fail_ci_if_error: false
+
+      - name: 🧹 Cleanup Stack
+        if: always()
+        run: docker compose down --remove-orphans --volumes

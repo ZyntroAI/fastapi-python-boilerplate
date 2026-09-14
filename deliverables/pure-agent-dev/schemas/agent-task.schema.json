@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zyntroai.dev/schemas/agent-task.schema.json",
+  "title": "AgentTask",
+  "description": "External contract for an agent task. Pydantic validates at runtime; this file is the published contract.",
+  "type": "object",
+  "required": ["task_id", "action"],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "list_instances",
+        "start_instance",
+        "stop_instance",
+        "reboot_instance"
+      ]
+    },
+    "instance_id": {
+      "type": ["string", "null"],
+      "minLength": 1
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "enum": ["start_instance", "stop_instance", "reboot_instance"]
+          }
+        },
+        "required": ["action"]
+      },
+      "then": {
+        "required": ["instance_id"],
+        "properties": {
+          "instance_id": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

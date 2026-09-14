@@ -1,0 +1,10 @@
+{
+  "intent": "look up the issue in the tracker and summarize the sprint",
+  "keywords": [
+    "issue",
+    "sprint",
+    "งาน"
+  ],
+  "mutates": false,
+  "risk": "low"
+}

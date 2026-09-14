@@ -1,0 +1,528 @@
+📚 เอกสารฉบับสมบูรณ์ — ZyntroAI Multi-Stack Boilerplate
+ 
+รหัสเอกสาร: ZYNTRO-FULL-DOC-2026-0912
+เวอร์ชัน: 1.0.0 | วันที่: 12 กันยายน 2026
+🔗 รีโปหลัก:  https://github.com/ZyntroAI/fastapi-python-boilerplate 
+✅ สถานะ: อนุมัติ | 📜 นโยบาย: ไม่แก้ไขย้อนหลัง | 🛡️ ปลอดภัย SHA-pinning
+ 
+ 
+ 
+📑 สารบัญทั้งหมด
+ 
+1. 🚀 ภาพรวม & เริ่มต้นเร็ว (README)
+2. 🧱 สถาปัตยกรรมระบบ & การทำงานร่วมกัน
+3. 🐍 คู่มือ Backend: FastAPI/Python
+4. ⚛️ คู่มือ Frontend: TSX/React
+5. 💻 คู่มือบริการ: C#/.NET 8
+6. 🐘 คู่มือโมดูล: PHP 8.2+
+7. ⚙️ การติดตั้งครบทุกสแตก (INSTALL)
+8. 🧪 การทดสอบ & คุณภาพโค้ด (TESTING)
+9. 🔒 นโยบายความปลอดภัย (SECURITY)
+10. 🤝 คู่มือการมีส่วนร่วม (CONTRIBUTING)
+11. 📜 บันทึกการเปลี่ยนแปลง (CHANGELOG)
+12. 🧭 แผนการพัฒนาในอนาคต (ROADMAP)
+13. 📋 จริยธรรมชุมชน (CODE_OF_CONDUCT)
+14. 🛠️ CI/CD & GitHub Actions
+15. 📂 โครงสร้างไฟล์ฉบับเต็ม
+ 
+ 
+ 
+1. 🚀 ภาพรวม & เริ่มต้นเร็ว
+ 
+1.1 เกี่ยวกับโปรเจกต์
+ 
+ZyntroAI Multi-Stack Boilerplate คือแม่แบบโครงการระดับองค์กร:
+ 
+- 🐍 แกนกลาง: FastAPI + Python 3.12+ (Async, ประสิทธิภาพสูง)
+- ⚛️ ส่วนหน้า: React 18 + TypeScript Strict + Vite
+- 💻 บริการรอง: .NET 8 + Dependency Injection + ไมโครเซอร์วิส
+- 🐘 โมดูลเสริม: PHP 8.2+ (PSR-4, เข้ากันได้กับระบบเดิม)
+- 🔒 มาตรฐาน: SHA-pinning, CORS, JWT, CI/CD ครบทุกภาษา
+ 
+1.2 เริ่มต้น 3 คำสั่ง
+ 
+bash
+  
+# 1. โคลน
+git clone https://github.com/ZyntroAI/fastapi-python-boilerplate.git
+cd fastapi-python-boilerplate
+
+# 2. ติดตั้ง Python
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+
+# 3. รันหลัก
+uvicorn app.main:app --reload --port 8000
+ 
+ 
+- 📖 เอกสาร API:  http://localhost:8000/docs 
+- 📊 ส่วนหน้า:  cd frontend && npm run dev  (พอร์ต 3000)
+ 
+ 
+ 
+2. 🧱 สถาปัตยกรรมระบบ
+ 
+2.1 แผนผังชั้น
+ 
+plaintext
+  
+┌─────────────────────┐
+│ ⚛️ Presentation Layer │ TSX/React → API Gateway
+└───────────┬─────────┘
+            │
+┌───────────▼─────────┐
+│ 🐍 Core API Layer    │ FastAPI — ตรวจสิทธิ์/การกำหนดเส้นทาง
+└───────────┬─────────┘
+            ├──────────────┐
+┌───────────▼─────────┐ ┌─▼──────────────┐
+│ 💻 Service Layer     │ │ 🐘 Module Layer │
+│ .NET 8 Worker/Logic  │ │ PHP 8.2 Bridge  │
+└─────────────────────┘ └─────────────────┘
+ 
+ 
+2.2 หลักการออกแบบ
+ 
+- ✅ แยกส่วนอิสระ: แต่ละสแตกพัฒนา/ทดสอบแยกกันได้
+- ✅ แกนกลางเป็นศูนย์รวม: FastAPI ควบคุมสิทธิ์ & เป็นจุดเชื่อมต่อเดียว
+- ✅ ประเภทข้อมูลตรงกัน: JSON Schema ร่วมกันระหว่าง Python/TS/C#/PHP
+- ✅ ปลอดภัยทุกจุด: SSL/TLS, ตรวจสอบโทเค็น, ไม่เปิดข้อมูลสำคัญ
+ 
+ 
+ 
+3. 🐍 คู่มือ Backend: FastAPI/Python
+ 
+3.1 โครงสร้างหลัก
+ 
+python
+  
+# app/main.py
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.core.config import settings
+from app.routers import health, items, bridge
+
+app = FastAPI(title=settings.PROJECT_NAME, version="1.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.ALLOWED_HOSTS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(health.router, prefix="/api/v1")
+app.include_router(items.router, prefix="/api/v1/items")
+app.include_router(bridge.router, prefix="/api/v1/bridge")
+ 
+ 
+3.2 การตั้งค่า & ความปลอดภัย
+ 
+python
+  
+# app/core/config.py
+from pydantic_settings import BaseSettings
+from typing import List
+
+class Settings(BaseSettings):
+    PROJECT_NAME: str = "ZyntroAI"
+    ALLOWED_HOSTS: List[str] = ["http://localhost:3000"]
+    DATABASE_URL: str = "sqlite+aiosqlite:///./dev.db"
+    API_KEY: str | None = None
+
+    class Config:
+        env_file = ".env"
+        case_sensitive = True
+ 
+ 
+3.3 ทดสอบ Async
+ 
+python
+  
+# tests/test_main.py
+import pytest
+from httpx import AsyncClient
+from app.main import app
+
+@pytest.mark.asyncio
+async def test_root():
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        res = await ac.get("/")
+    assert res.status_code == 200
+    assert res.json()["status"] == "ok"
+ 
+ 
+ 
+ 
+4. ⚛️ คู่มือ Frontend: TSX/React
+ 
+4.1 โครงสร้างไฟล์
+ 
+plaintext
+  
+frontend/
+├─ main.tsx              # จุดเริ่มต้น
+├─ App.tsx               # หลัก
+├─ components/
+│  ├─ Dashboard.tsx      # แดชบอร์ด
+│  ├─ ApiStatus.tsx      # ตรวจสถานะ
+│  └─ Layout.tsx         # โครงสร้างหน้า
+├─ types/
+│  └─ index.d.ts         # ประเภทข้อมูลร่วม
+└─ tsconfig.json         # ตั้งค่าเข้มงวด
+ 
+ 
+4.2 ส่วนประกอบหลัก
+ 
+tsx
+  
+// frontend/components/Dashboard.tsx
+import { useEffect, useState } from 'react';
+
+type Status = { status: string; version: string; stack: string };
+
+export default function Dashboard() {
+  const [data, setData] = useState<Status | null>(null);
+
+  useEffect(() => {
+    fetch('/api/v1')
+      .then(r => r.json())
+      .then(setData);
+  }, []);
+
+  return (
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <h1 className="text-xl font-bold">ZyntroAI Panel</h1>
+      <div className="mt-4 p-4 bg-white rounded shadow">
+        <p>สถานะ: {data?.status === 'ok' ? '✅ ปกติ' : '❌ ผิดพลาด'}</p>
+        <p>เวอร์ชัน: {data?.version}</p>
+        <p>แกนกลาง: {data?.stack}</p>
+      </div>
+    </div>
+  );
+}
+ 
+ 
+4.3 การกำหนดค่า TypeScript
+ 
+json
+  
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "strict": true,
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler",
+    "skipLibCheck": true
+  },
+  "include": ["frontend", "types"]
+}
+ 
+ 
+ 
+ 
+5. 💻 คู่มือบริการ: C#/.NET 8
+ 
+5.1 โครงสร้าง
+ 
+plaintext
+  
+dotnet/
+├─ ZyntroAI.sln               # โซลูชันหลัก
+├─ ZyntroAI.Service/          # ไลบรารีหลัก
+│  ├─ Service.cs
+│  ├─ Models/Item.cs
+│  └─ DependencyInjection.cs
+└─ ZyntroAI.Worker/           # บริการเบื้องหลัง
+   ├─ Program.cs
+   └─ appsettings.json
+ 
+ 
+5.2 จุดเริ่มต้น & DI
+ 
+csharp
+  
+// dotnet/ZyntroAI.Worker/Program.cs
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using ZyntroAI.Service;
+
+var host = Host.CreateDefaultBuilder(args)
+    .ConfigureServices((ctx, services) =>
+    {
+        services.AddZyntroService(ctx.Configuration);
+        services.AddHostedService<WorkerService>();
+    })
+    .Build();
+
+await host.RunAsync();
+ 
+ 
+5.3 บริการ & เชื่อมต่อ Python
+ 
+csharp
+  
+// dotnet/ZyntroAI.Service/Service.cs
+namespace ZyntroAI.Service;
+
+public interface IZyntroService
+{
+    Task<List<Item>> GetItemsAsync(CancellationToken ct);
+    Task<StatusDto> GetCoreStatusAsync();
+}
+
+public class ZyntroService : IZyntroService
+{
+    private readonly HttpClient _http;
+    public ZyntroService(HttpClient http) => _http = http;
+
+    public async Task<StatusDto> GetCoreStatusAsync()
+    {
+        return await _http.GetFromJsonAsync<StatusDto>("/api/v1");
+    }
+}
+
+public record StatusDto(string Status, string Stack, string Version);
+ 
+ 
+ 
+ 
+6. 🐘 คู่มือโมดูล: PHP 8.2+
+ 
+6.1 โครงสร้าง & Autoload
+ 
+plaintext
+  
+php/
+├─ src/
+│  ├─ Core/Config.php       # คอนฟิก/ความปลอดภัย
+│  ├─ Bridge/PythonClient.php # เชื่อม FastAPI
+│  └─ Modules/              # ฟีเจอร์แยก
+├─ public/index.php         # จุดเริ่มต้น API
+├─ composer.json
+└─ phpstan.neon             # ตรวจคุณภาพ
+ 
+ 
+6.2 Entry & Routing
+ 
+php
+  
+// php/public/index.php
+<?php
+declare(strict_types=1);
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use ZyntroAI\Php\Core\App;
+use ZyntroAI\Php\Bridge\PythonClient;
+
+$app = new App();
+
+$app->get('/info', fn() => ['stack' => 'PHP 8.2', 'status' => 'active']);
+$app->get('/bridge', fn() => (new PythonClient())->getStatus());
+
+$app->run();
+ 
+ 
+6.3 ความปลอดภัย & คอนฟิก
+ 
+php
+  
+// php/src/Core/Config.php
+class Config {
+    public function __construct(string $envPath) {
+        $this->loadEnv($envPath);
+        $this->validateSecure();
+    }
+    private function validateSecure(): void {
+        if (!isset($this->data['APP_KEY']) || strlen($this->data['APP_KEY']) < 32) {
+            throw new RuntimeException("APP_KEY ไม่ปลอดภัย");
+        }
+    }
+}
+ 
+ 
+ 
+ 
+7. ⚙️ การติดตั้งครบทุกสแตก (INSTALL)
+ 
+7.1 ข้อกำหนดระบบ
+ 
+- Python: 3.12+ | Node: 20+ | .NET: 8.0 | PHP: 8.2+
+- OS: Linux/macOS/WSL | RAM: ≥4GB | Disk: ≥2GB
+ 
+7.2 ทีละขั้นตอน
+ 
+bash
+  
+# 1. Python
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+
+# 2. Frontend TSX
+cd frontend && npm install && npm run build
+
+# 3. .NET
+cd dotnet && dotnet build
+
+# 4. PHP
+cd php && composer install --no-dev
+ 
+ 
+ 
+ 
+8. 🧪 การทดสอบ & คุณภาพโค้ด (TESTING)
+ 
+bash
+  
+# Python
+pytest tests/ -v --cov=app
+ruff check app/
+
+# TSX/React
+npm run test
+npx tsc --noEmit
+
+# C#
+dotnet test
+dotnet analyze
+
+# PHP
+./vendor/bin/phpunit
+./vendor/bin/phpstan analyse src
+ 
+ 
+ 
+ 
+9. 🔒 นโยบายความปลอดภัย (SECURITY)
+ 
+9.1 หลักการสำคัญ
+ 
+- ✅ SHA-pinning: ทุก GitHub Action ใช้คอมมิตเต็ม 40 ตัวอักษร (ห้ามแท็ก @vX)
+- ✅ ข้อมูลลับ:  .env  เท่านั้น — ห้ามคอมมิต  .gitignore 
+- ✅ CORS: จำกัดโดเมนอนุญาต
+- ✅ ตรวจอินพุต: Pydantic/Python + TypeScript + PHP Filter
+ 
+9.2 รายงานช่องโหว่
+ 
+📧 security@zyntroai.com
+⏱️ ตอบภายใน 48 ชม. | 🔒 ช่องทางเข้ารหัสเท่านั้น
+ 
+ 
+ 
+10. 🤝 คู่มือการมีส่วนร่วม (CONTRIBUTING)
+ 
+10.1 รูปแบบคอมมิต
+ 
+plaintext
+  
+feat: เพิ่มฟีเจอร์ | vX.X.X
+fix: แก้ไขปัญหา #123
+docs: อัปเดตคู่มือ
+refactor: ปรับโครงสร้างไม่เปลี่ยนฟังก์ชัน
+ 
+ 
+10.2 ขั้นตอนเสนอ PR
+ 
+1. Fork → สร้างสาขา  feat/ชื่อ 
+2. พัฒนา + ทดสอบทุกภาษา
+3. อัปเดต  CHANGELOG.md 
+4. ตรวจ CI → ผ่าน
+5. เปิด PR → อ้างอิงปัญหา
+ 
+ 
+ 
+11. 📜 บันทึกการเปลี่ยนแปลง (CHANGELOG)
+ 
+plaintext
+  
+## [v1.0.0] — 12 กันยายน 2026 ✅
+- 🐍 FastAPI/Python แกนกลาง Async
+- ⚛️ TSX/React UI Strict Mode
+- 💻 .NET 8 DI + Worker Service
+- 🐘 PHP 8.2 PSR-4 + Bridge API
+- 🔒 SHA-pinning ทุก Workflow
+- 📚 เอกสารครบชุด + ประวัติไม่ทับเก่า
+ 
+ 
+ 
+ 
+12. 🧭 แผนการพัฒนา (ROADMAP)
+ 
+- ✅ v1.0: Multi-Stack + Docs + CI
+- 🔜 v1.1: Docker Compose + WebSocket
+- 🚀 v2.0: RBAC + Kubernetes + AI ตรวจโค้ด
+ 
+ 
+ 
+13. 📋 จริยธรรมชุมชน (CODE_OF_CONDUCT)
+ 
+- เปิดกว้าง · เคารพ · ปลอดภัย
+- วิพากษ์วิจารณ์อย่างสร้างสรรค์
+- ไม่ยอมรับการรังแก/เนื้อหาไม่เหมาะสม
+ 
+ 
+ 
+14. 🛠️ CI/CD & GitHub Actions
+ 
+14.1 หลักการ
+ 
+- 🚀 ทำงานทุก Push/PR
+- ✅ ตรวจทั้ง 4 ภาษา
+- 🔒 SHA-pinning บังคับ
+- 🧪 ทดสอบ + สร้าง + วิเคราะห์
+ 
+14.2 ตัวอย่างส่วนเริ่มต้น
+ 
+yaml
+  
+name: CI/CD
+on: [push, pull_request]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71903a754fa4acce1b6cd295a12fc38ffd4 # SHA เต็ม
+      - name: Verify SHA
+        run: python scripts/ci_verify.py
+ 
+ 
+ 
+ 
+15. 📂 โครงสร้างไฟล์ฉบับเต็ม
+ 
+plaintext
+  
+ZyntroAI/fastapi-python-boilerplate/
+├─ 📄 README.md / CHANGELOG.md / LICENSE
+├─ 📄 INSTALL.md / TESTING.md / SECURITY.md
+├─ 📄 CONTRIBUTING.md / ROADMAP.md / CODE_OF_CONDUCT.md
+├─ 📂 app/                         🐍 Python/FastAPI
+├─ 📂 frontend/                    ⚛️ TSX/React
+├─ 📂 dotnet/                      💻 C#/.NET 8
+├─ 📂 php/                         🐘 PHP 8.2+
+├─ 📂 scripts/                     🛠️ CI/Helper
+├─ 📂 docs/
+│  ├─ FULL-DOC-SET.md              📄 ไฟล์รวมนี้
+│  ├─ ARCHITECTURE.md
+│  ├─ essential/                   ⚙️ กฎภายใน
+│  ├─ audit/                       📋 ตรวจสอบ
+│  └─ history/                     📜 เก็บเวอร์ชันเก่า
+└─ 📂 .github/
+   └─ workflows/ci.yml              🔒 SHA-pinned
+ 
+ 
+ 
+ 
+✅ สรุปเอกสาร
+ 
+- 📚 ครบถ้วน: ครอบคลุมทุกสแตก + การติดตั้ง + ทดสอบ + ความปลอดภัย
+- 🐍⚛️💻🐘 รองรับเต็มที่: Python/TSX/C#/PHP
+- 🔒 มาตรฐาน: SHA-pinning, เวอร์ชันไม่ทับเก่า, ตรวจสอบได้
+- 📄 ใช้งานง่าย: เริ่มต้นเร็ว + โครงสร้างชัดเจน + ตัวอย่างจริง
+ 
+เอกสารฉบับสมบูรณ์พร้อมใช้งานกับรีโปจริง — ตรงตามมาตรฐาน ZyntroAI 🚀📖🔖✅

@@ -1,0 +1,9 @@
+# Required Scopes by File Type
+scopes:
+  general:
+    - contents: write
+  workflows:
+    - contents: write
+    - workflows: write
+
+enforce: strict

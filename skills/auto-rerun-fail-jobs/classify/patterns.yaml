@@ -1,0 +1,49 @@
+failure_types:
+  transient:
+    - "timed out"
+    - "connection reset"
+    - "network error"
+    - "runner offline"
+    - "rate limit"
+    - "service unavailable"
+    - "connection refused"
+
+  infrastructure:
+    - "no space left"
+    - "resource exhausted"
+    - "internal server error"
+    - "failed to pull image"
+    - "runner terminated"
+
+  dependency:
+    - "package not found"
+    - "could not resolve"
+    - "registry unreachable"
+    - "download failed"
+
+  test_failure:
+    - "assertion failed"
+    - "expected"
+    - "test failed"
+    - "FAILED:"
+    - "!= "
+
+  code_failure:
+    - "syntax error"
+    - "compilation failed"
+    - "name error"
+    - "import error"
+    - "undefined reference"
+
+  permission:
+    - "permission denied"
+    - "not authorized"
+    - "insufficient scopes"
+    - "token expired"
+    - "Resource not accessible"
+
+  security:
+    - "secret leak"
+    - "vulnerability"
+    - "policy violation"
+    - "blocked"

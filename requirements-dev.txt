@@ -1,0 +1,18 @@
+# Development / CI dependencies — NOT for production runtime.
+# Install with:  pip install -r requirements-dev.txt
+#
+# Production runtime deps live in requirements.txt and are pulled in below.
+
+-r requirements.txt
+
+# ---- Testing ----
+pytest>=8.3
+pytest-asyncio>=0.24        # pytest.ini sets asyncio_mode = auto
+pytest-cov>=6.0
+httpx>=0.28.1               # FastAPI TestClient + async test client
+
+# ---- Lint / format / types (repo toolchain: ruff + black + isort, per ci.yml) ----
+ruff>=0.8
+black>=24.10
+isort>=5.13
+mypy>=1.13

@@ -1,0 +1,17 @@
+fastapi>=0.141.1
+uvicorn>=0.52.4
+strawberry-graphql>=0.327.7
+sqlalchemy>=2.0.52
+aiosqlite>=0.22.1
+redis>=8.1.0
+pydantic>=2.13.5
+pydantic-settings>=2.15.0
+python-jose[cryptography]>=3.5.0
+httpx>=0.28.1
+pytest>=9.1.1
+pytest-asyncio>=1.4.0
+passlib[bcrypt]==1.7.4
+bcrypt==5.0.0
+alembic>=1.19.2
+aiosqlite>=0.22.1
+strawberry-graphql[redis]>=0.327.7

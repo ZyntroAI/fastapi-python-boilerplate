@@ -1,0 +1,4 @@
+- name: Upload Coverage to Codecov
+  uses: codecov/codecov-action@v4
+  with:
+    files: ./coverage.xml

@@ -1,0 +1,66 @@
+rules:
+  - id: py-prototype-pollution-setattr-dict
+    languages: [python]
+    severity: ERROR
+    message: >
+      Assigning a key such as `__proto__`, `prototype`, or `constructor` (or
+      setting an attribute with the same name) on a dict/object copied from
+      untrusted input can pollute class state (CWE-1321). Route untrusted
+      payloads through safe_parser.safe_load_json / safe_update_dict.
+    patterns:
+      - pattern-either:
+          - pattern: $OBJ["__proto__"] = $VAL
+          - pattern: $OBJ['__proto__'] = $VAL
+          - pattern: $OBJ.__proto__ = $VAL
+          - pattern: setattr($OBJ, "__proto__", $VAL)
+          - pattern: $OBJ["constructor"] = $VAL
+          - pattern: $OBJ['constructor'] = $VAL
+    metadata:
+      cwe: CWE-1321
+      category: security
+      technology: [python]
+
+  - id: py-prototype-pollution-merge-loop
+    languages: [python]
+    severity: ERROR
+    message: >
+      A loop that copies arbitrary keys from an untrusted dict onto another
+      object can carry `__proto__` / `constructor` keys and pollute it
+      (CWE-1321). Use safe_parser.safe_update_dict which blocks those keys.
+    patterns:
+      - pattern-either:
+          - pattern: |
+              for $K, $V in $SRC.items():
+                  $DEST[$K] = $V
+          - pattern: |
+              for $K in $SRC:
+                  $DEST[$K] = $SRC[$K]
+          - pattern: $DEST.update($SRC)
+    metadata:
+      cwe: CWE-1321
+      category: security
+      technology: [python]
+
+  - id: py-prototype-pollution-recursive-update
+    languages: [python]
+    severity: WARNING
+    message: >
+      Recursive dict merge/update helpers that do not filter `__proto__`,
+      `prototype`, or `constructor` keys enable prototype pollution
+      (CWE-1321). Reuse safe_parser.safe_update_dict instead of re-implementing
+      a merge.
+    patterns:
+      - pattern-either:
+          - pattern: |
+              def $FN($A, $B):
+                  ...
+                  $A[$K] = $B[$K]
+          - pattern: |
+              def $FN($A, $B):
+                  ...
+                  $A.update($B)
+    pattern-regex: "(?i)merge|update|extend"
+    metadata:
+      cwe: CWE-1321
+      category: security
+      technology: [python]

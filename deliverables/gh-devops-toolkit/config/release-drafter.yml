@@ -1,0 +1,20 @@
+# Release Drafter config (reference). Place at .github/release-drafter.yml when enabled.
+template: |
+  ## Changes
+  $CHANGES
+
+categories:
+  - title: "Features"
+    labels: [feature]
+  - title: "Bug Fixes"
+    labels: [bug]
+  - title: "Documentation"
+    labels: [documentation]
+version-resolver:
+  major:
+    labels: [release-major]
+  minor:
+    labels: [feature]
+  patch:
+    labels: [bug, documentation]
+  default: patch

@@ -1,0 +1,9 @@
+{
+  "intent": "send the invoice email to the customer",
+  "keywords": [
+    "email",
+    "send mail"
+  ],
+  "mutates": true,
+  "risk": "low"
+}

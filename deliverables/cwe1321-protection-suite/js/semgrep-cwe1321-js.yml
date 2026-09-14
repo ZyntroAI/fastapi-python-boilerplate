@@ -1,0 +1,81 @@
+rules:
+  - id: js-prototype-pollution-__proto__-assign
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      Assignment to `__proto__` can pollute the prototype of every object
+      derived from Object.prototype (CWE-1321). Use a `Map`, `Object.create(null)`,
+      or the sanitizePrototypeKeys() helper from deliverables/cwe1321-protection-suite/js/sanitize.js.
+    patterns:
+      - pattern-either:
+          - pattern: $OBJ.__proto__ = $VALUE
+          - pattern: $OBJ["__proto__"] = $VALUE
+          - pattern: $OBJ['__proto__'] = $VALUE
+    metadata:
+      cwe: CWE-1321
+      category: security
+      technology: [javascript, typescript, node]
+
+  - id: js-prototype-pollution-merge
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      Naive deep-merge of an untrusted object can copy `__proto__`, `prototype`
+      or `constructor` keys and pollute the prototype chain (CWE-1321). Use a
+      sanitized merge that rejects/ignores those keys (see sanitize.js
+      `safeMerge`).
+    patterns:
+      - pattern-either:
+          - pattern: |
+              function $FN($OBJ) {
+                ...
+                for (const $K in $OBJ) {
+                  $OBJ[$K] = $VALUE;
+                }
+              }
+          - pattern: |
+              $DEST = Object.assign($DEST, $SRC)
+          - pattern: |
+              $.extend(true, $DEST, $SRC)
+          - pattern: |
+              _.merge($DEST, $SRC)
+    metadata:
+      cwe: CWE-1321
+      category: security
+      technology: [javascript, typescript, node]
+
+  - id: js-prototype-pollution-constructor
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: >
+      Recursively copying keys named `constructor` or `prototype` can enable
+      prototype pollution (CWE-1321). Filter these keys during any recursive
+      assignment/merge.
+    patterns:
+      - pattern: $OBJ["constructor"]
+      - pattern: $OBJ['constructor']
+      - pattern: $OBJ.prototype.$ANY = $VAL
+    metadata:
+      cwe: CWE-1321
+      category: security
+      technology: [javascript, typescript, node]
+
+  - id: js-prototype-pollution-object-merge
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      Merge helpers that assign arbitrary keys without blocking `__proto__`,
+      `prototype`, and `constructor` risk prototype pollution (CWE-1321). Use
+      the sanitized helpers from deliverables/cwe1321-protection-suite/js/sanitize.js.
+    patterns:
+      - pattern: |
+          function $FN($A, $B) {
+            ...
+            $A[$K] = $B[$K];
+            ...
+          }
+    pattern-regex: "(?i)merge|extend|assign"
+    metadata:
+      cwe: CWE-1321
+      category: security
+      technology: [javascript, typescript, node]

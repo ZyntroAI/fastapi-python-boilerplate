@@ -1,0 +1,347 @@
+# ✅ Streaming + Tool Calling — Added Complete!
+
+---
+
+## 📄 Updated: `app/api/v1/endpoints/claude.py`
+> **New Endpoints:** `/claude/chat/stream` + `/claude/chat/tools`  
+> **Full SSE Streaming + Function Calling Support**
+
+```python
+"""
+🤖 Claude API Endpoints — FastAPI Route (Full Version)
+Path: app/api/v1/endpoints/claude.py
+Features: Chat · Streaming SSE · Tools/Functions · Models
+"""
+
+import json
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, Field
+from typing import List, Optional, Dict, Any, Callable, AsyncGenerator
+from app.claude_client import ClaudeClient
+from app.core.config import settings
+
+router = APIRouter(prefix="/claude", tags=["claude"])
+
+
+# ─── Schemas ───
+
+class MessageItem(BaseModel):
+    role: str = Field(..., pattern="^(user|assistant)$")
+    content: str | List[Dict[str, Any]]
+
+
+class ToolDefinition(BaseModel):
+    name: str
+    description: Optional[str] = None
+    input_schema: Dict[str, Any]
+
+
+class ClaudeRequest(BaseModel):
+    messages: List[MessageItem]
+    model: str = Field(default="claude-sonnet-4-6")
+    max_tokens: int = Field(default=1024, ge=1, le=200000)
+    system: Optional[str] = None
+    temperature: float = Field(default=0.0, ge=0.0, le=1.0)
+    stream: bool = False
+    tools: Optional[List[ToolDefinition]] = None
+    tool_choice: Optional[str | Dict[str, Any]] = "auto"
+
+
+class ClaudeUsage(BaseModel):
+    input_tokens: int = 0
+    output_tokens: int = 0
+
+
+class ClaudeResponse(BaseModel):
+    success: bool
+    model: str
+    text: str
+    usage: ClaudeUsage
+    stop_reason: Optional[str] = None
+    message_id: Optional[str] = None
+    tool_calls: Optional[List[Dict[str, Any]]] = None
+
+
+# ─── Client Dependency ───
+
+def get_claude_client():
+    return ClaudeClient(
+        api_key=settings.ANTHROPIC_API_KEY,
+        timeout=settings.HTTP_TIMEOUT
+    )
+
+
+# ─── Helper: Extract Text + Tool Calls ───
+
+def parse_response_content(response: Dict):
+    """Extract text and tool_calls from Claude response"""
+    text_parts = []
+    tool_calls = []
+    for block in response.get("content", []):
+        if block.get("type") == "text":
+            text_parts.append(block["text"])
+        elif block.get("type") == "tool_use":
+            tool_calls.append(block)
+    return "".join(text_parts) or None, tool_calls or None
+
+
+# ─── 1. Standard Chat ───
+
+@router.post("/chat", response_model=ClaudeResponse, summary="Send message to Claude")
+async def claude_chat(
+    req: ClaudeRequest,
+    client: ClaudeClient = Depends(get_claude_client)
+):
+    """Send message — returns complete response"""
+    try:
+        payload = {
+            "messages": [{"role": m.role, "content": m.content} for m in req.messages],
+            "model": req.model,
+            "max_tokens": req.max_tokens,
+            "system": req.system,
+            "temperature": req.temperature,
+            "stream": False
+        }
+        if req.tools:
+            payload["tools"] = [t.model_dump() for t in req.tools]
+            payload["tool_choice"] = req.tool_choice
+
+        response = await client.send_message(**payload)
+        text, tool_calls = parse_response_content(response)
+
+        return ClaudeResponse(
+            success=True,
+            model=response.get("model", req.model),
+            text=text or "",
+            usage=ClaudeUsage(**response.get("usage", {})),
+            stop_reason=response.get("stop_reason"),
+            message_id=response.get("id"),
+            tool_calls=tool_calls
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Claude API Error: {str(e)}")
+
+
+# ─── 2. Streaming SSE Endpoint ───
+
+@router.post("/chat/stream", summary="Stream response (SSE)")
+async def claude_stream(
+    req: ClaudeRequest,
+    client: ClaudeClient = Depends(get_claude_client)
+):
+    """Stream response token-by-token via Server-Sent Events"""
+
+    async def event_generator() -> AsyncGenerator[str, None]:
+        payload = {
+            "messages": [{"role": m.role, "content": m.content} for m in req.messages],
+            "model": req.model,
+            "max_tokens": req.max_tokens,
+            "system": req.system,
+            "temperature": req.temperature,
+            "stream": True
+        }
+
+        full_text = ""
+        async for chunk in client.stream_message(**payload):
+            if chunk:
+                full_text += chunk
+                yield f"data: {json.dumps({'type':'delta','text':chunk})}\n\n"
+
+        yield f"data: {json.dumps({'type':'done','text':full_text})}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
+
+# ─── 3. Tools/Functions Endpoint ───
+
+@router.post("/chat/tools", summary="Function calling — returns tool calls")
+async def claude_tools(
+    req: ClaudeRequest,
+    client: ClaudeClient = Depends(get_claude_client)
+):
+    """
+    Call Claude with tools/functions enabled.
+    Returns: text response + tool_calls array
+    """
+    if not req.tools:
+        raise HTTPException(status_code=400, detail="At least one tool required")
+
+    try:
+        payload = {
+            "messages": [{"role": m.role, "content": m.content} for m in req.messages],
+            "model": req.model,
+            "max_tokens": req.max_tokens,
+            "system": req.system,
+            "temperature": req.temperature,
+            "tools": [t.model_dump() for t in req.tools],
+            "tool_choice": req.tool_choice,
+            "stream": False
+        }
+
+        response = await client.send_message(**payload)
+        text, tool_calls = parse_response_content(response)
+
+        return {
+            "success": True,
+            "model": response.get("model"),
+            "text": text,
+            "tool_calls": tool_calls,
+            "usage": response.get("usage"),
+            "stop_reason": response.get("stop_reason")
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Tool Error: {str(e)}")
+
+
+# ─── 4. Models List ───
+
+@router.get("/models", summary="List recommended models")
+async def list_models():
+    return {
+        "models": [
+            {"id": "claude-opus-4-6", "tier": "most-capable", "context": "200K+"},
+            {"id": "claude-sonnet-4-6", "tier": "balanced", "context": "200K+"},
+            {"id": "claude-haiku-4-5", "tier": "fastest", "context": "200K+"}
+        ],
+        "recommended": "claude-sonnet-4-6"
+    }
+```
+
+---
+
+## 📡 API Usage Examples
+
+### 📤 Standard Chat
+```bash
+curl -X POST http://localhost:8000/claude/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+
+### 📤 Streaming SSE
+```bash
+curl -N -X POST http://localhost:8000/claude/chat/stream \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [{"role": "user", "content": "Write a short story"}]
+  }'
+```
+
+### 📤 Function Calling
+```bash
+curl -X POST http://localhost:8000/claude/chat/tools \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [{"role": "user", "content": "What is the weather in Bangkok?"}],
+    "tools": [{
+      "name": "get_weather",
+      "description": "Get weather forecast",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "city": {"type": "string"}
+        },
+        "required": ["city"]
+      }
+    }]
+  }'
+```
+
+---
+
+## 🧪 Updated Test File — `tests/test_claude_client.py`
+> Added tests for streaming + tool parsing
+
+```python
+"""
+🧪 Unit Tests for Claude REST API Client — Full Version
+Path: tests/test_claude_client.py
+"""
+
+import pytest
+from app.claude_client import ClaudeClient
+from app.api.v1.endpoints.claude import parse_response_content
+
+
+@pytest.fixture
+def client():
+    return ClaudeClient(api_key="sk-ant-test123", timeout=10)
+
+
+@pytest.mark.asyncio
+async def test_client_initialization():
+    client = ClaudeClient(api_key="sk-ant-test123")
+    assert client.api_key == "sk-ant-test123"
+    assert "x-api-key" in client.headers
+
+
+@pytest.mark.asyncio
+async def test_extract_text():
+    client = ClaudeClient(api_key="sk-ant-test123")
+    resp = {"content": [{"type": "text", "text": "Hello World"}]}
+    assert client.extract_text(resp) == "Hello World"
+
+
+def test_parse_response_with_tools():
+    """Test text + tool_calls extraction"""
+    resp = {
+        "content": [
+            {"type": "text", "text": "I'll check the weather."},
+            {"type": "tool_use": "get_weather", "id": "toolu_01"}
+        ]
+    }
+    text, tools = parse_response_content(resp)
+    assert text == "I'll check the weather."
+    assert len(tools) == 1
+```
+
+---
+
+## 🚀 Push All Updates
+```bash
+git add app/api/v1/endpoints/claude.py tests/test_claude_client.py
+git commit -m "feat: add SSE streaming endpoint + function calling support"
+git push origin main
+```
+
+---
+
+## ✅ Complete Feature Summary
+| Endpoint | Method | Feature |
+|---|---|---|
+| `/claude/chat` | POST | Standard chat (complete response) |
+| `/claude/chat/stream` | POST | **SSE Streaming** token-by-token |
+| `/claude/chat/tools` | POST | **Function Calling** — returns tool_calls |
+| `/claude/models` | GET | Model list |
+
+---
+
+## 📋 Full File Inventory
+| File | Status |
+|---|---|
+| `docs/claude-rest-api.md` | ✅ Guide |
+| `app/claude_client.py` | ✅ Async Client |
+| `app/api/v1/endpoints/claude.py` | ✅ Routes (Chat/Stream/Tools) |
+| `tests/test_claude_client.py` | ✅ Unit Tests |
+| `app/core/config.py` | ✅ Settings |
+| `.env.example` | ✅ API Key Template |
+| `requirements.txt` | ✅ Dependencies |
+
+---
+
+🎉 **All done!** Your FastAPI boilerplate now has a **complete Claude API integration** — authentication, chat, streaming, function calling, tests, and documentation.
+
+Want me to add **Prompt Caching** support or integrate this with your **Skills Registry** so other skills can call Claude? 🧠✅

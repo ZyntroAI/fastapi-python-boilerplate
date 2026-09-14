@@ -1,0 +1,280 @@
+# ✅ Complete — Unit Tests + API Routes Added
+
+---
+
+## 📄 File 3: `tests/test_claude_client.py` — Unit Tests
+> 📍 Path: `tests/test_claude_client.py`
+
+```python
+"""
+🧪 Unit Tests for Claude REST API Client
+Path: tests/test_claude_client.py
+"""
+
+import pytest
+from unittest.mock import AsyncMock, patch, MagicMock
+from app.claude_client import ClaudeClient
+
+
+@pytest.fixture
+def client():
+    """Create test client with dummy key"""
+    return ClaudeClient(api_key="sk-ant-test123", timeout=10)
+
+
+@pytest.mark.asyncio
+async def test_client_initialization():
+    """Test client initializes correctly"""
+    client = ClaudeClient(api_key="sk-ant-test123")
+    assert client.api_key == "sk-ant-test123"
+    assert client.base_url == "https://api.anthropic.com"
+    assert "x-api-key" in client.headers
+
+
+@pytest.mark.asyncio
+async def test_send_message_structure(client):
+    """Test request payload structure"""
+    mock_response = {
+        "id": "msg_test",
+        "type": "message",
+        "role": "assistant",
+        "content": [{"type": "text", "text": "Hello!"}],
+        "model": "claude-sonnet-4-6",
+        "usage": {"input_tokens": 8, "output_tokens": 5}
+    }
+
+    with patch("httpx.AsyncClient.post") as mock_post:
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = mock_response
+        mock_post.return_value.__aenter__.return_value = mock_resp
+
+        resp = await client.send_message(
+            messages=[{"role": "user", "content": "Hi"}]
+        )
+
+        assert resp["id"] == "msg_test"
+        assert "usage" in resp
+
+
+@pytest.mark.asyncio
+async def test_extract_text(client):
+    """Test text extraction helper"""
+    response = {
+        "content": [
+            {"type": "text", "text": "First paragraph"},
+            {"type": "text", "text": " Second paragraph"}
+        ]
+    }
+    text = client.extract_text(response)
+    assert text == "First paragraph Second paragraph"
+
+
+@pytest.mark.asyncio
+async def test_api_error_handling(client):
+    """Test HTTP error raises exception"""
+    with patch("httpx.AsyncClient.post") as mock_post:
+        mock_resp = MagicMock()
+        mock_resp.status_code = 401
+        mock_resp.text = '{"error": "invalid_api_key"}'
+        mock_post.return_value.__aenter__.return_value = mock_resp
+
+        with pytest.raises(Exception) as exc:
+            await client.send_message(messages=[{"role": "user", "content": "Hi"}])
+
+        assert "401" in str(exc.value)
+```
+
+---
+
+## 📄 File 4: `app/api/v1/endpoints/claude.py` — API Route
+> 📍 Path: `app/api/v1/endpoints/claude.py`
+
+```python
+"""
+🤖 Claude API Endpoints — FastAPI Route
+Path: app/api/v1/endpoints/claude.py
+"""
+
+from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel, Field
+from typing import List, Optional, Dict, Any
+from app.claude_client import ClaudeClient
+from app.core.config import settings
+
+router = APIRouter(prefix="/claude", tags=["claude"])
+
+
+# ─── Request/Response Schemas ───
+
+class MessageItem(BaseModel):
+    role: str = Field(..., pattern="^(user|assistant)$")
+    content: str
+
+
+class ClaudeRequest(BaseModel):
+    messages: List[MessageItem]
+    model: str = Field(default="claude-sonnet-4-6")
+    max_tokens: int = Field(default=1024, ge=1, le=200000)
+    system: Optional[str] = None
+    temperature: float = Field(default=0.0, ge=0.0, le=1.0)
+    stream: bool = False
+
+
+class ClaudeUsage(BaseModel):
+    input_tokens: int = 0
+    output_tokens: int = 0
+
+
+class ClaudeResponse(BaseModel):
+    success: bool
+    model: str
+    text: str
+    usage: ClaudeUsage
+    stop_reason: Optional[str] = None
+    message_id: Optional[str] = None
+
+
+# ─── Dependency: Reusable Client ───
+
+def get_claude_client():
+    return ClaudeClient(
+        api_key=settings.ANTHROPIC_API_KEY,
+        timeout=settings.HTTP_TIMEOUT
+    )
+
+
+# ─── Endpoints ───
+
+@router.post("/chat", response_model=ClaudeResponse, summary="Send message to Claude")
+async def claude_chat(
+    req: ClaudeRequest,
+    client: ClaudeClient = Depends(get_claude_client)
+):
+    """
+    Send a conversation to Claude and receive a response.
+
+    - **messages**: Conversation history (user + assistant turns)
+    - **model**: Choose Claude model (Sonnet recommended)
+    - **system**: Optional system prompt/instruction
+    - **temperature**: 0 = deterministic, 1 = creative
+    """
+    try:
+        response = await client.send_message(
+            messages=[{"role": m.role, "content": m.content} for m in req.messages],
+            model=req.model,
+            max_tokens=req.max_tokens,
+            system=req.system,
+            temperature=req.temperature,
+            stream=req.stream
+        )
+
+        return ClaudeResponse(
+            success=True,
+            model=response.get("model", req.model),
+            text=client.extract_text(response),
+            usage=ClaudeUsage(**response.get("usage", {})),
+            stop_reason=response.get("stop_reason"),
+            message_id=response.get("id")
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Claude API Error: {str(e)}")
+
+
+@router.get("/models", summary="List recommended models")
+async def list_models():
+    """Get list of supported Claude models"""
+    return {
+        "models": [
+            {"id": "claude-opus-4-6", "tier": "most-capable", "context": "200K+"},
+            {"id": "claude-sonnet-4-6", "tier": "balanced", "context": "200K+"},
+            {"id": "claude-haiku-4-5", "tier": "fastest", "context": "200K+"}
+        ],
+        "recommended": "claude-sonnet-4-6"
+    }
+```
+
+---
+
+## 📄 Update: `app/core/config.py` — Add Settings
+> Add these lines to your existing `config.py`
+
+```python
+# ─── Claude API Settings ───
+ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
+ANTHROPIC_BASE_URL: str = "https://api.anthropic.com"
+ANTHROPIC_VERSION: str = "2026-01-01"
+HTTP_TIMEOUT: int = 120
+```
+
+---
+
+## 📄 Update: `app/main.py` — Register Router
+> Add to your FastAPI app initialization
+
+```python
+from app.api.v1.endpoints import claude
+
+app = FastAPI(title="FastAPI + Claude Boilerplate")
+
+# ... your existing routes ...
+
+# Register Claude routes
+app.include_router(claude.router)
+```
+
+---
+
+## 📄 Update: `requirements.txt` — Add Test Deps
+```txt
+pytest>=8.0.0
+pytest-asyncio>=0.24.0
+```
+
+---
+
+## 🧪 How to Run
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run tests
+pytest tests/test_claude_client.py -v
+
+# Start server
+uvicorn app.main:app --reload
+
+# Test API
+curl -X POST http://localhost:8000/claude/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+
+---
+
+## 🚀 Commit & Push
+```bash
+git add tests/test_claude_client.py app/api/v1/endpoints/claude.py
+git add app/core/config.py app/main.py requirements.txt
+git commit -m "feat: add Claude API routes + unit tests + FastAPI integration"
+git push origin main
+```
+
+---
+
+## ✅ Complete Summary
+| File | Purpose |
+|---|---|
+| `docs/claude-rest-api.md` | Full developer guide |
+| `app/claude_client.py` | Async Python client |
+| `tests/test_claude_client.py` | Unit tests |
+| `app/api/v1/endpoints/claude.py` | FastAPI `/claude/*` routes |
+| `.env.example` | API key template |
+| `requirements.txt` | Dependencies |
+
+---
+
+All files ready to push! 🎉 Want me to also add **streaming SSE endpoint** or **tool/function-calling support** to the routes? 🧠✅

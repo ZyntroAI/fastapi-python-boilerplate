@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zyntro.ai/schemas/ai.context.v1.json",
+  "title": "AI Context",
+  "type": "object",
+  "required": [
+    "intent"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "intent": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targets": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "schedule-management",
+          "connection-manager",
+          "github",
+          "stripe-payments",
+          "shopify-commerce",
+          "anthropic",
+          "openai",
+          "resend-email",
+          "jira",
+          "notion",
+          "slack",
+          "aws",
+          "vercel",
+          "cloudflare",
+          "linear",
+          "supabase",
+          "discord",
+          "google-workspace",
+          "webhook",
+          "oauth"
+        ]
+      }
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "ai-core",
+        "automation",
+        "cloud",
+        "commerce",
+        "communication",
+        "core",
+        "data",
+        "deployment",
+        "development",
+        "finance",
+        "integration",
+        "knowledge-work",
+        "networking",
+        "productivity",
+        "project-management",
+        "security"
+      ]
+    },
+    "risk": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "mutates": {
+      "type": "boolean"
+    },
+    "credential_ref": {
+      "type": "string"
+    },
+    "constraints": {
+      "type": "object",
+      "properties": {
+        "max_latency_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_payload_kb": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "requires_approval": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

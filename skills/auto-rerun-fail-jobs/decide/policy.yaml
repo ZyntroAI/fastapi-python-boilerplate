@@ -1,0 +1,35 @@
+retry_policy:
+  transient:
+    action: retry
+    max_retries: 3
+    backoff: exponential
+
+  infrastructure:
+    action: retry
+    max_retries: 2
+    backoff: exponential
+
+  rate_limit:
+    action: backoff
+    max_retries: 3
+
+  dependency:
+    action: diagnose
+    auto_retry: false
+
+  test_failure:
+    action: debug
+    auto_retry: false
+
+  code_failure:
+    action: block
+    auto_retry: false
+
+  permission:
+    action: block
+    max_retries: 0
+    note: "Requires actions:write — NOT workflows:write"
+
+  security:
+    action: quarantine
+    max_retries: 0

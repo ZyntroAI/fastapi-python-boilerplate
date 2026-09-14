@@ -1,0 +1,39 @@
+name: Deploy Static Content to Pages
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      # ✅ checkout@v4 — PINNED SHA
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d2759718672a689f
+
+      # ✅ configure-pages@v5 — PINNED SHA
+      - name: Setup Pages
+        uses: actions/configure-pages@9c35794150560509846e90e162c56cb0c4307e75
+
+      # ✅ upload-pages-artifact@v3 — PINNED SHA
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@de8154f054c463b3d86652b73d7f4b34c6a3e957
+        with:
+          path: '.'
+
+      # ✅ deploy-pages@v5 — PINNED SHA
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d8475690d8475690d8475690d8475690d8475690

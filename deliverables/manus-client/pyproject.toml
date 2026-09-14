@@ -1,0 +1,12 @@
+[project]
+name = "manus-client"
+version = "0.1.0"
+description = "Manus REST API v2 async client (verified surface)"
+requires-python = ">=3.9"
+dependencies = ["httpx>=0.27"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

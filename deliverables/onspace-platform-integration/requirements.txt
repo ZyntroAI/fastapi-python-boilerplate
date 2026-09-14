@@ -1,0 +1,18 @@
+# Core (required)
+fastapi>=0.110
+pydantic>=2.6
+pydantic-settings>=2.2
+prometheus-client>=0.20
+
+# Tests
+pytest>=8.0
+pytest-asyncio>=0.23
+httpx>=0.27
+
+# Optional providers — install the one(s) you use
+# openai>=1.30
+# anthropic>=0.34
+# google-genai>=0.3
+
+# Optional shared infrastructure
+# redis>=5.0

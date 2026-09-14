@@ -1,0 +1,72 @@
+From 2a5466fe5c3f90edfe0c0495fadcd65ce1eca514 Mon Sep 17 00:00:00 2001
+From: Nattapong Pornlumfah <zyntro.ai.studio@gmail.com>
+Date: Sun, 13 Sep 2026 09:11:04 +0000
+Subject: [PATCH] ci: add WhatsApp notification workflow under
+ .github/workflows
+
+---
+ .github/workflows/notify-whatsapp.yml | 52 +++++++++++++++++++++++++++
+ 1 file changed, 52 insertions(+)
+ create mode 100644 .github/workflows/notify-whatsapp.yml
+
+diff --git a/.github/workflows/notify-whatsapp.yml b/.github/workflows/notify-whatsapp.yml
+new file mode 100644
+index 0000000..d01d10e
+--- /dev/null
++++ b/.github/workflows/notify-whatsapp.yml
+@@ -0,0 +1,52 @@
++name: WhatsApp Notification System
++
++# Active workflow — sends a WhatsApp alert when CI finishes on main.
++# Requires repo secrets: WHATSAPP_TOKEN, WHATSAPP_PHONE_ID, ADMIN_PHONE
++# (optional: WHATSAPP_API_VER). See docs/notifications/WHATSAPP.md.
++
++on:
++  workflow_run:
++    workflows: ["Test & Coverage"]
++    types: [completed]
++  push:
++    branches: [main]
++
++permissions:
++  contents: read
++
++jobs:
++  notify:
++    name: Notify CI result
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
++
++      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
++        with:
++          python-version: "3.12"
++
++      - name: Install deps
++        run: pip install requests
++
++      - name: Send WhatsApp alert
++        env:
++          WHATSAPP_TOKEN: ${{ secrets.WHATSAPP_TOKEN }}
++          WHATSAPP_PHONE_ID: ${{ secrets.WHATSAPP_PHONE_ID }}
++          WHATSAPP_API_VER: "v18.0"
++          ADMIN_PHONE: ${{ secrets.ADMIN_PHONE }}
++        run: |
++          python - <<'PY'
++          import os
++          from scripts.whatsapp_notify import WhatsAppClient
++
++          ok = "${{ github.event.workflow_run.conclusion || 'push' }}"
++          run_url = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
++          status = "OK" if ok in ("success", "push") else "FAILED"
++          text = (
++              f"CI {status} - {os.environ.get('GITHUB_REPOSITORY', '')}\n"
++              f"ref: ${{ github.ref_name }}\n{run_url}"
++          )
++          client = WhatsAppClient()
++          sent, detail = client.send_message(os.getenv("ADMIN_PHONE", ""), text)
++          print("sent" if sent else "failed", detail)
++          PY
+-- 
+2.47.3
+

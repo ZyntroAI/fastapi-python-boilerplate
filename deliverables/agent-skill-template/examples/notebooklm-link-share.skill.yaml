@@ -1,0 +1,48 @@
+agent_skill:
+  metadata:
+    id: notebooklm-link-share-v1
+    name: NotebookLM Link & Sharing
+    version: 1.0.0
+    description: Normalize NotebookLM artifact links to clean public URLs; configure
+      sharing; generate templates.
+    standards:
+    - Open Standard
+    tags:
+    - notebooklm
+    - link-management
+    - sharing
+    - url-normalization
+  core:
+    framework: standard-agent-v1
+    interface:
+      input:
+      - raw_url
+      - share_setting
+      output:
+      - clean_url
+      - share_template
+      - validation
+  loading_model:
+    strategy: Progressive Disclosure
+    layers:
+    - level: 1
+      name: url-normalize
+      always_loaded: true
+    - level: 2
+      name: permission-setup
+      load_condition: on-demand
+    - level: 3
+      name: share-templates
+      load_condition: context-needed
+  execution:
+    evolution: prompt -> agent-skill
+    components:
+    - scripts
+  security:
+    verification_gates:
+    - structure-valid
+    - vuln-scan
+    - permission-check
+    - output-verify
+    compliance:
+    - Audit Ready

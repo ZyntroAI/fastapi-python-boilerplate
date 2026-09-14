@@ -1,0 +1,13 @@
+flowchart LR
+    A[Workflow Failed] --> B[Detect & Collect]
+    B --> C[Fingerprint Logs]
+    C --> D{Classify}
+    D -->|Transient/Infra| E[Retry Allowed]
+    D -->|Test/Code/Fix| F[Handoff to Debug]
+    D -->|Permission/Security| G[Block & Notify]
+    E --> H{Budget Check}
+    H -->|Attempts Left| I[RERUN ONLY FAILED JOB]
+    H -->|Budget Exceeded| F
+    I --> J[Observe Result]
+    J -->|Pass| K[✅ Success]
+    J -->|Fail| D

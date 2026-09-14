@@ -1,0 +1,8 @@
+{
+  "role_name": "fastapi-service",
+  "policies": ["fastapi-read-only", "credential-broker-access"],
+  "ttl": "15m",
+  "max_ttl": "1h",
+  "renewable": true,
+  "token_type": "service"
+}

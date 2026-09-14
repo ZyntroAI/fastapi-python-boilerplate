@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+pydantic
+gunicorn
+httpx
+pytest
+pytest-asyncio
+pytest-cov
+pre-commit

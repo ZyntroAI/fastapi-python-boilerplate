@@ -1,0 +1,19 @@
+fastapi>=0.110,<1.0
+uvicorn[standard]>=0.29
+pydantic>=2.6
+pydantic-settings>=2.2
+SQLAlchemy>=2.0,<2.1
+
+# Optional: only required when ENCRYPT_AT_REST=true is set.
+cryptography>=42.0 ; platform_python_implementation == "CPython"
+
+# Real billing provider. The Stripe adapter is lazy-imported, so the SDK is
+# only required when BILLING_PROVIDER=stripe is set.
+stripe>=8.0
+
+# Used by the Chargebee adapter (BILLING_PROVIDER=chargebee). Lazy-imported.
+requests>=2.31
+
+# Test
+pytest>=8.0
+httpx>=0.27

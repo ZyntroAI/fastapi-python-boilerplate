@@ -1,0 +1,7 @@
+/* app/static/style.css */
+body { font-family: Arial, sans-serif; margin: 2rem; }
+h1 { color: #2c3e50; }
+#search-section { margin-bottom: 1rem; }
+#search-section input { padding: .4rem; margin-right: .5rem; }
+#btn-search { padding: .5rem 1rem; }
+#results pre { background: #f8f9fa; padding: 1rem; overflow-x: auto; }

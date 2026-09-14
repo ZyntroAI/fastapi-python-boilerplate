@@ -1,0 +1,53 @@
+auto-rerun-fail-jobs/
+├── SKILL.md
+├── __init__.py
+├── detect/
+│   ├── __init__.py
+│   ├── workflow.py       # Read workflow status
+│   ├── jobs.py           # Collect failed jobs
+│   ├── steps.py           # Analyze failed steps
+│   └── failures.py        # Fetch logs + fingerprint
+├── classify/
+│   ├── __init__.py
+│   ├── classifier.py      # Main classification engine
+│   ├── patterns.yaml      # Failure patterns
+│   ├── transient.py
+│   ├── infrastructure.py
+│   ├── dependency.py
+│   ├── test.py
+│   ├── permission.py
+│   ├── security.py
+│   └── code.py
+├── decide/
+│   ├── __init__.py
+│   ├── retry.py           # Should retry? logic
+│   ├── backoff.py         # Exponential backoff calc
+│   ├── budget.py          # Attempt counting
+│   └── policy.yaml         # Global retry policy
+├── execute/
+│   ├── __init__.py
+│   ├── rerun_job.py       # ✅ Rerun ONLY failed JOB
+│   ├── rerun_failed.py    # Rerun all failed jobs
+│   └── rerun_workflow.py  # Fallback: full workflow
+├── observe/
+│   ├── __init__.py
+│   ├── logs.py            # Fetch & parse logs
+│   ├── status.py          # Track run status
+│   └── result.py          # Record outcomes
+├── recover/
+│   ├── __init__.py
+│   ├── debug.py            # Handoff to debug-error
+│   ├── patch.py            # Check diff/patch
+│   └── verify.py           # Verify before retry
+├── report/
+│   ├── __init__.py
+│   ├── comment.py          # PR auto-comment
+│   ├── summary.py          # Status summary
+│   └── history.py          # Track retry history
+└── tests/
+    ├── __init__.py
+    ├── test_classification.py
+    ├── test_retry_policy.py
+    ├── test_budget.py
+    ├── test_backoff.py
+    └── test_integration.py

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/eslintrc",
+  "root": true,
+  "env": { "es2022": true, "node": true, "browser": true },
+  "parserOptions": { "ecmaVersion": 2022, "sourceType": "module" },
+  "plugins": ["security"],
+  "rules": {
+    "no-proto": "error",
+    "no-prototype-builtins": "error",
+    "security/detect-object-injection": "error",
+    "no-extend-native": "error",
+    "no-new-object": "off"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.js", "**/*.ts", "**/*.tsx"],
+      "rules": {
+        "no-proto": "error",
+        "no-prototype-builtins": "error",
+        "security/detect-object-injection": "error"
+      }
+    }
+  ],
+  "ignorePatterns": ["dist/", "node_modules/", "build/"]
+}

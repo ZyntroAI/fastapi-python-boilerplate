@@ -1,0 +1,22 @@
+{{ .Chart.Name }} {{ .Chart.Version }} (app {{ .Chart.AppVersion }}) is installed as
+{{ include "agent-core.fullname" . }} in namespace {{ .Release.Namespace }}.
+
+Image:  {{ include "agent-core.image" . }}
+Secret: {{ include "agent-core.secretName" . }}
+
+{{ if .Values.secrets.existingSecret -}}
+Credentials are read from the existing Secret "{{ .Values.secrets.existingSecret }}".
+{{- else if or .Values.secrets.AGENT_API_KEY .Values.secrets.SUPABASE_URL .Values.secrets.SUPABASE_SERVICE_KEY -}}
+The chart created Secret "{{ include "agent-core.secretName" . }}" from values.
+Prefer --set secrets.existingSecret=... so credentials stay out of values.yaml.
+{{- else -}}
+No credentials were provided, so no Secret was created. The Deployment expects a
+Secret named "{{ include "agent-core.secretName" . }}" with keys AGENT_API_KEY,
+SUPABASE_URL and SUPABASE_SERVICE_KEY. Without it the pod will not start.
+{{- end }}
+
+Port-forward to reach the API from your machine:
+
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "agent-core.fullname" . }} 8000:{{ .Values.service.port }}
+
+Then: http://127.0.0.1:8000/health  and  http://127.0.0.1:8000/docs

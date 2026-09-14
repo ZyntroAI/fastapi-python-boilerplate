@@ -1,0 +1,11 @@
+﻿ด้าน,Opilot (Ollama + Copilot),GitHub Copilot ปกติ
+🔑 การเลือกโมเดล,"ใช้ได้ทั้ง local และ cloud models จาก Ollama Library, รวมถึง custom modelfiles",จำกัดเฉพาะโมเดลที่ GitHub Copilot ให้บริการ
+🛠️ การจัดการโมเดล,"มี Model Management Sidebar สำหรับ pull, run, inspect, stop, delete พร้อม live status badges",ไม่มี UI สำหรับจัดการโมเดลโดยตรง
+💬 การสนทนา,เรียก @ollama เพื่อสนทนาแบบ history-aware กับโมเดลที่เลือก,สนทนากับ Copilot โดยตรง แต่ไม่สามารถเลือกโมเดลเอง
+⌨️ Code Completions,Inline fill‑in‑the‑middle จากโมเดล local,Inline completions จากโมเดล cloud ของ GitHub
+🖼️ Vision Support,รองรับ input เป็นภาพสำหรับโมเดล vision,ไม่รองรับการส่งภาพเป็น input
+💭 Reasoning Transparency,มี collapsible “Thinking” sections สำหรับโมเดล reasoning (เช่น DeepSeek‑R1),ไม่แสดง reasoning chain‑of‑thought
+🏠 Privacy & Local Execution,"รันโมเดลบนเครื่องคุณเอง → ข้อมูลไม่ออกไปภายนอก, ใช้งาน offline ได้",รันบน cloud → ข้อมูลต้องส่งไปยังเซิร์ฟเวอร์ GitHub
+💸 ค่าใช้จ่าย,ไม่มี per‑token billing เมื่อใช้ local models,มีค่าใช้จ่าย subscription และ per‑token usage
+⚡ Latency,Streaming responses แบบ real‑time จาก local models → latency ต่ำ,ขึ้นอยู่กับการเชื่อมต่อกับ cloud servers
+🔒 Security,Authentication tokens สำหรับ remote Ollama เก็บใน VS Code encrypted secrets API,ใช้ระบบ authentication ของ GitHub Copilot

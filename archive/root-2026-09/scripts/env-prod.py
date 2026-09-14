@@ -1,0 +1,10 @@
+ENV=production
+SECRET_KEY=your-256-bit-secret-key-here
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+POSTGRES_USER=prod_user
+POSTGRES_PASSWORD=strong_password_here
+POSTGRES_HOST=db.yourdomain.com
+POSTGRES_PORT=5432
+POSTGRES_DB=fastapi_prod
+MAX_UPLOAD_SIZE=10485760
+UPLOAD_DIR=./uploads

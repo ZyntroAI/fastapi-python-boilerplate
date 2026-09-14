@@ -1,0 +1,38 @@
+name: Agent Core Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r deliverables/agent-core/requirements.txt
+
+      - name: Run tests
+        working-directory: deliverables/agent-core
+        run: pytest -q
+
+      - name: Start service
+        if: github.ref == 'refs/heads/main'
+        working-directory: deliverables/agent-core
+        run: uvicorn agent_core.api:app --host 0.0.0.0 --port 8000 --workers 4
+        env:
+          AGENT_API_KEY: ${{ secrets.AGENT_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}

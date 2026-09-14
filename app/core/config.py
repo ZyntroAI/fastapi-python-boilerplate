@@ -1,101 +1,72 @@
-from functools import lru_cache
-from typing import Literal
-
-from pydantic import AnyHttpUrl, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from functools import lru_cache
 
-
+ALLOWED_ORIGINS = {
+    "https://yourdomain.com",
+    "http://localhost:3000",
+}
+PROTECTED_ROUTES = {"/api/", "/auth/"}
+EXEMPT_ROUTES = {"/health", "/docs", "/redoc"}
 class Settings(BaseSettings):
+    ENV: str = "local"  # local | vercel | production
+    
+    # OAuth2 Provider (Google, GitHub, etc.)
+    OAUTH_CLIENT_ID: str
+    OAUTH_CLIENT_SECRET: str | None = None  # PKCE ไม่ต้องใช้ secret บน client
+    OAUTH_AUTHORIZE_URL: str = "https://accounts.google.com/o/oauth2/v2/auth"
+    OAUTH_TOKEN_URL: str = "https://oauth2.googleapis.com/token"
+    OAUTH_USERINFO_URL: str = "https://openidconnect.googleapis.com/v1/userinfo"
+    
+    # Callback URL แยกตาม Environment
+    @property
+    def OAUTH_CALLBACK_URL(self) -> str:
+        callbacks = {
+            "local": "http://localhost:8000/auth/callback",
+            "vercel": "https://your-app.vercel.app/auth/callback",
+            "production": "https://api.example.com/auth/callback",
+        }
+        return callbacks.get(self.ENV, callbacks["local"])
+    
+    # Frontend redirect หลัง login สำเร็จ
+    @property
+    def FRONTEND_URL(self) -> str:
+        urls = {
+            "local": "http://localhost:3000",
+            "vercel": "https://your-app.vercel.app",
+            "production": "https://app.example.com",
+        }
+        return urls.get(self.ENV, urls["local"])
+    
+    # CORS
+    @property
+    def CORS_ORIGINS(self) -> list[str]:
+        return [self.FRONTEND_URL]
+    
+    # JWT
+    JWT_SECRET: str = "super-secret-change-in-production"
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRE_MINUTES: int = 60
+    
+    # Redis (optional - for token storage)
+    REDIS_URL: str | None = None
+    
+
+    # Central Credential Broker (metadata-only; no raw secrets here)
+    CREDENTIAL_BROKER_URL: str | None = None
+    BROKER_TOKEN: str | None = None
 
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        case_sensitive=False,
+        case_sensitive=True,
+        # The repo's .env carries keys this app does not declare (BytePlus,
+        # WhatsApp Cloud API, …). Pydantic v2 defaults to `extra="forbid"`,
+        # which made the app refuse to start with those keys present.
         extra="ignore",
     )
 
-    # Application
-    APP_NAME: str = "OAuth FastAPI"
-    APP_VERSION: str = "1.0.0"
 
-    ENV: Literal[
-        "dev",
-        "development",
-        "test",
-        "staging",
-        "prod",
-        "production",
-    ] = "dev"
-
-    DEBUG: bool = False
-
-    # Server
-    ROOT_PATH: str = ""
-    BASE_URL: AnyHttpUrl
-
-    # Database
-    DATABASE_URL: str
-    DATABASE_URL_TEST: str | None = None
-
-    # CORS
-    CORS_ORIGINS: str = ""
-    FRONTEND_ORIGIN: AnyHttpUrl | None = None
-
-    # OAuth
-    OAUTH_PROVIDER: str = "google"
-    CLIENT_ID: str
-    CLIENT_SECRET: SecretStr
-    OAUTH_SCOPES: str = "openid email profile"
-    OAUTH_CALLBACK_PATH: str = "/api/auth/callback"
-
-    # JWT
-    JWT_SECRET: SecretStr
-    JWT_ALG: str = "HS256"
-
-    JWT_TTL_SECONDS: int = Field(
-        default=3600,
-        ge=60,
-        le=86400,
-    )
-    JWT_ISSUER: str | None = None
-JWT_AUDIENCE: str | None = None
-
-    # OAuth state
-    SESSION_STATE_TTL_SECONDS: int = Field(
-        default=600,
-        ge=60,
-        le=3600,
-    )
-
-    # Observability
-    METRICS_ENABLED: bool = True
-    ENABLE_REQUEST_LOGS: bool = True
-
-    LOG_LEVEL: str = "INFO"
-
-    @property
-    def IS_PROD(self) -> bool:
-        return self.ENV in {
-            "prod",
-            "production",
-        }
-
-    @property
-    def IS_DEV(self) -> bool:
-        return self.ENV in {
-            "dev",
-            "development",
-        }
-
-    @property
-    def OAUTH_CALLBACK_URL(self) -> str:
-        return (
-            f"{str(self.BASE_URL).rstrip('/')}"
-            f"{self.OAUTH_CALLBACK_PATH}"
-        )
-
-
-@lru_cache
+@lru_cache()
 def get_settings() -> Settings:
     return Settings()
 

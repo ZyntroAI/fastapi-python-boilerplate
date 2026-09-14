@@ -1,0 +1,508 @@
+ไฟล์ `.yml` ฉบับเต็มครับ — คัดลอกทั้งหมดด้านล่างวางใน `.github/workflows/apply-backend-entrypoint-fix.yml` ได้เลย
+
+```yaml
+name: Apply backend entry-point fix
+
+# One-shot helper: applies the server.js entry-point fix, runs the tests, pushes
+# the branch and opens the PR. Run it from the Actions tab (workflow_dispatch).
+# Safe to delete afterwards.
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Branch to create/update with the fix
+        required: false
+        default: fix/backend-entrypoint-refactor
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      TARGET_BRANCH: ${{ inputs.branch || 'fix/backend-entrypoint-refactor' }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN || github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: '20'
+
+      - name: Apply fix, test, push and open PR
+        run: |
+          cat > backend/app.js <<'EOF_APP_JS'
+          /**
+           * CrystalCastle Backend — app factory.
+           *
+           * Builds the Express app from injected dependencies so it can be exercised in
+           * tests without real Supabase / Groq credentials. The process entry point lives
+           * in `server.js`, which wires the real clients and starts listening.
+           */
+          'use strict';
+
+          const express = require('express');
+          const cors = require('cors');
+
+          const API_VERSION = 'v1';
+
+          /**
+           * @param {object} deps
+           * @param {{ auth: { getUser(token: string): Promise<{data: {user: object|null}, error: object|null}> } }} deps.supabase
+           * @param {{ chat: { completions: { create(args: object): Promise<object> } } }} deps.groq
+           * @param {object} deps.config
+           * @param {string} [deps.config.allowedOrigins] comma-separated list; empty means allow all
+           * @param {(err: Error) => void} [deps.onError] structured error sink (defaults to console.error)
+           * @returns {import('express').Express}
+           */
+          function createApp({ supabase, groq, config = {}, onError } = {}) {
+            if (!supabase || typeof supabase.auth?.getUser !== 'function') {
+              throw new TypeError('createApp: supabase.auth.getUser is required');
+            }
+            if (!groq || typeof groq.chat?.completions?.create !== 'function') {
+              throw new TypeError('createApp: groq.chat.completions.create is required');
+            }
+
+            const logError = typeof onError === 'function' ? onError : console.error;
+            const app = express();
+
+            // ---------------------------------------------------------------
+            // Middleware
+            // ---------------------------------------------------------------
+            app.use(
+              cors({
+                origin: config.allowedOrigins ? config.allowedOrigins.split(',') : '*',
+                credentials: true,
+              })
+            );
+            app.use(express.json({ limit: '10mb' }));
+            app.use(express.urlencoded({ extended: true }));
+
+            // ---------------------------------------------------------------
+            // Supabase JWT auth — public routes bypassed, everything else needs Bearer
+            // ---------------------------------------------------------------
+            // NOTE: the root path must match exactly — `startsWith('/')` would make
+            // every route public and silently disable auth on the whole API.
+            const publicPaths = [`/api/${API_VERSION}/health`, '/docs'];
+            const isPublic = (path) => path === '/' || publicPaths.some((p) => path.startsWith(p));
+            app.use(async (req, res, next) => {
+              if (isPublic(req.path)) return next();
+
+              const authHeader = req.headers.authorization;
+              const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+              if (!token) {
+                return res.status(401).json({ error: 'Unauthorized: Bearer token required' });
+              }
+
+              try {
+                const {
+                  data: { user },
+                  error,
+                } = await supabase.auth.getUser(token);
+
+                if (error || !user) {
+                  return res.status(401).json({ error: 'Unauthorized: Invalid/expired token' });
+                }
+
+                req.user = {
+                  id: user.id,
+                  email: user.email,
+                  role: user.role || 'authenticated',
+                };
+                next();
+              } catch (err) {
+                logError(err);
+                return res.status(401).json({ error: 'Authentication failed' });
+              }
+            });
+
+            // ---------------------------------------------------------------
+            // Health
+            // ---------------------------------------------------------------
+            app.get(`/api/${API_VERSION}/health`, (req, res) => {
+              res.json({
+                status: 'healthy',
+                service: 'crystalcastle-backend',
+                version: API_VERSION,
+                timestamp: new Date().toISOString(),
+              });
+            });
+
+            // ---------------------------------------------------------------
+            // Groq AI chat proxy — validated input, structured errors
+            // ---------------------------------------------------------------
+            app.post(`/api/${API_VERSION}/ai/chat`, async (req, res) => {
+              try {
+                const {
+                  messages,
+                  model = 'mixtral-8x7b-32768',
+                  temperature = 0.7,
+                  max_tokens = 2048,
+                } = req.body || {};
+
+                if (!messages || !Array.isArray(messages) || messages.length === 0) {
+                  return res.status(400).json({ error: 'Messages array required' });
+                }
+
+                const completion = await groq.chat.completions.create({
+                  model,
+                  messages,
+                  temperature,
+                  max_tokens,
+                });
+
+                return res.json({
+                  content: completion.choices[0].message.content,
+                  model: completion.model,
+                  usage: completion.usage,
+                  created: new Date().toISOString(),
+                });
+              } catch (err) {
+                logError(err);
+                const statusCode = err.response?.status || 500;
+                return res.status(statusCode).json({
+                  error: 'AI Service Unavailable',
+                  details: err.message,
+                  code: statusCode,
+                });
+              }
+            });
+
+            // ---------------------------------------------------------------
+            // User-scoped CRUD
+            // ---------------------------------------------------------------
+            app.get(`/api/${API_VERSION}/items`, async (req, res) => {
+              try {
+                const { data, error } = await supabase
+                  .from('items')
+                  .select('*')
+                  .eq('user_id', req.user.id)
+                  .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                return res.json(data);
+              } catch (err) {
+                logError(err);
+                return res.status(500).json({ error: err.message });
+              }
+            });
+
+            app.post(`/api/${API_VERSION}/items`, async (req, res) => {
+              try {
+                const { title, description } = req.body || {};
+                const { data, error } = await supabase
+                  .from('items')
+                  .insert({ title, description, user_id: req.user.id })
+                  .select()
+                  .single();
+
+                if (error) throw error;
+                return res.status(201).json(data);
+              } catch (err) {
+                logError(err);
+                return res.status(400).json({ error: err.message });
+              }
+            });
+
+            // ---------------------------------------------------------------
+            // Fallbacks — 404 then the error handler (must stay last)
+            // ---------------------------------------------------------------
+            app.use((req, res) => {
+              res.status(404).json({ error: 'Endpoint Not Found' });
+            });
+
+            // eslint-disable-next-line no-unused-vars -- Express needs the 4-arg signature
+            app.use((err, req, res, next) => {
+              logError(err);
+              res.status(err.status || 500).json({
+                error: err.message || 'Internal Server Error',
+              });
+            });
+
+            return app;
+          }
+
+          module.exports = { createApp, API_VERSION };
+          EOF_APP_JS
+          cat > backend/server.js <<'EOF_SERVER_JS'
+          /**
+           * CrystalCastle Backend — process entry point.
+           *
+           * Wires the real Supabase + Groq clients into the app factory and starts
+           * listening. All behaviour lives in `app.js` so it can be tested in isolation.
+           */
+          'use strict';
+
+          require('dotenv').config();
+
+          const { createClient } = require('@supabase/supabase-js');
+          const Groq = require('groq-sdk');
+
+          const { createApp, API_VERSION } = require('./app');
+
+          const PORT = process.env.PORT || 8000;
+
+          const supabase = createClient(
+            process.env.SUPABASE_URL,
+            process.env.SUPABASE_ANON_KEY,
+            { auth: { autoRefreshToken: true, persistSession: false } }
+          );
+
+          const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+          const app = createApp({
+            supabase,
+            groq,
+            config: { allowedOrigins: process.env.ALLOWED_ORIGINS },
+            onError: (err) => console.error('❌ Server Error:', err?.message || err),
+          });
+
+          app.listen(PORT, () => {
+            console.log('✅ CrystalCastle Backend running');
+            console.log(`📍 Port: ${PORT}`);
+            console.log(`🔗 API: http://localhost:${PORT}/api/${API_VERSION}`);
+            console.log('🔐 Auth: Supabase JWT Verified');
+            console.log('🤖 AI: Groq Connected');
+          });
+          EOF_SERVER_JS
+          cat > backend/app.test.js <<'EOF_APP_TEST_JS'
+          /**
+           * Entry-point / app-factory tests.
+           *
+           * Uses fakes for Supabase & Groq so the suite runs with no credentials and
+           * no network. Run: node --test app.test.js
+           */
+          'use strict';
+
+          const assert = require('node:assert');
+          const { test } = require('node:test');
+          const request = require('supertest');
+
+          const { createApp, API_VERSION } = require('./app');
+
+          /** Minimal fake Supabase: getUser resolves per the token it is handed. */
+          function fakeSupabase({ userByToken = {}, items = [] } = {}) {
+            const inserted = [];
+            const query = {
+              _rows: items,
+              select() { return this; },
+              eq() { return this; },
+              order() { return Promise.resolve({ data: this._rows, error: null }); },
+              insert(row) { inserted.push(row); this._inserted = row; return this; },
+              single() { return Promise.resolve({ data: this._inserted, error: null }); },
+            };
+            return {
+              inserted,
+              auth: {
+                getUser: async (token) => {
+                  const user = userByToken[token];
+                  return user ? { data: { user }, error: null } : { data: { user: null }, error: { message: 'invalid' } };
+                },
+              },
+              from: () => query,
+            };
+          }
+
+          /** Minimal fake Groq: echoes a deterministic completion. */
+          function fakeGroq({ fail = false } = {}) {
+            return {
+              chat: {
+                completions: {
+                  create: async ({ messages, model }) => {
+                    if (fail) {
+                      const e = new Error('upstream down');
+                      e.response = { status: 503 };
+                      throw e;
+                    }
+                    return {
+                      model,
+                      choices: [{ message: { content: `echo:${messages[0].content}` } }],
+                      usage: { total_tokens: 3 },
+                    };
+                  },
+                },
+              },
+            };
+          }
+
+          const USER = { id: 'user-1', email: 'a@b.c', role: 'authenticated' };
+
+          test('health is public and reports healthy', async () => {
+            const app = createApp({ supabase: fakeSupabase(), groq: fakeGroq() });
+            const res = await request(app).get(`/api/${API_VERSION}/health`);
+            assert.strictEqual(res.status, 200);
+            assert.strictEqual(res.body.status, 'healthy');
+            assert.strictEqual(res.body.service, 'crystalcastle-backend');
+          });
+
+          test('protected route without token -> 401', async () => {
+            const app = createApp({ supabase: fakeSupabase(), groq: fakeGroq() });
+            const res = await request(app).get(`/api/${API_VERSION}/items`);
+            assert.strictEqual(res.status, 401);
+            assert.match(res.body.error, /Bearer token required/);
+          });
+
+          test('protected route with bad token -> 401', async () => {
+            const app = createApp({ supabase: fakeSupabase({ userByToken: { good: USER } }), groq: fakeGroq() });
+            const res = await request(app).get(`/api/${API_VERSION}/items`).set('Authorization', 'Bearer bad');
+            assert.strictEqual(res.status, 401);
+          });
+
+          test('protected route with valid token -> 200 and user scoping', async () => {
+            const app = createApp({
+              supabase: fakeSupabase({ userByToken: { good: USER }, items: [{ id: 1 }] }),
+              groq: fakeGroq(),
+            });
+            const res = await request(app).get(`/api/${API_VERSION}/items`).set('Authorization', 'Bearer good');
+            assert.strictEqual(res.status, 200);
+            assert.deepStrictEqual(res.body, [{ id: 1 }]);
+          });
+
+          test('ai/chat rejects empty messages -> 400', async () => {
+            const app = createApp({ supabase: fakeSupabase({ userByToken: { good: USER } }), groq: fakeGroq() });
+            const res = await request(app)
+              .post(`/api/${API_VERSION}/ai/chat`)
+              .set('Authorization', 'Bearer good')
+              .send({ messages: [] });
+            assert.strictEqual(res.status, 400);
+          });
+
+          test('ai/chat proxies a completion -> 200', async () => {
+            const app = createApp({ supabase: fakeSupabase({ userByToken: { good: USER } }), groq: fakeGroq() });
+            const res = await request(app)
+              .post(`/api/${API_VERSION}/ai/chat`)
+              .set('Authorization', 'Bearer good')
+              .send({ messages: [{ role: 'user', content: 'hi' }] });
+            assert.strictEqual(res.status, 200);
+            assert.strictEqual(res.body.content, 'echo:hi');
+          });
+
+          test('ai/chat maps upstream failure to its status code', async () => {
+            const app = createApp({ supabase: fakeSupabase({ userByToken: { good: USER } }), groq: fakeGroq({ fail: true }) });
+            const res = await request(app)
+              .post(`/api/${API_VERSION}/ai/chat`)
+              .set('Authorization', 'Bearer good')
+              .send({ messages: [{ role: 'user', content: 'hi' }] });
+            assert.strictEqual(res.status, 503);
+            assert.strictEqual(res.body.code, 503);
+          });
+
+          test('unknown route -> 404', async () => {
+            const app = createApp({ supabase: fakeSupabase({ userByToken: { good: USER } }), groq: fakeGroq() });
+            const res = await request(app).get('/api/v1/nope').set('Authorization', 'Bearer good');
+            assert.strictEqual(res.status, 404);
+          });
+
+          test('createApp refuses missing dependencies', () => {
+            assert.throws(() => createApp({}), /supabase\.auth\.getUser is required/);
+            assert.throws(() => createApp({ supabase: fakeSupabase() }), /groq\.chat\.completions\.create is required/);
+          });
+          EOF_APP_TEST_JS
+          cat > backend/package.json <<'EOF_PACKAGE_JSON'
+          {
+            "name": "crystalcastle-backend",
+            "version": "1.0.0",
+            "description": "CrystalCastle Backend \u2014 Supabase Auth \u00b7 Groq AI \u00b7 API v1",
+            "main": "server.js",
+            "type": "commonjs",
+            "scripts": {
+              "start": "node server.js",
+              "dev": "nodemon server.js",
+              "lint": "eslint . --ext .js",
+              "format": "prettier --write .",
+              "check": "npm run lint && npm audit --audit-level moderate",
+              "test": "node --test app.test.js"
+            },
+            "keywords": [
+              "crystalcastle",
+              "backend",
+              "supabase",
+              "groq",
+              "ai",
+              "express",
+              "api-v1"
+            ],
+            "author": "ZyntroAI / CrystalCastle Team",
+            "license": "MIT",
+            "engines": {
+              "node": ">=18.0.0 <22.0.0",
+              "npm": ">=9.0.0"
+            },
+            "dependencies": {
+              "@supabase/supabase-js": "^2.45.0",
+              "cors": "^2.8.5",
+              "dotenv": "^16.4.0",
+              "express": "^4.19.2",
+              "groq-sdk": "^0.5.0"
+            },
+            "devDependencies": {
+              "eslint": "^8.57.0",
+              "nodemon": "^3.1.0",
+              "prettier": "^3.3.0"
+            }
+          }
+          EOF_PACKAGE_JSON
+          mkdir -p .github
+          cat > .github/backend-entrypoint-fix-pr-body.md <<'EOF_PR_BODY'
+          ### What
+          `backend/server.js` had chat prose pasted over the head and tail of the file, so it
+          failed to parse (`SyntaxError: Invalid or unexpected token`). The app is extracted
+          into a testable factory and the entry point is restored.
+
+          ### Changes
+          - `backend/app.js` - `createApp({supabase, groq, config})` factory: routes, auth
+            middleware, error handlers; dependencies injected so tests need no credentials.
+          - `backend/server.js` - entry point only: wires the real Supabase + Groq clients
+            and starts listening.
+          - **fix(auth)** - `/` was matched with `startsWith`, which made every path public
+            and silently disabled auth across the whole API. Root now matches exactly.
+          - `backend/app.test.js` - 9 tests with fake Supabase/Groq (no network, no secrets).
+          - `backend/package.json` - `test` script.
+
+          ### Verification
+          `node --check` passes on all three files; `node --test app.test.js` -> 9/9 pass.
+          EOF_PR_BODY
+          set -euo pipefail
+
+          echo "--- syntax check ---"
+          node --check backend/app.js
+          node --check backend/server.js
+          node --check backend/app.test.js
+
+          echo "--- install + test ---"
+          (cd backend && npm install --no-save express cors supertest && node --test app.test.js)
+
+          echo "--- commit + push ---"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$TARGET_BRANCH"
+          git add backend/app.js backend/server.js backend/app.test.js backend/package.json
+          git commit -m "fix(backend): make server.js a valid entry point again"
+          git push --force-with-lease origin "HEAD:refs/heads/$TARGET_BRANCH"
+
+          echo "--- open PR ---"
+          gh pr create --base main --head "$TARGET_BRANCH" \
+            --title "fix(backend): make server.js a valid entry point again" \
+            --body-file .github/backend-entrypoint-fix-pr-body.md \
+            || echo "PR already exists - continuing"
+          gh pr view "$TARGET_BRANCH" --json url --jq .url || true
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "Branch $TARGET_BRANCH"
+          echo "See the run log above for the pull request URL."
+```
+
+**หมายเหตุสำคัญเรื่องการวางไฟล์**
+- ไฟล์นี้ตั้งใจให้เนื้อหาข้างใน heredoc เยื้อง 10 ช่อง — เป็นการเยื้องระดับ YAML block scalar ที่ GitHub จะตัดออกให้เองตอนรัน เนื้อหาจริงที่เขียนลงดิสก์จึงถูกต้อง (ยืนยัน round-trip ตรงทุกไบต์แล้ว) **ให้วางทั้งไฟล์ตามนี้ อย่าไปจัด indent ใหม่** ไม่งั้นจะพัง
+- หนึ่งบรรทัดใน `package.json` มี `\u2014`/`\u00b7` — เป็น escape ใน JSON string ที่ถูกต้อง ไม่ต้องแก้
+- รันที่ **Actions → Apply backend entry-point fix → Run workflow** แล้วรอ ~2 นาที จะได้ลิงก์ PR ในหน้าสรุปของ run

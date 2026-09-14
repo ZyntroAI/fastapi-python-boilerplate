@@ -1,0 +1,6 @@
+ENV=development
+SECRET_KEY=dev-secret-key-change-me
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+SQLITE_PATH=./dev.db
+MAX_UPLOAD_SIZE=10485760
+UPLOAD_DIR=./uploads

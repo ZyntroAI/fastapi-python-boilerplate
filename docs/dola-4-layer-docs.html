@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dola AI — 4-Layer Architecture</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        .dark { color-scheme: dark; }
+        .mermaid { background: transparent; }
+        .layer-card { @apply rounded-xl p-6 border border-slate-700; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-6 max-w-5xl mx-auto">
+    <header class="mb-10 text-center">
+        <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">🧩 Dola AI — 4-Layer Architecture</h1>
+        <p class="text-slate-400 mt-2">Agent Skills · Middlewares · Mock APIs · Pre‑commit Gates</p>
+    </header>
+
+    <!-- Diagram -->
+    <section class="bg-slate-900 rounded-2xl p-6 mb-10 border border-slate-800">
+        <div class="mermaid">
+flowchart LR
+    classDef skill fill:#818cf8,stroke:#6366f1,color:white
+    classDef middleware fill:#3b82f6,stroke:#2563eb,color:white
+    classDef mock fill:#10b981,stroke:#059669,color:white
+    classDef precommit fill:#f59e0b,stroke:#d97706,color:white
+    START([🚀 Dola]) --> PLAN
+    subgraph 🧠 AGENT SKILLS
+        SK1[skill-creator]
+        SK2[filesystem-memory]
+    end
+    subgraph ⚙️ MIDDLEWARES
+        MID[Timeout/Retry/Idempotency]
+    end
+    subgraph 🧪 MOCK APIS
+        MK[MSW/Mockoon]
+    end
+    subgraph 🛡️ PRE-COMMIT
+        PC[Prettier+ESLint+gitleaks]
+    end
+    PLAN-->🧠-->⚙️-->🧪-->DEV-->🛡️-->✅
+        </div>
+    </section>
+
+    <!-- Layer Table -->
+    <section class="grid md:grid-cols-2 gap-4 mb-10">
+        <div class="layer-card bg-indigo-950/50 border-indigo-800">
+            <h2 class="text-xl font-semibold text-indigo-300 mb-3">🧠 Layer 1: Agent Skills</h2>
+            <ul class="space-y-2 text-slate-300 text-sm">
+                <li>• <code>skill-creator</code> — สร้างทักษะใหม่</li>
+                <li>• <code>filesystem-memory</code> — หน่วยความจำยาวนาน</li>
+                <li>• <code>best-practices</code> — กฎ React/Vercel/Supabase</li>
+            </ul>
+        </div>
+        <div class="layer-card bg-blue-950/50 border-blue-800">
+            <h2 class="text-xl font-semibold text-blue-300 mb-3">⚙️ Layer 2: Middlewares</h2>
+            <ul class="space-y-2 text-slate-300 text-sm">
+                <li>• Logging/Tracing/Request-ID</li>
+                <li>• Timeout + Retry + Circuit-Breaker</li>
+                <li>• AuthN + Idempotency + Audit</li>
+            </ul>
+        </div>
+        <div class="layer-card bg-emerald-950/50 border-emerald-800">
+            <h2 class="text-xl font-semibold text-emerald-300 mb-3">🧪 Layer 3: Mock APIs</h2>
+            <ul class="space-y-2 text-slate-300 text-sm">
+                <li>• MSW / Mockoon — ทดสอบแบบออฟไลน์</li>
+                <li>• json-server / Prism — ตามสเปก OpenAPI</li>
+                <li>• Faker — ข้อมูลเทียมสมจริง</li>
+            </ul>
+        </div>
+        <div class="layer-card bg-amber-950/50 border-amber-800">
+            <h2 class="text-xl font-semibold text-amber-300 mb-3">🛡️ Layer 4: Pre-commit</h2>
+            <ul class="space-y-2 text-slate-300 text-sm">
+                <li>• Prettier + ESLint + Ruff — จัดรูปแบบ</li>
+                <li>• Type-check + Test + Build — ตรวจสอบ</li>
+                <li>• gitleaks + Husky + lint-staged — ความปลอดภัย</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- GitHub Action Config -->
+    <section class="bg-slate-900 rounded-xl p-6 border border-slate-800">
+        <h2 class="text-lg font-semibold mb-4">⚙️ GitHub Action — dola-skills.yml</h2>
+        <pre class="text-sm bg-slate-950 p-4 rounded-lg overflow-x-auto"><code>name: Dola 4-Layer Workflow
+on: [push, pull_request]
+jobs:
+  layer1-skills:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python dola-obsidian-client-v2.py --skill filesystem-memory
+  layer2-middleware:
+    needs: layer1-skills
+    run: python scripts/safety-check.py --timeout --retry
+  layer3-mock:
+    needs: layer2-middleware
+    run: npx msw init ./public
+  layer4-precommit:
+    needs: layer3-mock
+    run: npx lint-staged && npm run test && npx gitleaks detect
+</code></pre>
+    </section>
+
+    <script>mermaid.initialize({theme:"dark"});</script>
+</body>
+</html>

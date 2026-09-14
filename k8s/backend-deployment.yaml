@@ -1,0 +1,67 @@
+# ZyntroAI backend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zyntroai-backend
+  labels:
+    app: zyntroai
+    tier: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: zyntroai
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: zyntroai
+        tier: backend
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/zyntroai/fastapi-python-boilerplate/backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: zyntroai-secrets
+          env:
+            - name: ENVIRONMENT
+              value: "production"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zyntroai-backend
+  labels:
+    app: zyntroai
+    tier: backend
+spec:
+  selector:
+    app: zyntroai
+    tier: backend
+  ports:
+    - port: 80
+      targetPort: 8000
+  type: ClusterIP
