@@ -8,7 +8,7 @@ Open problems and known blockers are tracked separately in
 ## [2026-09-15]
 
 ### Added
-- **`deliverables/dev-helpers/`** — four small tools for the friction points in
+- **PR #285** — `deliverables/dev-helpers/` — four small tools for the friction points in
   automated GitHub work, each stdlib-only and each answering one question the
   agent currently learns the hard way. `perm_checker` decides whether a push will
   be accepted *before* it is attempted, from the changed paths plus the token's
@@ -23,7 +23,7 @@ Open problems and known blockers are tracked separately in
   defaults to unchecked rather than asserted. 25 stdlib `unittest` tests.
 
 ### Docs
-- `deliverables/dev-helpers/GUIDE.md` (Thai) and `GUIDE.en.md` (English) — each
+- **PR #285** — `deliverables/dev-helpers/GUIDE.md` (Thai) and `GUIDE.en.md` (English) — each
   helper documented as problem → mechanism → usage → real gotchas, including the
   `str.lstrip("./")` trap (it takes a character set, not a prefix, and eats the
   leading dot of `.github/`) which quietly turns a blocked push into a reported
