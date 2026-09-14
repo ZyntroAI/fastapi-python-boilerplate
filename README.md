@@ -1,353 +1,33 @@
-Here’s **การออกแบบ GitHub Actions Workflows สำหรับ `Origin`** (หลังจากเปลี่ยนเป็น default branch แล้ว) ที่แยก **CI** และ **Workflows อื่นๆ** อย่างชัดเจน พร้อมคำแนะนำสำหรับ FastAPI project ของคุณ:
+# FastAPI Python Boilerplate — AI-Driven
+
+An opinionated FastAPI monorepo used by ZyntroAI as the starting point for production
+AI services, agent tooling, and reference documentation. It ships an OAuth2 PKCE API
+core, a GraphQL layer, a React frontend, a library of reusable AI-agent skills,
+self-contained deliverable suites, and a reference docs library.
+
+> This README reflects the repository as it actually stands on `main`. Sections marked
+> **Known state** record things that are incomplete or broken rather than describing
+> intent; sections marked **Target state** record policy we intend to reach but have not
+> implemented yet. Individual suites under `deliverables/` carry their own READMEs with
+> more detail.
 
 ---
 
----
+## What's inside
 
-## 📁 **โครงสร้างไฟล์ Workflows**
-```
-.github/
-└── workflows/
-    ├── ci.yml                # CI (Test, Lint, Build)
-    ├── cd-deploy.yml         # CD (Deploy to Staging/Production)
-    ├── scheduled-cleanup.yml # Scheduled Jobs
-    ├── release.yml           # Release Management
-    └── notify.yml            # Notifications (Slack/Email)
-```
-
----
-
----
-
-## 🔧 **1. CI Workflow (`ci.yml`)**
-**หน้าที่:** รัน **Test, Lint, Build** ทุกครั้งที่มี `push` หรือ `pull_request` ไปยัง `Origin` หรือ branch อื่นๆ
-
-```yaml
-# .github/workflows/ci.yml
-name: CI - Test & Lint
-
-on:
-  push:
-    branches: [ Origin, main ]  # รันทั้ง Origin และ main (ถ้ายังใช้ main ร่วมด้วย)
-  pull_request:
-    branches: [ Origin ]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.10", "3.11"]  # ตัวอย่างสำหรับ Python
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-cov flake8 black
-
-      - name: Run Lint (Flake8)
-        run: flake8 .
-
-      - name: Run Formatter (Black)
-        run: black --check .
-
-      - name: Run Tests with Coverage
-        run: |
-          pytest --cov=./ --cov-report=xml
-          # Upload coverage to Codecov (ถ้าต้องการ)
-          curl -Os https://uploader.codecov.io/latest/linux/codecov
-          chmod +x codecov
-          ./codecov -t ${{ secrets.CODECOV_TOKEN }}
-
-  build:
-    needs: test  # รอให้ test เสร็จก่อน
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build Docker Image (ตัวอย่าง)
-        run: |
-          docker build -t zyntroai/fastapi-project:latest .
-          docker images
-```
-
----
-
----
-
-## 🚀 **2. CD Workflow (`cd-deploy.yml`)**
-**หน้าที่:** Deploy โค้ดไปยัง **Staging** และ **Production** หลังจาก CI ผ่าน
-
-```yaml
-# .github/workflows/cd-deploy.yml
-name: CD - Deploy
-
-on:
-  push:
-    branches: [ Origin ]  # Deploy เฉพาะเมื่อ push ไปยัง Origin
-  workflow_dispatch:      # หรือกด manual deploy ใน GitHub UI
-
-jobs:
-  deploy-staging:
-    runs-on: ubuntu-latest
-    environment:
-      name: staging
-      url: https://staging.zyntroai.com
-    steps:
-      - uses: actions/checkout@v4
-      - name: Deploy to Staging (Vercel)
-        run: |
-          vercel --token ${{ secrets.VERCEL_TOKEN }} --env staging
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-
-  deploy-production:
-    needs: deploy-staging  # รอ staging deploy เสร็จก่อน
-    if: github.ref == 'refs/heads/Origin'  # Deploy เฉพาะเมื่อ push ไป Origin
-    runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: https://api.zyntroai.com
-    steps:
-      - uses: actions/checkout@v4
-      - name: Deploy to Production (Vercel)
-        run: |
-          vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-```
-
----
-
----
-
-## ⏰ **3. Scheduled Workflow (`scheduled-cleanup.yml`)**
-**หน้าที่:** รันงานบำรุงรักษา (เช่น ลบ cache, backup database) ตามกำหนดการ
-
-```yaml
-# .github/workflows/scheduled-cleanup.yml
-name: Scheduled - Cleanup & Backup
-
-on:
-  schedule:
-    - cron: '0 0 * * 1'  # รันทุกวันจันทร์ เวลา 00:00 UTC (07:00 ICT)
-  workflow_dispatch:      # หรือกด manual ใน GitHub UI
-
-jobs:
-  cleanup:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Clean old Docker images
-        run: |
-          docker system prune -af
-
-  backup:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Backup Database
-        run: |
-          pg_dump -U ${{ secrets.DB_USER }} -h ${{ secrets.DB_HOST }} ${{ secrets.DB_NAME }} > backup.sql
-          # Upload backup ไปยัง S3/Google Drive (ตัวอย่าง)
-          aws s3 cp backup.sql s3://zyntroai-backups/backup-$(date +%Y%m%d).sql
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-```
-
----
-
----
-
-## 📦 **4. Release Workflow (`release.yml`)**
-**หน้าที่:** สร้าง **Release** และ Publish Package (เช่น Docker Image, PyPI) เมื่อมี tag ใหม่
-
-```yaml
-# .github/workflows/release.yml
-name: Release - Publish
-
-on:
-  push:
-    tags:
-      - 'v*'  # Trigger เมื่อ push tag เช่น v1.0.0
-
-jobs:
-  build-and-publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Build Docker Image
-        run: |
-          docker build -t zyntroai/fastapi-project:${{ github.ref_name }} .
-          docker tag zyntroai/fastapi-project:${{ github.ref_name }} zyntroai/fastapi-project:latest
-
-      - name: Login to Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-      - name: Push Docker Image
-        run: |
-          docker push zyntroai/fastapi-project:${{ github.ref_name }}
-          docker push zyntroai/fastapi-project:latest
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-          body: |
-            Changes in this release:
-            - Fix bug in API endpoint
-            - Update dependencies
-```
-
----
-
----
-
-## 📢 **5. Notification Workflow (`notify.yml`)**
-**หน้าที่:** ส่งแจ้งเตือนไปยัง **Slack** หรือ **Email** เมื่อ CI/CD สำเร็จ/ล้มเหลว
-
-```yaml
-# .github/workflows/notify.yml
-name: Notify - Slack Alerts
-
-on:
-  workflow_run:
-    workflows: ["CI - Test & Lint", "CD - Deploy"]  # รันหลัง CI/CD
-    types:
-      - completed
-
-jobs:
-  notify:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion != 'neutral' }}
-    steps:
-      - name: Send Slack Notification
-        uses: rtCamp/action-slack-notify@v2
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_COLOR: ${{ github.event.workflow_run.conclusion == 'success' && 'good' || 'danger' }}
-          SLACK_TITLE: "Workflow ${{ github.event.workflow_run.conclusion }}"
-          SLACK_MESSAGE: |
-            Workflow *${{ github.event.workflow_run.name }}* ${{ github.event.workflow_run.conclusion == 'success' && '✅ Success' || '❌ Failed' }}
-            Commit: ${{ github.event.workflow_run.head_commit.message }}
-            Branch: ${{ github.event.workflow_run.head_branch }}
-            Link: ${{ github.event.workflow_run.html_url }}
-```
-
----
-
----
-
-## 🔐 **Secrets ที่จำเป็น**
-ไปที่ **Settings > Secrets > Actions** เพื่อเพิ่ม:
-| **Secret Name**          | **คำอธิบาย**                          |
-|--------------------------|----------------------------------------|
-| `VERCEL_TOKEN`           | Token สำหรับ Vercel Deployment         |
-| `VERCEL_PROJECT_ID`      | Project ID ใน Vercel                   |
-| `VERCEL_ORG_ID`          | Organization ID ใน Vercel              |
-| `DOCKER_USERNAME`        | Username Docker Hub                     |
-| `DOCKER_PASSWORD`        | Password Docker Hub                    |
-| `CODECOV_TOKEN`          | Token สำหรับ Codecov (ถ้าใช้)          |
-| `SLACK_WEBHOOK`         | Slack Incoming Webhook URL             |
-| `AWS_ACCESS_KEY_ID`      | AWS Key สำหรับ Backup                  |
-| `AWS_SECRET_ACCESS_KEY`  | AWS Secret Key                         |
-| `DB_USER`, `DB_HOST`, `DB_NAME` | ข้อมูล database สำหรับ Backup |
-
----
-
----
-
-## 📌 **คำแนะนำเพิ่มเติม**
-1. **Environment Protection**
-   - ใน `cd-deploy.yml` ใช้ `environment:` เพื่อกำหนด **approval** ก่อน deploy production:
-     ```yaml
-     environment:
-       name: production
-       url: https://api.zyntroai.com
-     ```
-     (GitHub จะขอ approval ก่อนรัน job นี้)
-
-2. **Matrix Testing**
-   - ใน `ci.yml` ใช้ `matrix` เพื่อทดสอบกับ **Python version หลายๆ เวอร์ชัน** หรือ **OS หลายๆ ตัว**
-
-3. **Artifacts**
-   - ถ้าต้องการเก็บผลลัพธ์จาก CI (เช่น test report, coverage):
-     ```yaml
-     - name: Upload Test Report
-       uses: actions/upload-artifact@v4
-       with:
-         name: pytest-report
-         path: test-results/
-     ```
-
-4. **Cache Dependencies**
-   - เพิ่ม cache สำหรับ `pip` เพื่อเร่งความเร็ว:
-     ```yaml
-     - name: Cache pip
-       uses: actions/cache@v3
-       with:
-         path: ~/.cache/pip
-         key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-     ```
-
-5. **Auto-merge Dependabot**
-   - สร้าง workflow สำหรับ auto-merge Dependabot PR ถ้า CI ผ่าน:
-     ```yaml
-     # .github/workflows/dependabot-auto-merge.yml
-     name: Dependabot Auto Merge
-     on:
-       pull_request:
-         branches: [ Origin ]
-     jobs:
-       auto-merge:
-         if: github.actor == 'dependabot[bot]'
-         runs-on: ubuntu-latest
-         steps:
-           - uses: actions/github-script@v7
-             with:
-               script: |
-                 github.pulls.merge({
-                   owner: context.repo.owner,
-                   repo: context.repo.repo,
-                   pull_number: context.issue.number,
-                   merge_method: 'squash'
-                 })
-     ```
-
----
-
----
-## ✅ **สรุปการทำงาน**
-1. **Developer push code → `Origin`**
-   → **CI Workflow** รัน (Test, Lint, Build)
-   → ถ้า **CI ผ่าน** → **CD Workflow** รัน (Deploy to Staging)
-   → ถ้า **Staging OK** → **CD Workflow** Deploy to Production (หรือรอ approval)
-2. **ทุกวันจันทร์** → **Scheduled Workflow** รัน (Cleanup, Backup)
-3. **เมื่อมี tag ใหม่** → **Release Workflow** รัน (Publish Docker Image, Create Release)
-4. **หลัง CI/CD เสร็จ** → **Notification Workflow** ส่งแจ้งเตือนไปยัง Slack
-
----
-**✨ พร้อมใช้งาน!**
-คุณสามารถ copy code นี้ไปวางใน `.github/workflows/` ของ repo ได้เลย ครับ
-ถ้าต้องการปรับแต่ง (เช่น ใช้ AWS ECS แทน Vercel) ให้บอกมาได้นะ!| `app/core/main.py` | A second, fuller FastAPI app (items/users routers, DB session, origin middleware) |
+| Path | Purpose |
+| ---- | ------- |
+| `main.py` | OAuth2 PKCE API entrypoint — `uvicorn main:app` (`/auth`, `/auth/callback`, `/health`) |
+| `app/` | Application package (75 files): `api/`, `core/`, `services/`, `db/`, `routes/`, `integrations/` |
+| `app/core/main.py` | A second, fuller FastAPI app (items/users routers, DB session, origin middleware) |
 | `graphql_api/` | Standalone GraphQL service — Strawberry + async SQLAlchemy + JWT + Alembic, own `requirements.txt`, `docker-compose.yml`, tests |
-| `frontend/` | React 18 + Vite 8 + TypeScript frontend (own `package.json`, `Dockerfile`, `tsconfig.json`) |
-| `skills/` | Reusable AI-agent skill definitions (`fetching`, `changelog-auto-update`, `credential-management`, `patch`, `research`, …) |
-| `deliverables/` | 21 self-contained feature suites, each with its own README and tests — see [`deliverables/README.md`](./deliverables/README.md) |
-| `docs/` | Reference library (30 files): GraphQL, FireCrawl, Google Chat, GitHub Actions, MCP, incident drills |
+| `frontend/` | React 18 + Vite + TypeScript frontend (own `package.json`, `Dockerfile`, `tsconfig.json`) |
+| `skills/` | 12 reusable AI-agent skill definitions — `fetching`, `research`, `patch`, `credential-management`, `changelog-auto-update`, `pr-triage-automove`, `ci-workflow-authoring`, … |
+| `deliverables/` | 25 self-contained feature suites, each with its own README and tests — see [`deliverables/README.md`](./deliverables/README.md) |
+| `docs/` | Reference library (32 files): GraphQL, FireCrawl, Google Chat, GitHub Actions, MCP, incident drills, release notes |
 | `tests/` | Test suite — `unit/`, `e2e/`, plus repo-level tests (`tests/conftest.py`, `pytest.ini` at root) |
 | `helm/`, `k8s/` | Deployment — Helm chart (`oauth-app`) and Kubernetes manifests (deployment, HPA, ingress, monitoring) |
-| `.github/workflows/` | 13 workflow files — CI/CD, release drafter, secret scan, coverage, auto-index |
+| `.github/workflows/` | 11 workflow files — see [CI/CD](#cicd--supply-chain-integrity) for which of them actually run |
 | `docker-compose.yml` | Local platform stack: Postgres 16, Redis 7, MinIO, Gitea, Prometheus, Grafana, Traefik, stripe-mock |
 
 ---
@@ -434,10 +114,10 @@ Callback and frontend URLs are derived from `ENV` — see `OAUTH_CALLBACK_URL` a
 `FRONTEND_URL` in `app/core/config.py`.
 
 > **Known state — `.env` is tracked in git.** Despite `.gitignore` listing `.env`, the
-> file is committed and carries real keys (BytePlus credentials and WhatsApp Cloud API
-> tokens). Treat it as compromised: move those values into CI secrets, rotate them, and
-> `git rm --cached .env`. The tracked file is also incomplete relative to the settings
-> class — it has no `OAUTH_CLIENT_ID`, so a fresh clone cannot start the API as-is.
+> file is committed and carries live third-party keys. Treat it as compromised: move
+> those values into CI secrets, rotate them, and `git rm --cached .env`. The tracked
+> file is also incomplete relative to the settings class — it has no `OAUTH_CLIENT_ID`,
+> so a fresh clone cannot start the API as-is.
 
 ---
 
@@ -466,14 +146,15 @@ deliverable suites. Run a suite's own tests from its directory.
 
 ## Deliverables
 
-`deliverables/` holds 21 self-contained suites. Each is a complete piece of work —
+`deliverables/` holds 25 self-contained suites. Each is a complete piece of work —
 code, tests, and its own README — rather than a fragment of the main app:
 
 `agent-core` · `agent-security-suite` · `agent-skill-template` · `ai-agent-skills` ·
-`ai-agents-decision-pack` · `ai-gateway-architecture-review` · `azure-cli-2026` ·
-`cwe1321-protection-suite` · `fastapi-obsidian-backend` · `firecrawl-fastapi` ·
-`gemini-cli-skills` · `gh-devops-toolkit` · `manus-client` · `notebooklm-access-suite` ·
-`notebooklm-link-share` · `onspace-ai` · `onspace-platform-integration` · `pm-backend` ·
+`ai-agents-decision-pack` · `ai-gateway-architecture-review` · `azure-cli-2026` · `ci` ·
+`ci-workflow-sha-pin` · `cwe1321-protection-suite` · `fastapi-obsidian-backend` ·
+`fig-best-practices` · `firecrawl-fastapi` · `full-cicd-pipeline` · `gemini-cli-skills` ·
+`gh-devops-toolkit` · `manus-client` · `notebooklm-access-suite` · `notebooklm-link-share` ·
+`official-docs` · `onspace-ai` · `onspace-platform-integration` · `pm-backend` ·
 `product-crud` · `pure-agent-dev`
 
 See [`deliverables/README.md`](./deliverables/README.md) for one-line descriptions and
@@ -498,17 +179,52 @@ Also at the root: [`ROADMAP.md`](./ROADMAP.md) (8-phase plan and milestone M4),
 
 ---
 
+## Branch model
+
+`main` is the **default and protected integration branch**. Pull requests target it.
+
+`Origin` also exists in this repository. It is **not** the default branch, it is not
+currently kept in sync with `main` (the two point at different commits), and no
+workflow triggers on it. Treat it as a legacy/parallel branch rather than the
+integration point for new work — if we decide to adopt it as the primary branch, that
+is a migration to perform deliberately, not a description of today.
+
+```text
+main  (default, protected — PRs land here)
+ │
+ ├── fig/*             automation branches (use this prefix — see below)
+ ├── chore/*
+ ├── ci/*
+ └── <your-branch>
+```
+
+> **Known state — branch naming.** Git rejects a push of `X/…` when a ref named exactly
+> `X` already exists (*“directory file conflict”*). This remote carries single-segment
+> refs `Origin`, `M`, `github`, `main` and `main-1`, so avoid branches named
+> `github/…`, `main/…`, `origin/…` or `m/…`. `fig/` is what the automation uses and is
+> known to work. The remote also carries ~30 stale `zyntromedia-patch-*` and
+> `zyntromedia-*` branches that could be pruned.
+
+### Branch protection
+
+Settings → Branches protection on `main` is **not readable by the automation App**
+(the permissions API returns 403), so this README cannot state what rules are actually
+enforced. `.github/CODEOWNERS` exists and `.github/dependabot.yml` exists. Confirm the
+live rules from the repository settings page before relying on any specific gate.
+
+---
+
 ## CI/CD & supply-chain integrity
 
 The repository's policy is **full-SHA pinning**: every `uses:` reference should point at
 a 40-character commit SHA, never a mutable tag such as `@v4`.
 
-**Known state (verified 2026-09-13 against `main`):**
+**Known state (verified 2026-09-14 against `main`):**
 
-- Of the `uses:` references in `.github/workflows/`, **20 are SHA-pinned and 61 still
+- Of the `uses:` references in `.github/workflows/`, **13 are SHA-pinned and 60 still
   use tags** (`actions/checkout@v4`, `actions/setup-python@v5`, `actions/upload-artifact@v4`,
   `github/codeql-action/*@v3`, and others). `ci.yml` itself is correctly pinned.
-- **Five workflow files are not valid YAML as committed, so they never run:**
+- **Five of the eleven workflow files are not valid YAML as committed, so they never run:**
 
   | File | Parse error |
   | ---- | ----------- |
@@ -518,19 +234,36 @@ a 40-character commit SHA, never a mutable tag such as `@v4`.
   | `.github/workflows/test-suite.yml` | more than one document in the stream |
   | `.github/workflows/github-actions-autodebug-autorerun` | mapping values not allowed (and it has no `.yml`/`.yaml` extension, so Actions ignores it regardless) |
 
+- The six that parse are `ci.yml`, `build-compress-all-platforms.yml`, `live-task.yml`,
+  `release_drafter.yaml`, `static.yml` and `test-and-coverage.yaml`.
 - Because several jobs cannot start, a feature PR can show red checks even when its own
-  tests pass locally. Background and the repair history are in
+  tests pass locally. Verify a PR's own code in a clean venv rather than trusting the
+  check roll-up. Background and the repair history are in
   [`CHANGELOG.md`](./CHANGELOG.md) and [`PROBLEMS.md`](./PROBLEMS.md).
 
 Fixing workflows needs write access to `.github/workflows/`, which the automation App
-does not hold by default — it must be applied by a maintainer or with elevated App
-permissions. See [`SECURITY.md`](./SECURITY.md) for the policy.
+does not hold — it must be applied by a maintainer. See [`SECURITY.md`](./SECURITY.md)
+for the policy.
+
+### Deployment environments
+
+Seven environments exist (Settings → Environments). The ones that carry rules today:
+
+| Environment | Protection |
+| ----------- | ---------- |
+| `main` | 15-minute wait timer before deploy |
+| `github-pages` | Restricted to custom branch policies |
+| `Production`, `Preview`, `copilot` | No protection rules configured |
+
+`Production – fastapi-python-boilerplate-77y5` and
+`Production – fastapi-python-boilerplate-y2me` are Vercel-created per-deployment
+environments, not durable stages.
 
 ---
 
 ## Repository hygiene — known state
 
-- **The root carries 212 entries.** Loose scripts, dashboard exports, notebook HTML,
+- **The root carries 227 entries.** Loose scripts, dashboard exports, notebook HTML,
   archives, and chat exports sit alongside the real tree. It has not been pruned or
   classified. Expect to have to look around.
 - **The root Node tooling is declared but not wired up.** `package.json` lists `vercel`,
@@ -547,6 +280,85 @@ permissions. See [`SECURITY.md`](./SECURITY.md) for the policy.
 - **`uvicorn main:app --reload` starts the OAuth API, not the main application.**
   See [Entrypoints](#entrypoints--there-are-three).
 
+---
+
+## Target state — governance (not implemented)
+
+The items below come from the org governance model. **None of them exist in this
+repository today** — they are listed so the gap is explicit, and so nobody mistakes a
+document for a control.
+
+| Intended control | Present? | Reality today |
+| ---------------- | -------- | ------------- |
+| `masterfiles/`, `config/`, `system/`, `settings/` protected paths | **No** | None of these paths exist; no guard workflow exists |
+| `masterfiles-guard.yml` (READ/WRITE/UPDATE/DELETE validation) | **No** | No such workflow |
+| CodeQL / container scan (Trivy, Grype, Docker Scout) workflows | **No** | `secret-scan.yml` exists but does not parse |
+| Signed commits, 2-approval gate, code-owner review | **Unknown** | Not readable via the App; confirm in repo settings |
+| SBOM generation, SLSA provenance, artifact signing, OIDC cloud auth | **No** | Not configured |
+| FIG v4 RBAC / audit-logging integration | **No** | Not wired to this repository |
+
+Until these exist, treat the corresponding policy as **aspirational**. A `SKILL.md` or
+README cannot enforce anything — only a workflow with permissions can.
+
+Recommended order of attack, highest value first:
+
+1. Repair the five unparseable workflows so CI can be trusted at all.
+2. Convert the remaining 60 tag-pinned `uses:` references to full SHAs.
+3. Get `.env` out of git and rotate the keys it exposed.
+4. Prune the stale `zyntromedia-*` branches and classify the root.
+
+# GitHub Community Discussions
+
+In this repository, you will find categories for various product areas. Feel free to share feedback, discuss topics with other community members, or ask questions.
+
+## Product Feedback
+
+| **Feedback Category** | **About the Product** 	|
+|---	|---	|
+| 👍 [Accessibility](https://github.com/orgs/community/discussions/categories/accessibility) | [About Accessibility](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-personal-account-settings/managing-accessibility-settings#about-accessibility-settings) |
+| 🚢 [Actions](https://github.com/orgs/community/discussions/categories/actions) | [GitHub Actions](https://github.com/features/actions) |
+| 🔗 [Apps, API and Webhooks](https://github.com/orgs/community/discussions/categories/apps-api-and-webhooks) | [GitHub Apps](https://docs.github.com/en/apps), [GitHub REST API](https://docs.github.com/en/rest), [GitHub GraphQL API](https://docs.github.com/en/graphql), and [GitHub Webhooks](https://docs.github.com/en/webhooks) |
+| 🤖 [Code Security](https://github.com/orgs/community/discussions/categories/code-security) | [GitHub Code Security](https://github.com/features/security) |
+| 💻 [Codespaces](https://github.com/orgs/community/discussions/categories/codespaces) | [GitHub Codespaces](https://github.com/features/codespaces) |
+| :copilot: [Copilot Conversations](https://github.com/orgs/community/discussions/categories/copilot-conversations) | [GitHub Copilot](https://copilot.github.com/) |
+| 🗣️ [Discussions](https://github.com/orgs/community/discussions/categories/discussions) | [GitHub Discussions](https://docs.github.com/en/discussions) |
+| 🏢 [Enterprise](https://github.com/orgs/community/discussions/categories/enterprise) | [GitHub Enterprise](https://docs.github.com/en/enterprise-cloud@latest) |
+| 🎒 [GitHub Education](https://github.com/orgs/community/discussions/categories/github-education) | [GitHub Education](https://education.github.com/) |
+| 🏆 [GitHub Learn](https://github.com/orgs/community/discussions/categories/github-learn) | [GitHub Certifications](https://resources.github.com/learn/certifications/), [Learning Pathways](https://resources.github.com/learn/pathways/), and [GitHub Skills](https://skills.github.com/) |
+| 📱 [Mobile](https://github.com/orgs/community/discussions/categories/mobile) | [GitHub Mobile](https://github.com/mobile) |
+| 🟥 [npm](https://github.com/orgs/community/discussions/categories/npm) | [npm](https://docs.npmjs.com/) |
+| 📦 [Packages](https://github.com/orgs/community/discussions/categories/packages) | [GitHub Packages](https://github.com/features/packages) |
+| 💡 [Programming Help](https://github.com/orgs/community/discussions/categories/programming-help) | General programming questions and help |
+| 🐙 [Projects and Issues](https://github.com/orgs/community/discussions/categories/projects-and-issues) | [GitHub Projects](https://docs.github.com/en/issues/planning-and-tracking-with-projects) / [GitHub Issues](https://github.com/features/issues) |
+| ✔️ [Pull Requests](https://github.com/orgs/community/discussions/categories/pull-requests) | [GitHub Pull Requests](https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests) |
+| 🗳️ [Repositories](https://github.com/orgs/community/discussions/categories/repositories) | [GitHub Repositories](https://docs.github.com/en/repositories) |
+| 👋 [Welcome to GitHub](https://github.com/orgs/community/discussions/categories/a-welcome-to-github) | Community introductions — say hi and share what you're working on |
+| 🧩 [Other Features and Feedback](https://github.com/orgs/community/discussions/categories/other-feature-feedback-questions-ideas) | [Code Search & Navigation](https://cs.github.com/about), [Feed](https://github.blog/2022-03-22-improving-your-github-feed/), [Lists](https://docs.github.com/en/get-started/exploring-projects-on-github/saving-repositories-with-stars#organizing-starred-repositories-with-lists), [Models](https://github.com/features/preview/copilot-models), [Pages](https://docs.github.com/en/pages), [Profile](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/customizing-your-profile/about-your-profile), and [Sponsors](https://github.com/sponsors) |
+
+These discussions are where you can share suggestions for how the products should be improved and discuss those improvements with the community, including members of the GitHub product team. Check out [Making suggestions](#making-suggestions) to learn how to provide feedback.
+
+## Discussions Categories
+
+When creating a new post, make sure to choose the predetermined category that best fits your topic. This will ensure that conversations are indexed by their corresponding product or feature, to help community members quickly find answers to their questions.
+
+This repository works in conjunction with the [GitHub public product roadmap](https://github.com/github/roadmap), which is where you can learn about what features we're working on, and when they'll be available. Accordingly, the Issues feature of this repository has been disabled. Discussion categories have been established for specific features listed above, as well as a general category for other topics. Additional categories may be added in the future. In the meantime, topics outside of the listed categories above, will be transferred into the General category. Please review the [CODE OF CONDUCT](https://docs.github.com/en/site-policy/github-terms/github-community-forum-code-of-conduct) before participating in discussions.
+
+## Making suggestions
+
+We encourage you to [open a discussion](https://github.com/orgs/community/discussions) if you have suggestions for how we can improve our products. You don't need to have a solution to the problem you are facing to kick off a discussion. 
+
+Prior to creating a new discussion, please take a look at previous discussions to see if someone else has already shared your suggestion(s). If you find a similar discussion, reply with additional details or upvote the discussion to signal your support rather than creating a new one.
+
+### From a suggestion to a shipped feature
+
+Once you kick off a discussion, the GitHub product team will evaluate the feedback but will not be able to respond to every submission. From there, we will work with you, and the entire community, to ensure we understand the current capabilities GitHub doesn’t have and explore the space for potential solutions to your problem statement:
+
+- If the product team determines that we are going to prioritize a feature to solve the problem you've identified, we may open an issue and track its development in the [public roadmap](https://github.com/github/roadmap).
+- If the product team determines that we will not be working to solve the problem you have identified, we may comment on the discussion describing our reasoning so our decisions can remain transparent.
+
+## Disclaimer
+
+Any statement in this repository that is not purely historical is considered a forward-looking statement. Forward-looking statements included in this repository are based on information available to GitHub as of the date they are made, and GitHub assumes no obligation to update any forward-looking statements. The forward-looking comments in the public feedback discussions do not represent a commitment, guarantee, obligation or promise to deliver any product or feature, or to deliver any product and feature by any particular date, and are intended to outline the general development plans. Customers should not rely on these public feedback discussions to make any purchasing decision.
 ---
 
 ## License

@@ -7,6 +7,86 @@ Open problems and known blockers are tracked separately in
 
 ## [2026-09-14]
 
+### Added
+- **PR #266** — deliverables: added `deliverables/official-docs/`, an official
+  documentation registry for the tools and services this project depends on.
+  `src/official-docs.json` carries the registry and `src/official_docs.py`
+  (Python) plus `src/official-docs.js` / `src/utils.ts` (JS/TS) read it from
+  either side of the stack. Every link is verified rather than assumed:
+  `scripts/verify_links.py` checks the registry against the live URLs and
+  `tests/test_official_docs.py` / `tests/official-docs.test.mjs` cover the
+  loaders. The React side (`src/Company.jsx` + `Company.module.css`) renders a
+  docs bar and an image gallery from the same registry, so the UI cannot drift
+  from the data; `scripts/export_registry.mjs` and `scripts/render_smoke.mjs`
+  round out the build-and-check path.
+- **PR #265** — deliverables: added `deliverables/fig-best-practices/`, a
+  quality gate for projects built on the Fig platform. `BEST-PRACTICES.md` is the
+  policy, `SKILL.yaml` wires it up as a skill, and the checker engine runs it
+  against a project tree; `ci/quality-gate.yml` is the GitHub Actions entry
+  point. Six agent briefs (`agents/developer.md`, `reviewer.md`, `security.md`,
+  `designer.md`, `performance.md`, `deployment.md`) state what each role is
+  expected to enforce, and `design/design-tokens.json` holds the shared tokens.
+  Two fixture projects ship with it — `examples/broken-project/` and
+  `examples/clean-project/` — so the gate is exercised against a known-bad and a
+  known-good tree rather than only in the happy path. 69 tests.
+
+### Changed
+- **PR #278** — repaired three defects in `PROBLEMS.md`. P-002 claimed 66
+  unpinned action refs and its own `[2026-09-11]` re-verify said 23; measured
+  today the tree has 60 unpinned of 73 (30 distinct `uses:` values), and neither
+  earlier figure reproduces — the entry now carries the per-file breakdown, the
+  measurement date, and says plainly that both prior counts are stale rather
+  than substituting one unverifiable number for another. `P-009` was shared by
+  two unrelated problems (the root `tests/` suite that never collects, and
+  `release_drafter.yaml` sitting in `workflows/`), so the latter is now `P-011`
+  with a breadcrumb; `docs/releases/v1.2.0.md` cited that ambiguous id. Two
+  `## [2026-09-11]` sections also existed on opposite sides of `[2026-09-10]`,
+  breaking reverse-chronological order — consolidated into one, with no entry
+  changing date. Verified: 12 entry headings and 11 code fences before and
+  after, ids `P-001`..`P-011` all present and unique.
+- **PR #276** — declared the MIT license in `package.json`. The root
+  `package.json` carried no `license` field at all, so npm tooling and GitHub's
+  license detection had nothing to read even though `LICENSE` has been MIT from
+  the start; added `"license": "MIT"` after `version`. `"private": true` is
+  unchanged. Removed the completed item from the README order-of-attack list and
+  renumbered the remaining four, and the fact-check script gained an assertion so
+  the field cannot drift back: 71 checks, 0 failed. Edit is a single inserted
+  line — key order, quoting and trailing-newline style preserved.
+- **PR #274** — filled in the `LICENSE` copyright holder. Line 3 read
+  `Copyright (c) 2026 [zyntromedia]`, placeholder brackets never removed, so the
+  file named no real holder; it now reads `Copyright (c) 2026 Zyntro Media`,
+  matching the ZyntroAI organisation display name (the placeholder text was that
+  same name, uncleaned). Removed the README bullet that reported the placeholder
+  as outstanding, and inverted the fact-check assertion with it —
+  `scripts/verify_readme_facts.py` used to assert the placeholder was present,
+  it now asserts the holder is filled: 70 checks, 0 failed.
+- **PR #269** — rewrote `README.md` so it matches the repository as it stands
+  (+119/−767). The previous content was a pasted CI/CD-and-branch-strategy draft
+  that described controls, workflows and branches this repo does not have: it named
+  `Origin` as the primary integration branch (`main` is the default and the only PR
+  target; `Origin` is not in sync and triggers nothing), listed six workflows that do
+  not exist (`cd-deploy.yml`, `scheduled-cleanup.yml`, `notify.yml`, `codeql.yml`,
+  `container-scan.yml`, `masterfiles-guard.yml`), and asserted protected paths
+  (`masterfiles/`, `config/`, `system/`, `settings/`) that are absent from the tree.
+  The rewrite states the true CI/CD position — 13 of 73 `uses:` refs SHA-pinned,
+  60 still tagged, 5 of 11 workflow files unparseable so they never run — adds a
+  deployment-environment table from the live Environments API (`main` has a 15-minute
+  wait timer; `Production`/`Preview`/`copilot` have none), and moves every
+  not-yet-implemented governance item into an explicit **Target state** section with a
+  "Present? No" column. Verified by `scripts/verify_readme_facts.py`: 68 checks, 0
+  failed.
+
+- **PR #267** — hardened JWT secret validation and moved users onto a database.
+  `app/security.py` now rejects a signing key shorter than 32 characters and
+  refuses a set of known placeholder values (`changeme`, `secret`, `jwt-secret`,
+  …), so a misconfigured deployment fails loudly instead of signing tokens with
+  a guessable key; the local fallback generates a full-strength key written to a
+  git-ignored file. Added `app/user_store.py`, a SQLAlchemy-backed user table that
+  imports legacy JSON users on first init, keeping the existing
+  `{username, hashed_password, allowed_skills}` shape so the API surface and
+  per-user skill gating are unchanged. `DATABASE_URL` selects Postgres, otherwise
+  SQLite. Verified: 43 tests pass in a clean venv.
+
 ### Fixed
 - **PR #262** — chore(lint): dropped the unused `import sys` from
   `knowledge/scripts/diff_policy.py`, the only unreferenced import left in the file.

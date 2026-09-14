@@ -90,6 +90,61 @@ No module named 'app.models'`; `ls app/models/` as listed above.
 
 ---
 
+### P-011 — `release_drafter.yaml` is not a workflow and sits in `workflows/` — OPEN
+
+**Owner:** `TASK-20260910-004`
+
+Renumbered from `P-009` on 2026-09-14 — that id was already taken by the
+root `tests/` entry above, so two different problems shared a number and
+`docs/releases/v1.2.0.md` cited the ambiguous id. The tests/ entry keeps
+`P-009`; this one is now `P-011`.
+
+`.github/workflows/release_drafter.yaml` parses as YAML but has no `on:` and no
+`jobs:` — it is a release-drafter `autolabeler:` configuration, not a workflow.
+It has been sitting in the workflows directory since it was added, and it is the
+run named `.github/workflows/release_drafter.yaml` that shows as a failure on
+`main`. GitHub cannot run it because there is nothing to run.
+
+**Evidence:** `yaml.safe_load` yields `{'autolabeler': [...]}`, no `on`/`jobs`;
+no workflow file in the repo references the path.
+
+**Fix:** move it to `.github/release-drafter.yml` (done in the patch below). A
+release-drafter *workflow* that consumes it does not exist yet — that is a
+separate decision, not a repair.
+
+---
+
+### P-001 / P-002 — re-verified today, fix re-prepared against current `main` — BLOCKED
+
+The fix described under `[2026-09-10]` was re-prepared against `main` at
+`e34ede2`, because the tree has moved since it was first written. Current
+numbers differ from the September 10 entry:
+
+| | 2026-09-10 entry | re-verified 2026-09-11 | re-measured 2026-09-14 |
+| --- | --- | --- | --- |
+| Unpinned action refs | 66 | 23 | 60 |
+| Files affected | 11 | 11 |
+| Broken YAML files | 5 | 5 |
+
+The five YAML failures are unchanged (`ci.yml`, `secret-scan.yml`,
+`dependabot-automerge.yml`, `Auto-Index-Sync.yml`, `test-suite.yml`), so P-001
+stands as written. The pinning fix covers 60 unpinned occurrences of 73 refs,
+across 30 distinct `uses:` values. Neither earlier figure (66, 23) reproduces
+against the current tree — both appear to have been counted at different times
+by different methods, and neither records its method. The 60 above is an
+occurrence count, which is what the org policy rejects one by one; the command
+is in the evidence block.
+
+**Evidence:** `yaml.safe_load` over all 11 workflow files — 0 parse failures
+after repair; unpinned-ref scan returns empty. Patch applies clean to a fresh
+clone of `main` (`git apply --check`), and `yaml.safe_load` re-run on the
+applied tree still reports 0 failures.
+
+**Deliverable:** `ci_sha_pin_workflow_fix.patch` (+ `.bundle`) — cannot be
+pushed as a PR, see P-003.
+
+---
+
 ## [2026-09-10]
 
 ### P-001 — CI is red repo-wide: 5 workflow files do not parse — OPEN
@@ -114,12 +169,12 @@ these files would fail.
 
 ---
 
-### P-002 — 66 action refs are unpinned, which the org policy rejects — BLOCKED
+### P-002 — 60 action refs are unpinned, which the org policy rejects — BLOCKED
 
 **Owner:** `TASK-20260910-004`
 
-The org requires every action reference to be a full-length commit SHA. 66 refs
-still use movable tags (`@v4`, `@v5`, …), so every workflow fails at
+The org requires every action reference to be a full-length commit SHA. 60 of
+73 refs still use movable tags (`@v4`, `@v5`, …), so every workflow fails at
 *Set up job* with:
 
 ```
@@ -130,8 +185,13 @@ full-length commit SHA.
 
 This is the reason `main` itself is red, and why PRs show `UNSTABLE`.
 
-**Evidence:** 66 matches for `uses: …@(vN|main|latest)`; failure reproduced in
-run logs for the current `main` HEAD.
+**Evidence:** re-measured 2026-09-14 against current `main` — 60 unpinned of 73
+total refs, across 10 files (`build-compress-all-platforms.yml` 29,
+`ci.yml` 13, `live-task.yml` 7, `github-actions-autodebug-autorerun` 5,
+`static.yml` 4, `test-and-coverage.yaml` 4, `Auto-Index-Sync.yml` 3,
+`secret-scan.yml` 3, `test-suite.yml` 3, `dependabot-automerge.yml` 2). The
+earlier counts in this file (66 and 23) are both stale — the tree has moved.
+Failure reproduced in run logs for the current `main` HEAD.
 
 **Fix:** prepared and verified (76 refs pinned across 11 files, 0 unpinned
 remaining, `ci.yml` line endings preserved), but cannot be pushed — see P-003.
@@ -254,54 +314,6 @@ front-matter (`TASK-20260910-004`) did not match the path. Renamed to
 `TASK-20260910-004-repair-github-actions-workflows.md`. Recorded because the
 same mistake — reusing a template file for live content — will hide a task from
 anyone browsing by filename.
-
----
-
-## [2026-09-11]
-
-### P-009 — `release_drafter.yaml` is not a workflow and sits in `workflows/` — OPEN
-
-**Owner:** `TASK-20260910-004`
-
-`.github/workflows/release_drafter.yaml` parses as YAML but has no `on:` and no
-`jobs:` — it is a release-drafter `autolabeler:` configuration, not a workflow.
-It has been sitting in the workflows directory since it was added, and it is the
-run named `.github/workflows/release_drafter.yaml` that shows as a failure on
-`main`. GitHub cannot run it because there is nothing to run.
-
-**Evidence:** `yaml.safe_load` yields `{'autolabeler': [...]}`, no `on`/`jobs`;
-no workflow file in the repo references the path.
-
-**Fix:** move it to `.github/release-drafter.yml` (done in the patch below). A
-release-drafter *workflow* that consumes it does not exist yet — that is a
-separate decision, not a repair.
-
----
-
-### P-001 / P-002 — re-verified today, fix re-prepared against current `main` — BLOCKED
-
-The fix described under `[2026-09-10]` was re-prepared against `main` at
-`e34ede2`, because the tree has moved since it was first written. Current
-numbers differ from the September 10 entry:
-
-| | 2026-09-10 entry | re-verified 2026-09-11 |
-| --- | --- | --- |
-| Unpinned action refs | 66 | 23 |
-| Files affected | 11 | 11 |
-| Broken YAML files | 5 | 5 |
-
-The five YAML failures are unchanged (`ci.yml`, `secret-scan.yml`,
-`dependabot-automerge.yml`, `Auto-Index-Sync.yml`, `test-suite.yml`), so P-001
-stands as written. The pinning fix now covers 23 distinct action refs including
-the four `github/codeql-action/*` sub-paths, which the earlier count folded in.
-
-**Evidence:** `yaml.safe_load` over all 11 workflow files — 0 parse failures
-after repair; unpinned-ref scan returns empty. Patch applies clean to a fresh
-clone of `main` (`git apply --check`), and `yaml.safe_load` re-run on the
-applied tree still reports 0 failures.
-
-**Deliverable:** `ci_sha_pin_workflow_fix.patch` (+ `.bundle`) — cannot be
-pushed as a PR, see P-003.
 
 ---
 

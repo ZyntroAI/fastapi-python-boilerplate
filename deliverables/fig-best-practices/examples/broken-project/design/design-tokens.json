@@ -1,0 +1,15 @@
+{
+  "version": "0.1.0",
+  "contrastFloor": 4.5,
+  "color": {
+    "surface": { "base": "#ffffff" },
+    "text": {
+      "primary": "#0f172a",
+      "muted": "#cccccc"
+    }
+  },
+  "$contrastPairs": [
+    { "text": "text.primary", "background": "surface.base", "min": 4.5 },
+    { "text": "text.muted", "background": "surface.base", "min": 4.5 }
+  ]
+}

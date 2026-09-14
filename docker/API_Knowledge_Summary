@@ -1,0 +1,156 @@
+Based on my research of the **ZyntroAI/fastapi-python-boilerplate** repository and the **zyntro-container** knowledge base, I've compiled comprehensive API knowledge for your repository. Here's what I found:
+
+---
+
+## 📊 **API Knowledge Summary for Zyntro Repository**
+
+### **🎯 Current API Architecture**
+
+Your repository contains **3 distinct FastAPI applications** with different purposes:
+
+| API | File | Purpose | Key Features |
+|-----|------|---------|--------------|
+| **Basic API** | `app.py` | Simple demo | FastAPI hello world, item endpoint |
+| **OAuth2 API** | `main.py` | Authentication | OAuth2 PKCE, CORS, health checks |
+| **Translator API** | `translator_api_v2.py` | Translation service | Google/DeepL, rate limiting, API keys |
+
+### **🏗️ API Router Structure**
+
+```
+app/
+├── api/
+│   ├── auth.py          # OAuth2 authentication routes
+│   ├── callback.py      # OAuth2 callback handling
+│   ├── health.py        # Health check endpoints
+│   ├── routes.py        # Main API routes
+│   ├── streaming.py     # Streaming API endpoints
+│   ├── ws.py            # WebSocket endpoints
+│   └── v1/              # Versioned API routes
+│       └── ...          # v1 endpoints
+│
+api/
+└── routes/
+    └── compute.py       # Compute instance management
+```
+
+### **🔐 Authentication Patterns**
+
+1. **API Key Authentication** (Translator API)
+   - Header: `X-API-Key`
+   - Environment variable: `TRANSLATOR_API_KEY`
+   - DeepL support with separate key
+
+2. **OAuth2 PKCE** (Main API)
+   - FastAPI OAuth2 implementation
+   - Callback URL configuration
+   - Environment-based settings
+
+3. **CORS Configuration**
+   - Configurable origins from settings
+   - Credentials support
+   - All methods/headers allowed
+
+### **⚡ Key API Features Implemented**
+
+#### **Translator API v2.0.0**
+```python
+# Endpoints:
+POST /translate              # Single text translation
+POST /translate/batch        # Batch translation
+GET  /languages/{provider}   # List supported languages
+
+# Features:
+- Google Translate & DeepL support
+- Auto language detection
+- Rate limiting (100/min for single, 30/min for batch)
+- API key authentication
+- Pydantic request/response models
+```
+
+#### **Compute API**
+```python
+# Endpoints:
+POST /compute/instances/{instance_id}/start  # Start compute instance
+
+# Features:
+- BytePlus ECS integration
+- Agent executor/planner
+- Async execution
+```
+
+#### **OAuth2 API**
+```python
+# Endpoints:
+GET  /                       # Root info
+GET  /docs                   # OpenAPI docs (non-production)
+/auth/*                     # Auth routes
+/health/*                   # Health check routes
+```
+
+### **📦 API Dependencies**
+
+```bash
+# Core
+fastapi
+uvicorn
+pydantic
+
+# Translator API
+deep-translator
+slowapi          # Rate limiting
+
+# OAuth2 API
+python-multipart
+```
+
+### **🚀 Deployment**
+
+```bash
+# Run Translator API
+uvicorn translator_api_v2:app --host 0.0.0.0 --port 8000
+
+# Run OAuth2 API
+uvicorn main:app --reload
+
+# Run Basic API
+uvicorn app:app
+```
+
+### **📝 API Documentation Standards**
+
+1. **OpenAPI/Swagger** - Auto-generated from FastAPI
+2. **Pydantic Models** - Request/response validation
+3. **Rate Limiting** - Using `slowapi` with configurable limits
+4. **Versioning** - Path-based (`/v1/`) and header-based
+
+---
+
+## 💡 **Recommendations for Repository Integration**
+
+1. **Standardize on one API pattern** - Consider consolidating the authentication approach (API keys vs OAuth2)
+2. **Add API documentation** - Generate OpenAPI specs for all endpoints
+3. **Implement consistent rate limiting** - Apply across all APIs
+4. **Add request/response logging** - For debugging and monitoring
+5. **Create API health checks** - Standard endpoint for monitoring
+6. **Document all endpoints** - In a central API.md file
+
+---
+
+## 📁 **Files to Review/Update**
+
+- [ ] `translator_api_v2.py` - Production-ready, needs integration
+- [ ] `main.py` - OAuth2 implementation, needs cleanup
+- [ ] `app.py` - Simple demo, consider removing or expanding
+- [ ] `api/routes/compute.py` - Needs completion
+- [ ] `app/api/auth.py`, `callback.py`, `health.py` - OAuth2 components
+
+---
+
+Would you like me to:
+1. **Create a comprehensive API.md documentation file** for your repository?
+2. **Generate OpenAPI/Swagger specs** for all your APIs?
+3. **Create a unified API structure** that combines the best patterns?
+4. **Add API testing** with pytest examples?
+5. **Set up API monitoring** and logging?
+
+Please let me know which direction you'd like to take, and I'll create the appropriate artifacts!
