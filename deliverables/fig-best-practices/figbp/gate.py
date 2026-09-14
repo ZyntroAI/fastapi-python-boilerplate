@@ -366,14 +366,21 @@ def run_gate(policy: Policy, root: str | Path) -> GateReport:
         cid = str(criterion.get("id", "")).upper()
         check = CRITERIA.get(cid)
         if check is None:
+            # A criterion the engine cannot evaluate must never be counted as a
+            # pass: that would report "safe to deploy" for an unchecked rule.
+            # It still blocks nothing (there is no verdict to act on), so it is
+            # downgraded to advisory rather than failed.
             results.append(
                 CriterionResult(
                     id=cid or "UNKNOWN",
                     layer=str(criterion.get("layer", "")),
-                    severity=str(criterion.get("severity", "blocking")),
-                    passed=True,
-                    summary="no implementation — criterion declared but not checked",
-                    evidence=[f"policy declares {cid!r} but figbp/gate.py has no check for it"],
+                    severity="advisory",
+                    passed=False,
+                    summary="NOT IMPLEMENTED — declared in the policy but not checked",
+                    evidence=[
+                        f"policy declares {cid!r} but figbp/gate.py has no check for it; "
+                        "this criterion was NOT evaluated"
+                    ],
                 )
             )
             continue

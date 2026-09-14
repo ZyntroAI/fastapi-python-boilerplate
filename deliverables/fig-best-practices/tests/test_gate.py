@@ -101,6 +101,37 @@ class TestPolicy:
         with pytest.raises(FileNotFoundError):
             load_policy(tmp_path / "nope.yaml")
 
+    def test_unimplemented_criterion_never_counts_as_a_pass(self, tmp_path):
+        """A rule the engine cannot check must not be reported as passing."""
+        policy_file = tmp_path / "p.yaml"
+        policy_file.write_text(
+            "version: '1.0.0'\n"
+            "standard: fig-best-practices\n"
+            "layers:\n"
+            "  - {id: '01-structure', name: S, purpose: P, owner_role: developer}\n"
+            "roles:\n"
+            "  developer: {scope: '01-structure', description: D}\n"
+            "scope: {apply_to: ['**/*.py'], exempt: []}\n"
+            "rules: {}\n"
+            "quality_gate:\n"
+            "  criteria:\n"
+            "    - {id: STRUCTURE, layer: '01-structure', severity: blocking, description: d}\n"
+            "    - {id: NOT_IMPLEMENTED, layer: '01-structure', severity: blocking, description: d}\n",
+            encoding="utf-8",
+        )
+        project = tmp_path / "project"
+        project.mkdir()
+        (project / "README.md").write_text("x", encoding="utf-8")
+        (project / "BEST-PRACTICES.md").write_text("x", encoding="utf-8")
+
+        report = run_gate(load_policy(policy_file), project)
+
+        stray = by_id(report, "NOT_IMPLEMENTED")
+        assert stray.passed is False, "an unchecked criterion must not report a pass"
+        assert stray.severity == "advisory", "it must not block, since there is no verdict"
+        assert "NOT IMPLEMENTED" in stray.summary
+        assert report.score == "1/2", report.score
+
 
 # ---------------------------------------------------------------------------
 # Glob matching — the subtle one
