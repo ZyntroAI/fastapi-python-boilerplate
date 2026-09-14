@@ -118,6 +118,17 @@ Open problems and known blockers are tracked separately in
   name #253 removed, is not imported on `main` at all. Verified: the file compiles
   and an AST pass reports no unused imports beyond `__future__.annotations`.
 
+- **PR #287** — recorded the P-001 workflow repair and shipped it as a verified
+  patch. Five files under `.github/workflows/` were not valid YAML so GitHub never
+  ran them; the repair is complete and `git apply --check` confirms
+  `patches/pr-repair-workflows.patch` applies clean to `main`, after which
+  `yaml.safe_load` parses 10/10 files. It cannot be pushed as a PR — the App lacks
+  the installation-scoped `workflows` scope (P-003). Two false claims were
+  corrected while verifying: `ci.yml` was never broken (PR #230 repaired it before
+  P-001 was filed) and the README asserted all eleven files parse when only six do.
+  P-001 is marked **FIX PREPARED**, not FIXED — nothing is applied on `main` yet.
+
+
 ## [2026-09-13]
 
 ### Added
