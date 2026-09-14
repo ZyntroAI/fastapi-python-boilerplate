@@ -5,6 +5,17 @@ All notable changes to this repository. Dates are UTC.
 Open problems and known blockers are tracked separately in
 [`PROBLEMS.md`](./PROBLEMS.md), using the same date sections.
 
+## [2026-09-14]
+
+### Fixed
+- **PR #262** — chore(lint): dropped the unused `import sys` from
+  `knowledge/scripts/diff_policy.py`, the only unreferenced import left in the file.
+  Supersedes **#253**, which asked for the same cleanup but branched from an older
+  59-line snapshot of the file while `main` had moved on to 188 lines — the diff no
+  longer applied, so it sat `CONFLICTING / DIRTY` as a draft. `import os`, the other
+  name #253 removed, is not imported on `main` at all. Verified: the file compiles
+  and an AST pass reports no unused imports beyond `__future__.annotations`.
+
 ## [2026-09-13]
 
 ### Added
