@@ -1,0 +1,277 @@
+# FIG / hellofig.ai Best Practices — machine policy
+# Single source of truth. BEST-PRACTICES.md and figbp/gate.py both derive from
+# this file, so the prose and the gate cannot drift.
+#
+# Verified against: FastAPI boilerplate conventions, 2026-09
+version: "1.0.0"
+standard: fig-best-practices
+verified_on: "2026-09-14"
+
+# ---------------------------------------------------------------------------
+# The six layers. Order is meaningful: earlier layers gate later ones.
+# ---------------------------------------------------------------------------
+layers:
+  - id: "01-structure"
+    name: Project Structure
+    purpose: "Predictable layout so humans and agents find things without searching."
+    owner_role: developer
+  - id: "02-design"
+    name: Design System
+    purpose: "Centralised tokens; no hard-coded colour, spacing, or type values."
+    owner_role: designer
+  - id: "03-security"
+    name: Security
+    purpose: "No committed credentials, every dependency pinned, least privilege."
+    owner_role: security
+  - id: "04-performance"
+    name: Performance
+    purpose: "Image budgets enforced; no unoptimised raster payloads shipped."
+    owner_role: performance
+  - id: "05-team"
+    name: Team Workflow
+    purpose: "Reviewable changes; every role declared and scoped."
+    owner_role: reviewer
+  - id: "06-deployment"
+    name: Deployment
+    purpose: "Reproducible release with a rollback path recorded before ship."
+    owner_role: deployment
+
+# ---------------------------------------------------------------------------
+# Roles and the layers each one owns.
+# ---------------------------------------------------------------------------
+roles:
+  developer:
+    scope: "01-structure"
+    description: "Owns layout, module boundaries, and README coverage."
+  designer:
+    scope: "02-design"
+    description: "Owns design tokens, contrast floor, and spacing scale."
+  security:
+    scope: "03-security"
+    description: "Owns secret scanning, dependency pinning, and permissions."
+  performance:
+    scope: "04-performance"
+    description: "Owns asset budgets and image formats."
+  reviewer:
+    scope: "05-team"
+    description: "Owns review evidence and PR hygiene."
+  deployment:
+    scope: "06-deployment"
+    description: "Owns release checklist, approval record, and rollback."
+
+# ---------------------------------------------------------------------------
+# Projects this standard applies to. `exempt` paths are skipped by the gate
+# even when a rule would otherwise match them.
+# ---------------------------------------------------------------------------
+scope:
+  apply_to:
+    - "**/*.py"
+    - "**/*.ts"
+    - "**/*.tsx"
+    - "**/*.js"
+    - "**/*.jsx"
+    - "**/*.json"
+    - "**/*.yaml"
+    - "**/*.yml"
+    - "**/*.md"
+    - "**/*.css"
+  exempt:
+    - "**/node_modules/**"
+    - "**/.venv/**"
+    - "**/venv/**"
+    - "**/__pycache__/**"
+    - "**/dist/**"
+    - "**/build/**"
+    - "**/.git/**"
+    - "**/tests/fixtures/**"
+
+# ---------------------------------------------------------------------------
+# Rules, grouped by layer.
+# ---------------------------------------------------------------------------
+rules:
+  structure:
+    layer: "01-structure"
+    require_readme: true
+    require_standard_doc: true
+    required_dirs: []
+    forbidden_root_files: []
+
+  design:
+    layer: "02-design"
+    token_file: "design/design-tokens.json"
+    # Colour literals in these trees must come from tokens, not be inline.
+    enforce_tokens_in:
+      - "src/**/*.tsx"
+      - "src/**/*.jsx"
+      - "src/**/*.css"
+    # Minimum WCAG 2.1 contrast ratio for text tokens.
+    contrast_floor: 4.5
+    # Colours that may appear in source because they are not brand colours.
+    allowed_literals:
+      - "#fff"
+      - "#ffffff"
+      - "#000"
+      - "#000000"
+      - "transparent"
+      - "inherit"
+      - "currentColor"
+
+  security:
+    layer: "03-security"
+    # Regexes are compiled verbatim; each match names file + line.
+    forbidden_patterns:
+      - id: aws_access_key
+        pattern: 'AKIA[0-9A-Z]{16}'
+        description: "AWS access key id"
+      - id: openai_key
+        pattern: 'sk-[A-Za-z0-9]{20,}'
+        description: "OpenAI-style secret key"
+      - id: github_token
+        pattern: 'gh[pousr]_[A-Za-z0-9]{36,}'
+        description: "GitHub personal access token"
+      - id: private_key_block
+        pattern: '-----BEGIN (RSA |EC |OPENSSH |PGP )?PRIVATE KEY-----'
+        description: "Private key material"
+      - id: hardcoded_password
+        pattern: '(?i)(password|passwd|pwd|secret|api_key|apikey|token|credential)\s*[:=]\s*["''][^"'']{8,}["'']'
+        description: "Credential assigned a literal value"
+      - id: slack_webhook
+        pattern: 'https://hooks\.slack\.com/services/[A-Za-z0-9/]+'
+        description: "Slack incoming webhook URL"
+    forbid_committed_env: true
+    env_files:
+      - ".env"
+      - ".env.local"
+      - ".env.production"
+    # These may be committed as documentation.
+    env_allowlist:
+      - ".env.example"
+      - ".env.sample"
+      - ".env.template"
+
+  performance:
+    layer: "04-performance"
+    image_size_budget_kb: 250
+    modern_image_formats:
+      - webp
+      - avif
+      - svg
+    legacy_image_formats:
+      - png
+      - jpg
+      - jpeg
+      - gif
+    # Legacy formats are only allowed below this size.
+    legacy_format_size_budget_kb: 60
+
+  testing:
+    layer: "05-team"
+    require_tests: true
+    test_dir_names:
+      - tests
+      - test
+      - __tests__
+    test_file_globs:
+      - "**/test_*.py"
+      - "**/*_test.py"
+      - "**/*.test.ts"
+      - "**/*.test.tsx"
+      - "**/*.test.js"
+      - "**/*.test.mjs"
+      - "**/*.spec.ts"
+      - "**/*.spec.js"
+
+  permissions:
+    layer: "05-team"
+    require_declared_roles: true
+    roles_file: "AGENTS.md"
+
+  backup:
+    layer: "06-deployment"
+    require_backup_record: true
+    require_rollback_path: true
+    record_files:
+      - "BACKUP.md"
+      - "docs/backup.md"
+      - "docs/rollback.md"
+
+  deployment:
+    layer: "06-deployment"
+    require_approval_record: true
+    approval_files:
+      - "DEPLOYMENT.md"
+      - "docs/deployment.md"
+    required_artifacts:
+      - "README.md"
+      - "BEST-PRACTICES.md"
+
+# ---------------------------------------------------------------------------
+# The eight gate criteria, evaluated in order.
+# `severity: blocking` fails the gate; `advisory` only warns.
+# ---------------------------------------------------------------------------
+quality_gate:
+  criteria:
+    - id: STRUCTURE
+      layer: "01-structure"
+      severity: blocking
+      description: "README present, standard doc present, declared dirs exist."
+    - id: DESIGN
+      layer: "02-design"
+      severity: blocking
+      description: "Token file valid, contrast at or above floor, no hard-coded colours."
+    - id: SECURITY
+      layer: "03-security"
+      severity: blocking
+      description: "No forbidden pattern matches, no committed env file."
+    - id: PERFORMANCE
+      layer: "04-performance"
+      severity: blocking
+      description: "Images within size budget and modern format where required."
+    - id: TESTING
+      layer: "05-team"
+      severity: blocking
+      description: "At least one test file matches the declared globs."
+    - id: PERMISSIONS
+      layer: "05-team"
+      severity: blocking
+      description: "Every role declared and every agent scoped."
+    - id: BACKUP
+      layer: "06-deployment"
+      severity: blocking
+      description: "Backup record and rollback path present."
+    - id: DEPLOYMENT
+      layer: "06-deployment"
+      severity: blocking
+      description: "Approval record and required artifacts present."
+
+# ---------------------------------------------------------------------------
+# Tooling expectations. Pinning is a supply-chain control, not a preference.
+# ---------------------------------------------------------------------------
+supply_chain:
+  actions_must_be_sha_pinned: true
+  container_tags_forbidden:
+    - latest
+    - stable
+    - main
+  require_requirements_lock: false
+
+# ---------------------------------------------------------------------------
+# Corrections applied when this standard was written up from the original
+# guide. Kept here so the document's claims stay auditable.
+# ---------------------------------------------------------------------------
+corrections:
+  - claim: "npx create-fig-app@latest <app>"
+    status: unverified
+    note: "User states the command is real; kept, but attributed and not asserted as verified here."
+  - claim: "fig add-agent dola --lang th"
+    status: unverified
+    note: "User states the command is real; kept, but attributed and not asserted as verified here."
+  - claim: "hard-coded model=\"gpt-4o\" in the agent example"
+    status: corrected
+    note: "Replaced with a config-supplied model id — pinning one vendor model contradicts the multi-model premise."
+  - claim: "https://docs.hellofig.ai/"
+    status: removed
+    note: "Host does not resolve. Official platform site is https://hellofig.app/"
+  - claim: "https://hellofig.ai/"
+    status: corrected
+    note: "Different domain from the official hellofig.app platform site."

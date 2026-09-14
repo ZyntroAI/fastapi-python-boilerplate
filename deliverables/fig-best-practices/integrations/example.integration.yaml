@@ -1,0 +1,23 @@
+# Worked example — a compliant integration contract.
+# Validated by figbp/integrations.py against integration.schema.json.
+id: dola-vision
+provider: Dola AI
+transport: rest
+baseUrl: https://dola.ai/api/v1
+auth:
+  type: bearer
+  secretRef: env:DOLA_API_KEY
+  scopes:
+    - image:analyze
+timeoutMs: 30000
+retry:
+  maxAttempts: 3
+  backoffMs: 500
+  retryOn: [429, 500, 502, 503, 504]
+egress:
+  - dola.ai
+dataClassification: internal
+owner: security
+notes: >-
+  Read-only image analysis. The key is referenced from the environment and is
+  never inlined — a literal value here fails the SECURITY criterion.

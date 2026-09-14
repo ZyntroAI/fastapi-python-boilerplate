@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "contrastFloor": 4.5,
+  "color": {
+    "brand": { "primary": "#2563eb" },
+    "surface": { "base": "#ffffff", "inverse": "#0f172a" },
+    "text": { "primary": "#0f172a", "secondary": "#475569", "inverse": "#f8fafc" }
+  },
+  "$contrastPairs": [
+    { "text": "text.primary", "background": "surface.base", "min": 4.5 },
+    { "text": "text.secondary", "background": "surface.base", "min": 4.5 },
+    { "text": "text.inverse", "background": "surface.inverse", "min": 4.5 },
+    { "text": "brand.primary", "background": "surface.base", "min": 4.5 }
+  ]
+}
