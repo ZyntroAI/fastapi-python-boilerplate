@@ -1,0 +1,30 @@
+# Template — copy to .github/workflows/quality-gate.yml once the App has the
+# `workflows` scope. Every action is pinned to a full commit SHA, which is the
+# DEPLOYMENT criterion applied to this repository itself.
+name: quality-gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  fig-best-practices:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd719018748d22c79cda53317c56e7975d6772
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip pyyaml pytest
+
+      - name: Run the gate suite
+        run: python -m pytest deliverables/fig-best-practices/tests -q
+
+      - name: FIG best-practices gate
+        run: python deliverables/fig-best-practices/quality_gate.py --root . --json

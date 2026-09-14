@@ -9,12 +9,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
 from .db import db
+from .user_store import user_store
 from .routers import billing, obsidian, programs, security, skills, tools, users
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     db.init(encrypt=settings.encrypt_at_rest)
+    user_store.init()
     yield
     db.close()
 

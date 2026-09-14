@@ -23,7 +23,6 @@ import argparse
 import hashlib
 import json
 import re
-import sys
 from pathlib import Path
 
 # knowledge/scripts/diff_policy.py -> parents[0]=scripts, parents[1]=knowledge
