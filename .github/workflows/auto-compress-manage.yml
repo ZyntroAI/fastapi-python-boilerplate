@@ -1,3 +1,11 @@
+### 🛑 WORKFLOW DISABLED — 2026-09-14 ###
+# name: Auto Compress & Manage
+# on:
+#   push: ...
+# jobs:
+#   ...
+
+
 name: 📦 Auto File Compress & Manage
 on:
   push:
