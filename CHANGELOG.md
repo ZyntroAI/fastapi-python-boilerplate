@@ -44,6 +44,14 @@ Open problems and known blockers are tracked separately in
   `examples/clean-project/` — so the gate is exercised against a known-bad and a
   known-good tree rather than only in the happy path. 69 tests.
 
+- **PR #283** — recorded TASK-20260914-001 for today's documentation work
+  (README rewrite, `LICENSE` holder, `package.json` licence, `PROBLEMS.md`
+  repair, `docs-verify`). The work had merged across twelve PRs but left no
+  trace in the repo's own task tracker, which its Definition of Done requires.
+  Filed under `inprogress/` rather than `done/` because the out-of-scope items
+  — P-001 workflow repair, `.env` key rotation, branch pruning — are still open
+  and need an owner call on whether they fold in or split out. Tracker suite
+  passes at 20 tests.
 ### Changed
 - **PR #278** — repaired three defects in `PROBLEMS.md`. P-002 claimed 66
   unpinned action refs and its own `[2026-09-11]` re-verify said 23; measured
