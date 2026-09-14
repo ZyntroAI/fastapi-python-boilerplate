@@ -93,6 +93,44 @@ reconciliation table, push a branch, open the PR. Ask and it will run.
 
 ---
 
+## Baseline — read before enabling the gate
+
+The `Lint` job runs `ruff check .` over the whole repo. On `main` today that is
+**5,183 errors**, so the gate will go red the moment it is promoted. This is
+pre-existing debt, not caused by anything in this deliverable — verified by
+running the same command locally:
+
+```
+$ ruff check .            # repo-wide
+Found 5183 errors.        # 831 auto-fixable
+$ ruff check deliverables/full-cicd-pipeline/validate_pipeline.py
+All checks passed!        # this deliverable adds 0
+```
+
+Concentration of the debt (top offenders): `project/weather.py` (3,396),
+`AutoGenerateKnowledge.py` (270), `scripts/Fix_pr_79.py` (111),
+`tests/test_claude_endpoints.py` (92).
+
+**Pick one before promoting, or the gate is a wall no PR can pass:**
+
+1. **Scope the gate to changed files** (recommended) — lint only what the PR
+   touches. Fastest path to a green gate that still blocks new debt:
+   ```yaml
+   - run: |
+       ruff check $(git diff --name-only --diff-filter=ACM origin/main...HEAD -- '*.py') || true
+   ```
+   Swap `|| true` for a hard fail once the touched set is clean.
+2. **Exclude the legacy paths** in `pyproject.toml` (`[tool.ruff] exclude = [...]`)
+   and gate on the rest.
+3. **Clear the baseline** — `ruff check . --fix` handles 831; the remaining
+   ~4,352 need review. Largest single win is `project/weather.py`.
+
+Until one of these lands, treat `Lint` as advisory: promote the pipeline but set
+branch protection to require only `Security`, `Test`, and `CI Gate` while the
+lint baseline is being burned down — then add `Lint` to the required set.
+
+---
+
 ## Notes and gotchas
 
 - **`docker/build-push-action` builds but never pushes** on this pipeline. Pushing
