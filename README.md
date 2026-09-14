@@ -24,10 +24,10 @@ self-contained deliverable suites, and a reference docs library.
 | `frontend/` | React 18 + Vite + TypeScript frontend (own `package.json`, `Dockerfile`, `tsconfig.json`) |
 | `skills/` | 12 reusable AI-agent skill definitions — `fetching`, `research`, `patch`, `credential-management`, `changelog-auto-update`, `pr-triage-automove`, `ci-workflow-authoring`, … |
 | `deliverables/` | 26 self-contained feature suites, each with its own README and tests — see [`deliverables/README.md`](./deliverables/README.md) |
-| `docs/` | Reference library (34 files): GraphQL, FireCrawl, Google Chat, GitHub Actions, MCP, incident drills, release notes |
+| `docs/` | Reference library (37 files): GraphQL, FireCrawl, Google Chat, GitHub Actions, MCP, incident drills, release notes |
 | `tests/` | Test suite — `unit/`, `e2e/`, plus repo-level tests (`tests/conftest.py`, `pytest.ini` at root) |
 | `helm/`, `k8s/` | Deployment — Helm chart (`oauth-app`) and Kubernetes manifests (deployment, HPA, ingress, monitoring) |
-| `.github/workflows/` | 11 workflow files — see [CI/CD](#cicd--supply-chain-integrity) for which of them actually run |
+| `.github/workflows/` | 11 workflow files — only 6 of which parse, so the rest never run; see [CI/CD](#cicd--supply-chain-integrity) |
 | `docker-compose.yml` | Local platform stack: Postgres 16, Redis 7, MinIO, Gitea, Prometheus, Grafana, Traefik, stripe-mock |
 
 ---
@@ -222,24 +222,31 @@ a 40-character commit SHA, never a mutable tag such as `@v4`.
 **Known state (verified 2026-09-14 against `main`):**
 
 - Of the `uses:` references in `.github/workflows/`, **13 are SHA-pinned and 60 still
-  use tags** (`actions/checkout@v4`, `actions/setup-python@v5`, `actions/upload-artifact@v4`,
+  use tags** (73 references in all) (`actions/checkout@v4`, `actions/setup-python@v5`, `actions/upload-artifact@v4`,
   `github/codeql-action/*@v3`, and others). `ci.yml` itself is correctly pinned.
-- **Five of the eleven workflow files are not valid YAML as committed, so they never run:**
+- **Five of the eleven files under `.github/workflows/` are not valid YAML, so GitHub
+  never runs them.** A predecessor table in `PROBLEMS.md` listed `ci.yml` among them;
+  that was wrong — `ci.yml` was repaired by PR #230 and parses at every commit since.
+  The five that are actually broken:
 
-  | File | Parse error |
-  | ---- | ----------- |
-  | `.github/workflows/Auto-Index-Sync.yml` | invalid simple key |
-  | `.github/workflows/dependabot-automerge.yml` | invalid simple key |
-  | `.github/workflows/secret-scan.yml` | invalid simple key |
-  | `.github/workflows/test-suite.yml` | more than one document in the stream |
-  | `.github/workflows/github-actions-autodebug-autorerun` | mapping values not allowed (and it has no `.yml`/`.yaml` extension, so Actions ignores it regardless) |
+  | File | Defect |
+  | ---- | ------ |
+  | `.github/workflows/secret-scan.yml` | `workflow_dispatch;` — a `;` where a `:` belongs |
+  | `.github/workflows/dependabot-automerge.yml` | 87 lines of pasted GitHub docs appended after valid YAML |
+  | `.github/workflows/Auto-Index-Sync.yml` | 4 lines escaped the `run: \|` block indentation |
+  | `.github/workflows/test-suite.yml` | the workflow is wrapped in prose and a ` ```yaml ` fence |
+  | `github-actions-autodebug-autorerun` | a 417-line specification with no extension — never a workflow |
 
-- The six that parse are `ci.yml`, `build-compress-all-platforms.yml`, `live-task.yml`,
-  `release_drafter.yaml`, `static.yml` and `test-and-coverage.yaml`.
-- Because several jobs cannot start, a feature PR can show red checks even when its own
-  tests pass locally. Verify a PR's own code in a clean venv rather than trusting the
-  check roll-up. Background and the repair history are in
-  [`CHANGELOG.md`](./CHANGELOG.md) and [`PROBLEMS.md`](./PROBLEMS.md).
+  All five are one defect: assistant output pasted into a file under `workflows/` and
+  never validated. `release_drafter.yaml` parses but declares no job — it is a
+  release-drafter configuration in the wrong directory (`PROBLEMS.md` P-011).
+- **A verified repair exists but is not yet on `main`.** `ci.yml` aside, the fix for all
+  five is in [`patches/pr-repair-workflows.patch`](./patches/pr-repair-workflows.patch);
+  `git apply --check` confirms it applies clean to `main`, and after applying,
+  `yaml.safe_load` parses 10/10 files each with a real `jobs:` key.
+- Because those jobs could not start, a feature PR shows red checks even when its own
+  tests pass. **Verify a PR in a clean venv rather than trusting the roll-up.** Background
+  in [`CHANGELOG.md`](./CHANGELOG.md) and [`PROBLEMS.md`](./PROBLEMS.md).
 
 Fixing workflows needs write access to `.github/workflows/`, which the automation App
 does not hold — it must be applied by a maintainer. See [`SECURITY.md`](./SECURITY.md)
