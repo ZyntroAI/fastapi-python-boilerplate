@@ -1,3 +1,413 @@
+ต่อไปนี้คือส่วน **README.md Update (GitHub Actions & Branch Strategy for Origin)** ที่เขียนให้เข้ากับเอกสาร README ปัจจุบันของโปรเจกต์ และสอดคล้องกับ Organization **ZyntroAI** และ FIG v4 Enterprise
+
+---
+
+# CI/CD Workflows & Origin Branch Strategy
+
+## Branch Model
+
+The repository uses **Origin** as the primary integration branch.
+
+```text
+Origin (default)
+│
+├── feature/*
+├── fix/*
+├── hotfix/*
+├── release/*
+└── experimental/*
+```
+
+All pull requests should target **Origin**.
+
+Protected branches:
+
+```text
+Origin
+main
+production
+```
+
+Branch protection rules:
+
+- Require Pull Request
+- Require Status Checks
+- Require Code Owner Review
+- Require Signed Commits
+- Require Conversation Resolution
+- Require 2 Reviews for MasterFiles changes
+
+---
+
+## GitHub Actions Structure
+
+Workflows are organized by responsibility.
+
+```text
+.github/
+└── workflows/
+    ├── ci.yml
+    ├── cd-deploy.yml
+    ├── scheduled-cleanup.yml
+    ├── release.yml
+    ├── notify.yml
+    ├── dependabot-auto-merge.yml
+    ├── security-scan.yml
+    ├── codeql.yml
+    ├── container-scan.yml
+    └── masterfiles-guard.yml
+```
+
+---
+
+## CI Workflow
+
+**Purpose**
+
+- Lint
+- Formatting Validation
+- Unit Tests
+- Integration Tests
+- Coverage
+- Docker Build Verification
+
+Trigger:
+
+```yaml
+on:
+  push:
+    branches:
+      - Origin
+
+  pull_request:
+    branches:
+      - Origin
+```
+
+Pipeline:
+
+```text
+Checkout
+ ↓
+Install
+ ↓
+Lint
+ ↓
+Format Check
+ ↓
+Tests
+ ↓
+Coverage
+ ↓
+Build
+ ↓
+Artifact Upload
+```
+
+---
+
+## CD Workflow
+
+Deployment is executed only after CI passes.
+
+Flow:
+
+```text
+Origin
+ ↓
+Deploy Staging
+ ↓
+Smoke Test
+ ↓
+Manual Approval
+ ↓
+Deploy Production
+```
+
+Environments:
+
+| Environment | Purpose |
+|------------|----------|
+| staging | Validation |
+| production | Live Traffic |
+
+---
+
+## Scheduled Operations
+
+Scheduled maintenance tasks run automatically.
+
+Examples:
+
+```text
+- Database Backup
+- Cache Cleanup
+- Docker Cleanup
+- Metrics Archive
+- Security Audit
+```
+
+Schedule:
+
+```yaml
+cron: "0 0 * * 1"
+```
+
+Every Monday at 00:00 UTC.
+
+---
+
+## Release Management
+
+A release is created when a version tag is pushed.
+
+```text
+v1.0.0
+v1.1.0
+v2.0.0
+```
+
+Release workflow:
+
+```text
+Build
+ ↓
+Security Scan
+ ↓
+Publish Docker Image
+ ↓
+Create GitHub Release
+ ↓
+Generate Release Notes
+```
+
+---
+
+## Notifications
+
+Notifications are sent for:
+
+- CI Failed
+- CI Success
+- Production Deploy
+- Security Incident
+- Release Published
+
+Supported channels:
+
+```text
+Slack
+Email
+Microsoft Teams
+Webhook
+```
+
+---
+
+## Security Workflows
+
+The repository implements security controls through dedicated workflows.
+
+### Secret Scan
+
+Checks:
+
+```text
+API Keys
+JWT Secrets
+Cloud Credentials
+Database Passwords
+Private Keys
+```
+
+---
+
+### CodeQL
+
+Static analysis:
+
+```text
+Python
+JavaScript
+TypeScript
+Docker
+GitHub Actions
+```
+
+---
+
+### Container Scan
+
+Scans:
+
+```text
+Docker Images
+Base Images
+Package Vulnerabilities
+OS Vulnerabilities
+```
+
+Tools:
+
+```text
+Trivy
+Grype
+Docker Scout
+```
+
+---
+
+## MasterFiles Protection
+
+MasterFiles are considered critical assets.
+
+Protected paths:
+
+```text
+masterfiles/
+config/
+system/
+settings/
+.github/
+```
+
+Rules:
+
+```text
+Owner Review Required
+2 Approvals Required
+No Direct Push
+No Force Push
+Audit Log Enabled
+```
+
+Workflow:
+
+```yaml
+masterfiles-guard.yml
+```
+
+Validation:
+
+```text
+READ
+WRITE
+UPDATE
+DELETE
+```
+
+Permissions are enforced through FIG RBAC.
+
+---
+
+## Organization Governance
+
+Organization:
+
+```text
+ZyntroAI
+```
+
+Requirements:
+
+```text
+2FA Required
+Owner Governance
+Audit Logging
+Security Reviews
+Protected Secrets
+```
+
+Sensitive values must never be stored in source code.
+
+Store secrets in:
+
+```text
+Settings
+ └── Secrets and Variables
+      └── Actions
+```
+
+Examples:
+
+```text
+VERCEL_TOKEN
+DOCKER_PASSWORD
+CODECOV_TOKEN
+AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY
+JWT_SECRET
+MASTERFILES_TOKEN
+SLACK_WEBHOOK
+```
+
+---
+
+## Enterprise Recommendations
+
+Recommended additions:
+
+- Full SHA Pinning for all GitHub Actions
+- Environment Protection Rules
+- Dependabot Auto Merge
+- SBOM Generation
+- SLSA Build Provenance
+- Artifact Signing
+- OIDC Cloud Authentication
+- Trivy Security Scanning
+- CodeQL Advanced Security
+- MasterFiles Approval Gate
+
+---
+
+## Deployment Flow
+
+```text
+Developer
+    ↓
+Pull Request
+    ↓
+CI Pipeline
+    ↓
+Security Scans
+    ↓
+Review Approval
+    ↓
+Merge → Origin
+    ↓
+Deploy Staging
+    ↓
+Validation
+    ↓
+Production Approval
+    ↓
+Deploy Production
+    ↓
+Notification
+```
+
+---
+
+## FIG v4 Enterprise Integration
+
+FIG integrates directly with repository governance:
+
+```text
+FIG API Gateway
+ + CI/CD
+ + RBAC
+ + MasterFiles Engine
+ + Audit Logging
+ + Security Layer
+ + Organization Governance
+```
+
+This ensures all API operations, deployments, security checks, and MasterFiles updates remain compliant with the ZyntroAI Enterprise workflow model.
+
+-----------
+
+******WAIT MERGE TO Lasted******
+
 Here’s **การออกแบบ GitHub Actions Workflows สำหรับ `Origin`** (หลังจากเปลี่ยนเป็น default branch แล้ว) ที่แยก **CI** และ **Workflows อื่นๆ** อย่างชัดเจน พร้อมคำแนะนำสำหรับ FastAPI project ของคุณ:
 
 ---
