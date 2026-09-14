@@ -8,6 +8,20 @@ Open problems and known blockers are tracked separately in
 ## [2026-09-14]
 
 ### Added
+- **PR #281** — `deliverables/docs-verify/` — a read-only tool that checks the
+  repository's own documentation against the tree. PRs #269/#274/#276 each cited
+  `scripts/verify_readme_facts.py` as evidence, but that script lived only in the
+  author's workspace, so the evidence could not be re-run by anyone; it is now in
+  the repo. Checks README-declared counts (deliverables, docs, workflows — both
+  numeral and spelled-out forms), every deliverable being named, backticked paths
+  resolving, workflow YAML parse state, the SHA-pin split, the LICENSE holder,
+  `package.json`'s `license`, and PROBLEMS.md's structure (unique ids, unique and
+  descending date sections). Counts compare against what the README itself
+  declares rather than a frozen number, so the checks survive the tree changing
+  legitimately and fail only on real drift. 17 tests over synthetic fixture trees.
+  On its first run it caught two live drifts from concurrent merges —
+  deliverables 25→26 and docs 32→34, both corrected in the same PR. The one
+  remaining failure is the known P-001 defect (5 of 11 workflows do not parse).
 - **PR #266** — deliverables: added `deliverables/official-docs/`, an official
   documentation registry for the tools and services this project depends on.
   `src/official-docs.json` carries the registry and `src/official_docs.py`
