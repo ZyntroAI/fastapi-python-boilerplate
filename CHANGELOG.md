@@ -31,6 +31,19 @@ Open problems and known blockers are tracked separately in
   known-good tree rather than only in the happy path. 69 tests.
 
 ### Changed
+- **PR #278** — repaired three defects in `PROBLEMS.md`. P-002 claimed 66
+  unpinned action refs and its own `[2026-09-11]` re-verify said 23; measured
+  today the tree has 60 unpinned of 73 (30 distinct `uses:` values), and neither
+  earlier figure reproduces — the entry now carries the per-file breakdown, the
+  measurement date, and says plainly that both prior counts are stale rather
+  than substituting one unverifiable number for another. `P-009` was shared by
+  two unrelated problems (the root `tests/` suite that never collects, and
+  `release_drafter.yaml` sitting in `workflows/`), so the latter is now `P-011`
+  with a breadcrumb; `docs/releases/v1.2.0.md` cited that ambiguous id. Two
+  `## [2026-09-11]` sections also existed on opposite sides of `[2026-09-10]`,
+  breaking reverse-chronological order — consolidated into one, with no entry
+  changing date. Verified: 12 entry headings and 11 code fences before and
+  after, ids `P-001`..`P-011` all present and unique.
 - **PR #276** — declared the MIT license in `package.json`. The root
   `package.json` carried no `license` field at all, so npm tooling and GitHub's
   license detection had nothing to read even though `LICENSE` has been MIT from
