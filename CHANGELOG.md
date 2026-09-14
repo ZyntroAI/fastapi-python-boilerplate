@@ -7,6 +7,18 @@ Open problems and known blockers are tracked separately in
 
 ## [2026-09-14]
 
+### Changed
+- **PR #267** — hardened JWT secret validation and moved users onto a database.
+  `app/security.py` now rejects a signing key shorter than 32 characters and
+  refuses a set of known placeholder values (`changeme`, `secret`, `jwt-secret`,
+  …), so a misconfigured deployment fails loudly instead of signing tokens with
+  a guessable key; the local fallback generates a full-strength key written to a
+  git-ignored file. Added `app/user_store.py`, a SQLAlchemy-backed user table that
+  imports legacy JSON users on first init, keeping the existing
+  `{username, hashed_password, allowed_skills}` shape so the API surface and
+  per-user skill gating are unchanged. `DATABASE_URL` selects Postgres, otherwise
+  SQLite. Verified: 43 tests pass in a clean venv.
+
 ### Fixed
 - **PR #262** — chore(lint): dropped the unused `import sys` from
   `knowledge/scripts/diff_policy.py`, the only unreferenced import left in the file.
