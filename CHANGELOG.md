@@ -128,6 +128,29 @@ Open problems and known blockers are tracked separately in
   P-001 was filed) and the README asserted all eleven files parse when only six do.
   P-001 is marked **FIX PREPARED**, not FIXED — nothing is applied on `main` yet.
 
+- **PR #289** *(opened — pending merge)* — `tests/test_claude_endpoints.py` was chat
+  prose wrapped around a fenced code block, so it did not parse
+  (`SyntaxError: invalid character '→' (U+2192)`). Because pytest imports every
+  file under `tests/`, that single file failed collection for the whole directory
+  and blocked every valid test beside it. Extracted the real code, corrected three
+  defects in it, and supplied the module it imports but that never existed
+  (`app/services/claude_client.py`, an httpx-based Claude client — no new SDK
+  dependency). Two pre-existing faults that made `app.services` unimportable were
+  fixed alongside: `app/services/__init__.py` imported `UserService`, which
+  `users.py` never defined (it defines `UserRepo`), and because a package
+  `__init__` runs before any submodule this took down `app.main` too — it now
+  resolves lazily (PEP 562); and `app/core/config.py` raised on the repository's
+  own `.env` (undeclared keys plus a required `OAUTH_CLIENT_ID`), fixed with
+  `extra = "ignore"` and a default. The three test defects: `lines == 'data: {...}'`
+  compared a `list` to a `str` (never true), `tool_calls["name"]` indexed a list
+  with a string, and the SSE stream terminated with `data: "[DONE]"` (JSON-quoted)
+  instead of the bare `data: [DONE]` sentinel clients match on. Verified:
+  4/4 tests pass; collection errors across `tests/` fall from 10 to 5, with no new
+  ones — every remainder is present on `main` unchanged. Note: `app/.gitignore`'s
+  bare `service*` rule would have silently excluded the new client module, so it
+  is force-added. **Not** included: `app/db/repositories.py` (`AsyncSession`/`Item`
+  undefined) is the other 5 errors and belongs in its own PR.
+
 
 ## [2026-09-13]
 
