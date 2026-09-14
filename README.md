@@ -304,9 +304,8 @@ Recommended order of attack, highest value first:
 
 1. Repair the five unparseable workflows so CI can be trusted at all.
 2. Convert the remaining 60 tag-pinned `uses:` references to full SHAs.
-3. Add `"license": "MIT"` to `package.json` (the `LICENSE` holder is now filled in).
-4. Get `.env` out of git and rotate the keys it exposed.
-5. Prune the stale `zyntromedia-*` branches and classify the root.
+3. Get `.env` out of git and rotate the keys it exposed.
+4. Prune the stale `zyntromedia-*` branches and classify the root.
 
 ---
 
