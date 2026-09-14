@@ -31,6 +31,14 @@ Open problems and known blockers are tracked separately in
   known-good tree rather than only in the happy path. 69 tests.
 
 ### Changed
+- **PR #276** — declared the MIT license in `package.json`. The root
+  `package.json` carried no `license` field at all, so npm tooling and GitHub's
+  license detection had nothing to read even though `LICENSE` has been MIT from
+  the start; added `"license": "MIT"` after `version`. `"private": true` is
+  unchanged. Removed the completed item from the README order-of-attack list and
+  renumbered the remaining four, and the fact-check script gained an assertion so
+  the field cannot drift back: 71 checks, 0 failed. Edit is a single inserted
+  line — key order, quoting and trailing-newline style preserved.
 - **PR #274** — filled in the `LICENSE` copyright holder. Line 3 read
   `Copyright (c) 2026 [zyntromedia]`, placeholder brackets never removed, so the
   file named no real holder; it now reads `Copyright (c) 2026 Zyntro Media`,
@@ -38,8 +46,7 @@ Open problems and known blockers are tracked separately in
   same name, uncleaned). Removed the README bullet that reported the placeholder
   as outstanding, and inverted the fact-check assertion with it —
   `scripts/verify_readme_facts.py` used to assert the placeholder was present,
-  it now asserts the holder is filled: 70 checks, 0 failed. The remaining
-  licence task is a `license` field in `package.json`.
+  it now asserts the holder is filled: 70 checks, 0 failed.
 - **PR #269** — rewrote `README.md` so it matches the repository as it stands
   (+119/−767). The previous content was a pasted CI/CD-and-branch-strategy draft
   that described controls, workflows and branches this repo does not have: it named
