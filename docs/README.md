@@ -15,6 +15,7 @@
 |--------|----------|
 | [gh CLI Reference](./github-cli-gh-reference.md) | คู่มือ GitHub CLI (`gh`) |
 | [Research Tools Free Guide](./research-tools-free-guide.md) | เครื่องมือวิจัยแบบ free tier |
+| [Dev Helpers Suite](../deliverables/dev-helpers/README.md) | ชุดตัวช่วย 4 ตัวสำหรับ GitHub automation: perm-checker, ci-workflow, approval-doc, pr-helper (คู่มือ ไทย/อังกฤษ) |
 
 ## Knowledge Base / DevSecOps
 
