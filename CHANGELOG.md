@@ -7,6 +7,29 @@ Open problems and known blockers are tracked separately in
 
 ## [2026-09-14]
 
+### Added
+- **PR #266** — deliverables: added `deliverables/official-docs/`, an official
+  documentation registry for the tools and services this project depends on.
+  `src/official-docs.json` carries the registry and `src/official_docs.py`
+  (Python) plus `src/official-docs.js` / `src/utils.ts` (JS/TS) read it from
+  either side of the stack. Every link is verified rather than assumed:
+  `scripts/verify_links.py` checks the registry against the live URLs and
+  `tests/test_official_docs.py` / `tests/official-docs.test.mjs` cover the
+  loaders. The React side (`src/Company.jsx` + `Company.module.css`) renders a
+  docs bar and an image gallery from the same registry, so the UI cannot drift
+  from the data; `scripts/export_registry.mjs` and `scripts/render_smoke.mjs`
+  round out the build-and-check path.
+- **PR #265** — deliverables: added `deliverables/fig-best-practices/`, a
+  quality gate for projects built on the Fig platform. `BEST-PRACTICES.md` is the
+  policy, `SKILL.yaml` wires it up as a skill, and the checker engine runs it
+  against a project tree; `ci/quality-gate.yml` is the GitHub Actions entry
+  point. Six agent briefs (`agents/developer.md`, `reviewer.md`, `security.md`,
+  `designer.md`, `performance.md`, `deployment.md`) state what each role is
+  expected to enforce, and `design/design-tokens.json` holds the shared tokens.
+  Two fixture projects ship with it — `examples/broken-project/` and
+  `examples/clean-project/` — so the gate is exercised against a known-bad and a
+  known-good tree rather than only in the happy path. 69 tests.
+
 ### Changed
 - **PR #269** — rewrote `README.md` so it matches the repository as it stands
   (+119/−767). The previous content was a pasted CI/CD-and-branch-strategy draft
