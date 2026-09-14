@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     ENV: str = "local"  # local | vercel | production
     
     # OAuth2 Provider (Google, GitHub, etc.)
-    OAUTH_CLIENT_ID: str
+    OAUTH_CLIENT_ID: str = ""  # optional at import; OAuth flows validate at use
     OAUTH_CLIENT_SECRET: str | None = None  # PKCE ไม่ต้องใช้ secret บน client
     OAUTH_AUTHORIZE_URL: str = "https://accounts.google.com/o/oauth2/v2/auth"
     OAUTH_TOKEN_URL: str = "https://oauth2.googleapis.com/token"
@@ -58,6 +58,9 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+        # The repo's own .env carries keys this model does not declare. Without
+        # this, Settings() raises at import and the whole app fails to start.
+        extra = "ignore"
 
 
 @lru_cache()
