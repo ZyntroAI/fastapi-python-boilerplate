@@ -31,6 +31,15 @@ Open problems and known blockers are tracked separately in
   known-good tree rather than only in the happy path. 69 tests.
 
 ### Changed
+- **PR #274** — filled in the `LICENSE` copyright holder. Line 3 read
+  `Copyright (c) 2026 [zyntromedia]`, placeholder brackets never removed, so the
+  file named no real holder; it now reads `Copyright (c) 2026 Zyntro Media`,
+  matching the ZyntroAI organisation display name (the placeholder text was that
+  same name, uncleaned). Removed the README bullet that reported the placeholder
+  as outstanding, and inverted the fact-check assertion with it —
+  `scripts/verify_readme_facts.py` used to assert the placeholder was present,
+  it now asserts the holder is filled: 70 checks, 0 failed. The remaining
+  licence task is a `license` field in `package.json`.
 - **PR #269** — rewrote `README.md` so it matches the repository as it stands
   (+119/−767). The previous content was a pasted CI/CD-and-branch-strategy draft
   that described controls, workflows and branches this repo does not have: it named
