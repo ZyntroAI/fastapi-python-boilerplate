@@ -23,7 +23,7 @@ self-contained deliverable suites, and a reference docs library.
 | `graphql_api/` | Standalone GraphQL service — Strawberry + async SQLAlchemy + JWT + Alembic, own `requirements.txt`, `docker-compose.yml`, tests |
 | `frontend/` | React 18 + Vite + TypeScript frontend (own `package.json`, `Dockerfile`, `tsconfig.json`) |
 | `skills/` | 12 reusable AI-agent skill definitions — `fetching`, `research`, `patch`, `credential-management`, `changelog-auto-update`, `pr-triage-automove`, `ci-workflow-authoring`, … |
-| `deliverables/` | 24 self-contained feature suites, each with its own README and tests — see [`deliverables/README.md`](./deliverables/README.md) |
+| `deliverables/` | 25 self-contained feature suites, each with its own README and tests — see [`deliverables/README.md`](./deliverables/README.md) |
 | `docs/` | Reference library (31 files): GraphQL, FireCrawl, Google Chat, GitHub Actions, MCP, incident drills |
 | `tests/` | Test suite — `unit/`, `e2e/`, plus repo-level tests (`tests/conftest.py`, `pytest.ini` at root) |
 | `helm/`, `k8s/` | Deployment — Helm chart (`oauth-app`) and Kubernetes manifests (deployment, HPA, ingress, monitoring) |
@@ -146,15 +146,16 @@ deliverable suites. Run a suite's own tests from its directory.
 
 ## Deliverables
 
-`deliverables/` holds 24 self-contained suites. Each is a complete piece of work —
+`deliverables/` holds 25 self-contained suites. Each is a complete piece of work —
 code, tests, and its own README — rather than a fragment of the main app:
 
 `agent-core` · `agent-security-suite` · `agent-skill-template` · `ai-agent-skills` ·
-`ai-agents-decision-pack` · `ai-gateway-architecture-review` · `azure-cli-2026` ·
+`ai-agents-decision-pack` · `ai-gateway-architecture-review` · `azure-cli-2026` · `ci` ·
 `ci-workflow-sha-pin` · `cwe1321-protection-suite` · `fastapi-obsidian-backend` ·
-`firecrawl-fastapi` · `gemini-cli-skills` · `gh-devops-toolkit` · `manus-client` ·
-`notebooklm-access-suite` · `notebooklm-link-share` · `official-docs` · `onspace-ai` ·
-`onspace-platform-integration` · `pm-backend` · `product-crud` · `pure-agent-dev`
+`fig-best-practices` · `firecrawl-fastapi` · `full-cicd-pipeline` · `gemini-cli-skills` ·
+`gh-devops-toolkit` · `manus-client` · `notebooklm-access-suite` · `notebooklm-link-share` ·
+`official-docs` · `onspace-ai` · `onspace-platform-integration` · `pm-backend` ·
+`product-crud` · `pure-agent-dev`
 
 See [`deliverables/README.md`](./deliverables/README.md) for one-line descriptions and
 links into each suite.
