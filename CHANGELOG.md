@@ -8,6 +8,22 @@ Open problems and known blockers are tracked separately in
 ## [2026-09-14]
 
 ### Changed
+- **PR #269** — rewrote `README.md` so it matches the repository as it stands
+  (+119/−767). The previous content was a pasted CI/CD-and-branch-strategy draft
+  that described controls, workflows and branches this repo does not have: it named
+  `Origin` as the primary integration branch (`main` is the default and the only PR
+  target; `Origin` is not in sync and triggers nothing), listed six workflows that do
+  not exist (`cd-deploy.yml`, `scheduled-cleanup.yml`, `notify.yml`, `codeql.yml`,
+  `container-scan.yml`, `masterfiles-guard.yml`), and asserted protected paths
+  (`masterfiles/`, `config/`, `system/`, `settings/`) that are absent from the tree.
+  The rewrite states the true CI/CD position — 13 of 73 `uses:` refs SHA-pinned,
+  60 still tagged, 5 of 11 workflow files unparseable so they never run — adds a
+  deployment-environment table from the live Environments API (`main` has a 15-minute
+  wait timer; `Production`/`Preview`/`copilot` have none), and moves every
+  not-yet-implemented governance item into an explicit **Target state** section with a
+  "Present? No" column. Verified by `scripts/verify_readme_facts.py`: 68 checks, 0
+  failed.
+
 - **PR #267** — hardened JWT secret validation and moved users onto a database.
   `app/security.py` now rejects a signing key shorter than 32 characters and
   refuses a set of known placeholder values (`changeme`, `secret`, `jwt-secret`,
