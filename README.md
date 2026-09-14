@@ -1,241 +1,456 @@
-# FastAPI Python Boilerplate — AI-Driven
+🏰 คู่มือฉบับสมบูรณ์:  ZyntroAI/fastapi-python-boilerplate 
+ 
+ลิงก์: https://github.com/ZyntroAI/fastapi-python-boilerplate
+ประเภท: Public Repository • Boilerplate / Template Project
+เจ้าของ: ZyntroAI
+วัตถุประสงค์: ฐานรากสำหรับสร้างแอปพลิเคชัน Backend ด้วย FastAPI ที่มีมาตรฐานสูง ปลอดภัย และพร้อมใช้งานจริง 🚀
+ 
+ 
+ 
+📌 ภาพรวมโครงการ
+ 
+ ZyntroAI/fastapi-python-boilerplate  เป็นเทมเพลตโครงการที่ออกแบบมาอย่างรอบคอบเพื่อให้ทีมพัฒนาสามารถเริ่มสร้าง API ด้วย FastAPI ได้ทันที โดยไม่ต้องเสียเวลาตั้งค่าพื้นฐานซ้ำๆ ทุกครั้ง โครงการนี้เน้นที่:
+ 
+- 🎯 มาตรฐานโค้ดสูง: ใช้ Type Hints, Linter, Formatter มาตรฐาน
+- 🔒 ความปลอดภัย: มีการตั้งค่าความปลอดภัยเบื้องต้น, การสแกนช่องโหว่, และการจัดการ Secret
+- ⚡ ประสิทธิภาพ: ปรับแต่งให้ทำงานได้เร็วที่สุดด้วย ASGI Server
+- 🧪 การทดสอบ: มีโครงสร้างการทดสอบที่ครอบคลุมตั้งแต่ Unit Test ถึง Integration Test
+- 🚀 CI/CD: พร้อม Workflow สำหรับตรวจสอบ, ทดสอบ, และปรับใช้อัตโนมัติ
+- 📚 เอกสาร: มีเอกสารประกอบที่ครบถ้วนและอัปเดตเป็นประจำ
+ 
+ 
+ 
+🛠️ เทคโนโลยีและเครื่องมือหลัก
+ 
+🐍 ภาษาและเฟรมเวิร์ก
+ 
+- Python 3.12+ — เวอร์ชันล่าสุดที่รองรับคุณสมบัติใหม่ๆ และประสิทธิภาพดีขึ้น
+- FastAPI — เฟรมเวิร์กสมัยใหม่สำหรับสร้าง API ที่เร็ว, ปลอดภัย, และมีเอกสารอัตโนมัติ
+- Uvicorn — ASGI Server ที่เบาและเร็วสำหรับรันแอปพลิเคชัน
+- Pydantic v2 — ไลบรารีสำหรับตรวจสอบข้อมูลและจัดการ Schema
+ 
+🗄️ ฐานข้อมูลและ ORM
+ 
+- SQLAlchemy 2.0 — ORM ยอดนิยมที่ทรงพลังและยืดหยุ่น
+- Alembic — เครื่องมือสำหรับจัดการ Migration ของฐานข้อมูล
+- PostgreSQL — ฐานข้อมูลหลักที่แนะนำ (รองรับฐานข้อมูลอื่นๆ ได้ตามความเหมาะสม)
+ 
+📦 การจัดการการพึ่งพา
+ 
+- uv — เครื่องมือจัดการแพ็กเกจและสภาพแวดล้อมเสมือนที่เร็วและทันสมัย (ทางเลือกแรก)
+- pip + requirements.txt — วิธีดั้งเดิมที่ยังคงรองรับ
+ 
+🔧 คุณภาพโค้ดและการพัฒนา
+ 
+- Ruff — Linter และ Formatter ที่รวดเร็วมาก (เขียนด้วย Rust)
+- mypy — ตรวจสอบ Type Static เพื่อค้นหาข้อผิดพลาดก่อนรัน
+- pytest — เฟรมเวิร์กการทดสอบที่ยืดหยุ่นและมีประสิทธิภาพ
+- pre-commit — ฮุกสำหรับตรวจสอบโค้ดก่อนคอมมิต
+ 
+🚀 CI/CD และการปรับใช้
+ 
+- GitHub Actions — ระบบ CI/CD ในตัวของ GitHub
+- Docker — คอนเทนเนอร์ไลเซชันสำหรับแอปพลิเคชัน
+- Docker Compose — จัดการบริการหลายตัวพร้อมกัน (แอป, ฐานข้อมูล, Redis เป็นต้น)
+ 
+ 
+ 
+📂 โครงสร้างโครงการโดยละเอียด
+ 
+plaintext  
+fastapi-python-boilerplate/
+├─ 📁 .github/
+│  ├─ 📁 workflows/              # 🔄 ไฟล์ CI/CD Workflow
+│  │  ├─ ci.yml                 # ทดสอบและตรวจสอบโค้ดอัตโนมัติ
+│  │  ├─ security.yml           # สแกนความปลอดภัยและช่องโหว่
+│  │  └─ Auto-Index-Sync.yml    # ซิงโครไนซ์ดัชนีเอกสาร
+│  ├─ 📁 ISSUE_TEMPLATE/        # 📝 เทมเพลตสำหรับรายงานปัญหา
+│  └─ 📁 PULL_REQUEST_TEMPLATE/ # 📩 เทมเพลตสำหรับ Pull Request
+│
+├─ 📁 app/                      # 🏗️ แอปพลิเคชันหลัก
+│  ├─ 📄 __init__.py
+│  ├─ 📄 main.py                # 🚀 จุดเริ่มต้นแอปพลิเคชัน
+│  ├─ 📄 config.py              # ⚙️ การตั้งค่าแอปพลิเคชัน
+│  ├─ 📁 api/                   # 🌐 เส้นทาง API
+│  │  ├─ 📄 __init__.py
+│  │  ├─ 📄 deps.py             # 🧩 Dependencies ที่ใช้ร่วมกัน
+│  │  └─ 📁 v1/                 # เวอร์ชัน API v1
+│  │     ├─ 📄 __init__.py
+│  │     ├─ 📄 api.py           # รวมเส้นทางทั้งหมด
+│  │     └─ 📄 endpoints/       # เส้นทางย่อย
+│  │        ├─ 📄 __init__.py
+│  │        ├─ 📄 items.py      # ตัวอย่าง CRUD Items
+│  │        └─ 📄 users.py      # ตัวอย่างจัดการผู้ใช้
+│  ├─ 📁 core/                  # 🧠 แกนกลางระบบ
+│  │  ├─ 📄 __init__.py
+│  │  ├─ 📄 security.py         # 🔐 การยืนยันตัวตนและสิทธิ์
+│  │  └─ 📄 exceptions.py       # ⚠️ การจัดการข้อผิดพลาด
+│  ├─ 📁 models/                # 🗃️ โมเดลฐานข้อมูล (SQLAlchemy)
+│  │  ├─ 📄 __init__.py
+│  │  ├─ 📄 base.py             # คลาสฐานสำหรับทุกโมเดล
+│  │  ├─ 📄 item.py             # ตัวอย่างโมเดล Item
+│  │  └─ 📄 user.py             # ตัวอย่างโมเดล User
+│  ├─ 📁 schemas/               # 📋 Schema สำหรับตรวจสอบข้อมูล (Pydantic)
+│  │  ├─ 📄 __init__.py
+│  │  ├─ 📄 item.py             # Schema ของ Item
+│  │  └─ 📄 user.py             # Schema ของ User
+│  ├─ 📁 services/              # 🛠️ เลเยอร์บริการ (Business Logic)
+│  │  ├─ 📄 __init__.py
+│  │  ├─ 📄 item_service.py     # ตรรกะธุรกิจของ Item
+│  │  └─ 📄 user_service.py     # ตรรกะธุรกิจของ User
+│  ├─ 📁 db/                    # 🗄️ การเชื่อมต่อฐานข้อมูล
+│  │  ├─ 📄 __init__.py
+│  │  └─ 📄 session.py          # Session Factory
+│  └─ 📁 utils/                 # 🧰 ฟังก์ชันช่วยเหลือ
+│     ├─ 📄 __init__.py
+│     └─ 📄 helpers.py          # ฟังก์ชันยูทิลิตี้ต่างๆ
+│
+├─ 📁 migrations/               # 🔄 ไฟล์ Migration (Alembic)
+│  ├─ 📁 versions/              # เวอร์ชัน Migration แต่ละครั้ง
+│  └─ 📄 env.py                 # สภาพแวดล้อมของ Alembic
+│
+├─ 📁 tests/                    # 🧪 ชุดการทดสอบ
+│  ├─ 📄 __init__.py
+│  ├─ 📄 conftest.py            # การตั้งค่าและ Fixture สำหรับ pytest
+│  ├─ 📁 unit/                  # การทดสอบระดับ Unit
+│  │  ├─ 📄 test_models.py      # ทดสอบโมเดล
+│  │  └─ 📄 test_services.py    # ทดสอบบริการ
+│  └─ 📁 integration/           # การทดสอบระดับ Integration
+│     ├─ 📄 test_api.py         # ทดสอบเส้นทาง API
+│     └─ 📄 test_db.py          # ทดสอบการทำงานกับฐานข้อมูล
+│
+├─ 📁 docker/                   # 🐳 คอนฟิก Docker
+│  ├─ 📄 Dockerfile             # สร้างอิมเมจแอปพลิเคชัน
+│  └─ 📄 Dockerfile.dev         # สำหรับสภาพแวดล้อมการพัฒนา
+│
+├─ 📄 docker-compose.yml        # 🎼 จัดการบริการหลายตัว
+├─ 📄 docker-compose.override.yml # การตั้งค่าเพิ่มเติมสำหรับ Dev
+├─ 📄 pyproject.toml            # 📦 การตั้งค่าโครงการและการพึ่งพา (uv)
+├─ 📄 requirements.txt          # 📦 รายการการพึ่งพา (pip)
+├─ 📄 requirements-dev.txt      # 📦 การพึ่งพาสำหรับการพัฒนา
+├─ 📄 .env.example              # 🔑 ตัวอย่างตัวแปรสภาพแวดล้อม
+├─ 📄 .gitignore                # 🚫 ไฟล์ที่ไม่ต้องติดตามด้วย Git
+├─ 📄 .pre-commit-config.yaml   # 🪝 การตั้งค่า pre-commit hooks
+├─ 📄 ruff.toml                 # 🎨 การตั้งค่า Ruff Linter/Formatter
+├─ 📄 mypy.ini                  # 📝 การตั้งค่า mypy Type Checker
+├─ 📄 pytest.ini                # 🧪 การตั้งค่า pytest
+├─ 📄 alembic.ini               # 🔄 การตั้งค่า Alembic
+├─ 📄 Makefile                  # 🛠️ คำสั่งย่อสำหรับงานทั่วไป
+├─ 📄 README.md                 # 📖 คู่มือหลักโครงการ
+├─ 📄 CONTRIBUTING.md           # 🤝 คู่มือการมีส่วนร่วม
+├─ 📄 SECURITY.md               # 🛡️ นโยบายความปลอดภัย
+└─ 📄 LICENSE                   # 📜 ใบอนุญาตโครงการ
+ 
+ 
+ 
+ 
+✨ คุณสมบัติหลักและจุดเด่น
+ 
+1️⃣ สถาปัตยกรรมที่ชัดเจนและแยกส่วน
+ 
+โครงการนี้ใช้หลักการ Clean Architecture โดยแยกส่วนงานออกเป็นชั้นๆ อย่างชัดเจน:
+ 
+- API Layer: รับคำขอและส่งคืนคำตอบ
+- Service Layer: ตรรกะธุรกิจหลัก
+- Model Layer: โครงสร้างฐานข้อมูล
+- Schema Layer: ตรวจสอบข้อมูลเข้า-ออก
+- Core Layer: ฟังก์ชันพื้นฐาน เช่น ความปลอดภัย, การจัดการข้อผิดพลาด
+ 
+2️⃣ การยืนยันตัวตนและสิทธิ์ที่ปลอดภัย
+ 
+- JWT (JSON Web Token): ระบบยืนยันตัวตนแบบ Token
+- Hashing รหัสผ่าน: ใช้ bcrypt หรือ argon2 เพื่อเข้ารหัส
+- Role-Based Access Control (RBAC): จัดการสิทธิ์ตามบทบาทผู้ใช้
+- CORS: การตั้งค่าเพื่อควบคุมการเข้าถึงจากโดเมนอื่น
+ 
+3️⃣ การจัดการฐานข้อมูลที่ทันสมัย
+ 
+- SQLAlchemy 2.0: ใช้ API ใหม่ที่ทันสมัยและมีประสิทธิภาพ
+- Alembic Migrations: จัดการการเปลี่ยนแปลงโครงสร้างฐานข้อมูล
+- Async Support: รองรับการทำงานแบบอะซิงโครนัสกับฐานข้อมูล
+- Connection Pooling: จัดการการเชื่อมต่อฐานข้อมูลอย่างมีประสิทธิภาพ
+ 
+4️⃣ เอกสาร API อัตโนมัติ
+ 
+ด้วยคุณสมบัติของ FastAPI:
+ 
+- Swagger UI:  /docs  — อินเทอร์เฟซสำหรับทดสอบ API
+- ReDoc:  /redoc  — เอกสารที่อ่านง่ายและสวยงาม
+- OpenAPI Schema:  /openapi.json  — สคีมาตามมาตรฐาน
+ 
+5️⃣ การตรวจสอบคุณภาพโค้ดอัตโนมัติ
+ 
+- Ruff: ตรวจสอบรูปแบบโค้ดและแก้ไขอัตโนมัติ
+- mypy: ตรวจสอบ Type Static เพื่อลดข้อผิดพลาด
+- pre-commit: ตรวจสอบทุกครั้งก่อนคอมมิตเพื่อให้แน่ใจว่าโค้ดสะอาด
+ 
+6️⃣ การทดสอบที่ครอบคลุม
+ 
+- Unit Tests: ทดสอบแต่ละส่วนโดยแยกจากกัน
+- Integration Tests: ทดสอบการทำงานร่วมกันของส่วนต่างๆ
+- Test Coverage: วัดเปอร์เซ็นต์โค้ดที่ถูกทดสอบ
+- Fixtures: เตรียมข้อมูลและสภาพแวดล้อมสำหรับการทดสอบ
+ 
+7️⃣ CI/CD ที่ครบถ้วน
+ 
+- Automated Testing: รันทดสอบทุกครั้งที่มีการพุชหรือเปิด PR
+- Code Quality Checks: ตรวจสอบ Lint, Type, Format อัตโนมัติ
+- Security Scanning: สแกนหาช่องโหว่และความลับที่รั่วไหล
+- Build & Deploy: สร้างอิมเมจ Docker และปรับใช้อัตโนมัติ
+ 
+ 
+ 
+🚀 คู่มือเริ่มต้นใช้งานทีละขั้นตอน
+ 
+ขั้นตอนที่ 1: โคลนโครงการ
+ 
+bash  
+git clone https://github.com/ZyntroAI/fastapi-python-boilerplate.git
+cd fastapi-python-boilerplate
+ 
+ 
+ขั้นตอนที่ 2: ตั้งค่าสภาพแวดล้อม
+ 
+วิธี A: ใช้ uv (แนะนำ)
+ 
+bash  
+# ติดตั้ง uv (ถ้ายังไม่มี)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-An opinionated FastAPI monorepo used by ZyntroAI as the starting point for production
-AI services, agent tooling, and reference documentation. It ships an OAuth2 PKCE API
-core, a GraphQL layer, a React frontend, a library of reusable AI-agent skills,
-self-contained deliverable suites, and a reference docs library.
+# สร้างสภาพแวดล้อมเสมือนและติดตั้งการพึ่งพา
+uv sync
+ 
+ 
+วิธี B: ใช้ pip
+ 
+bash  
+# สร้างสภาพแวดล้อมเสมือน
+python -m venv venv
+source venv/bin/activate  # บน Windows: venv\Scripts\activate
 
-> This README reflects the repository as it actually stands on `main`. Sections marked
-> **Known state** record things that are incomplete or broken rather than describing
-> intent. Individual suites under `deliverables/` carry their own READMEs with more detail.
-
----
-
-## What's inside
-
-| Path | Purpose |
-| ---- | ------- |
-| `main.py` | OAuth2 PKCE API entrypoint — `uvicorn main:app` (`/auth`, `/auth/callback`, `/health`) |
-| `app/` | Application package (75 files): `api/`, `core/`, `services/`, `db/`, `routes/`, `integrations/` |
-| `app/core/main.py` | A second, fuller FastAPI app (items/users routers, DB session, origin middleware) |
-| `graphql_api/` | Standalone GraphQL service — Strawberry + async SQLAlchemy + JWT + Alembic, own `requirements.txt`, `docker-compose.yml`, tests |
-| `frontend/` | React 18 + Vite 8 + TypeScript frontend (own `package.json`, `Dockerfile`, `tsconfig.json`) |
-| `skills/` | Reusable AI-agent skill definitions (`fetching`, `changelog-auto-update`, `credential-management`, `patch`, `research`, …) |
-| `deliverables/` | 21 self-contained feature suites, each with its own README and tests — see [`deliverables/README.md`](./deliverables/README.md) |
-| `docs/` | Reference library (30 files): GraphQL, FireCrawl, Google Chat, GitHub Actions, MCP, incident drills |
-| `tests/` | Test suite — `unit/`, `e2e/`, plus repo-level tests (`tests/conftest.py`, `pytest.ini` at root) |
-| `helm/`, `k8s/` | Deployment — Helm chart (`oauth-app`) and Kubernetes manifests (deployment, HPA, ingress, monitoring) |
-| `.github/workflows/` | 13 workflow files — CI/CD, release drafter, secret scan, coverage, auto-index |
-| `docker-compose.yml` | Local platform stack: Postgres 16, Redis 7, MinIO, Gitea, Prometheus, Grafana, Traefik, stripe-mock |
-
----
-
-## Quick start
-
-### 1. The OAuth2 API
-
-```bash
-cp .env.example .env        # then fill in the values (see Configuration)
+# ติดตั้งการพึ่งพา
 pip install -r requirements.txt
-uvicorn main:app --reload
-```
-
-- Swagger UI — `http://localhost:8000/docs`
-- Health — `http://localhost:8000/health`
-- Root — `http://localhost:8000/`
-
-### 2. The local platform stack
-
-```bash
-docker compose up -d
-```
-
-Brings up Postgres, Redis, MinIO, Gitea, Prometheus, Grafana, Traefik and a Stripe
-mock — the backing services the suites and integration examples expect.
-
-### 3. The React frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-### 4. A deliverable suite
-
-Every suite under `deliverables/` is self-contained. Several ship their own
-`docker-compose.yml` plus a seed script, so a fresh clone is one command from a
-running stack — for example `deliverables/product-crud/`.
-
----
-
-## Entrypoints — there are three
-
-The repository contains three separate `app = FastAPI(...)` definitions. Which one
-you run depends on what you want:
-
-| Module | Run with | What it is |
-| ------ | -------- | ---------- |
-| `main.py` | `uvicorn main:app` | The documented OAuth2 PKCE API. Routers: `/auth`, `/auth/callback`, `/health`. |
-| `app/main.py` | `uvicorn app.main:app` | Identical to `main.py` (same content, different import path). |
-| `app/core/main.py` | `uvicorn app.core.main:app` | The fuller application: items/users routers, DB init/close lifespan, origin validation, gzip, OpenAPI customisation. |
-
-`main.py` and `app/main.py` are duplicates of each other — pick one. `app/core/main.py`
-is a different, more complete application and is the more likely base for real work.
-This duplication is a known cleanup item, not an intentional layering.
-
----
-
-## Configuration
-
-`.env.example` is the template. The settings class is `app/core/config.py` (Pydantic
-Settings), and it reads the same `.env`.
-
-**Required:**
-
-| Variable | Notes |
-| -------- | ----- |
-| `OAUTH_CLIENT_ID` | No default — the app will not start without it |
-| `OAUTH_CLIENT_SECRET` | Optional; PKCE does not need a client secret |
-
-**Common:**
-
-| Variable | Default | Notes |
-| -------- | ------- | ----- |
-| `ENV` | `local` | `local` \| `vercel` \| `production` — selects callback URL, frontend URL, and whether `/docs` is exposed |
-| `JWT_SECRET` | placeholder | **Change in production** |
-| `JWT_ALGORITHM` / `JWT_EXPIRE_MINUTES` | `HS256` / `60` | |
-| `REDIS_URL` | unset | Optional — token storage |
-| `CREDENTIAL_BROKER_URL` / `BROKER_TOKEN` | unset | Central credential broker (metadata only; no raw secrets) |
-
-Callback and frontend URLs are derived from `ENV` — see `OAUTH_CALLBACK_URL` and
-`FRONTEND_URL` in `app/core/config.py`.
-
-> **Known state — `.env` is tracked in git.** Despite `.gitignore` listing `.env`, the
-> file is committed and carries real keys (BytePlus credentials and WhatsApp Cloud API
-> tokens). Treat it as compromised: move those values into CI secrets, rotate them, and
-> `git rm --cached .env`. The tracked file is also incomplete relative to the settings
-> class — it has no `OAUTH_CLIENT_ID`, so a fresh clone cannot start the API as-is.
-
----
-
-## Tests
-
-```bash
 pip install -r requirements-dev.txt
+ 
+ 
+ขั้นตอนที่ 3: ตั้งค่าตัวแปรสภาพแวดล้อม
+ 
+bash  
+# คัดลอกไฟล์ตัวอย่าง
+cp .env.example .env
+
+# แก้ไขไฟล์ .env ด้วยข้อมูลจริง
+# ตัวอย่าง:
+# DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/dbname
+# SECRET_KEY=your-secret-key-here
+# ALGORITHM=HS256
+# ACCESS_TOKEN_EXPIRE_MINUTES=30
+ 
+ 
+ขั้นตอนที่ 4: ตั้งค่าฐานข้อมูล
+ 
+bash  
+# สร้างฐานข้อมูล (PostgreSQL)
+createdb fastapi_boilerplate
+
+# รัน Migration
+alembic upgrade head
+ 
+ 
+ขั้นตอนที่ 5: รันแอปพลิเคชัน
+ 
+โหมดพัฒนา
+ 
+bash  
+# ด้วย uvicorn โดยตรง
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# หรือด้วย Makefile
+make dev
+ 
+ 
+ด้วย Docker
+ 
+bash  
+# สร้างและรันบริการทั้งหมด
+docker compose up --build
+
+# หรือรันแค่แอปพลิเคชัน
+docker compose up app
+ 
+ 
+ขั้นตอนที่ 6: เข้าถึงเอกสาร API
+ 
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+ 
+ขั้นตอนที่ 7: รันการทดสอบ
+ 
+bash  
+# รันทดสอบทั้งหมด
 pytest
-```
 
-`pytest.ini` sets `asyncio_mode = auto`. `requirements-dev.txt` layers pytest,
-pytest-asyncio, pytest-cov and httpx on top of the runtime requirements, plus the
-repo's lint toolchain (ruff, black, isort, mypy).
+# รันพร้อมแสดงรายละเอียด
+pytest -v
 
-Tests live in `tests/` (`unit/`, `e2e/`, and repo-level files) and inside individual
-deliverable suites. Run a suite's own tests from its directory.
+# รันพร้อมแสดง Coverage
+pytest --cov=app --cov-report=html
 
-> **Known state — the root suite does not collect.** `app/core/config.py` declares
-> `OAUTH_CLIENT_ID: str` as a required field, and no environment block supplies it, so
-> collection fails before any test runs. Set `OAUTH_CLIENT_ID` (any non-empty value) in
-> the environment to collect. Some root test files also use hyphenated names
-> (`test-escalation.py`), which pytest cannot import as modules; those were written as
-> runnable scripts.
+# หรือด้วย Makefile
+make test
+ 
+ 
+ขั้นตอนที่ 8: ตรวจสอบคุณภาพโค้ด
+ 
+bash  
+# ตรวจสอบด้วย Ruff
+ruff check .
 
----
+# แก้ไขรูปแบบอัตโนมัติ
+ruff format .
 
-## Deliverables
+# ตรวจสอบ Type ด้วย mypy
+mypy app/
 
-`deliverables/` holds 21 self-contained suites. Each is a complete piece of work —
-code, tests, and its own README — rather than a fragment of the main app:
+# ตรวจสอบทั้งหมด
+make lint
+make type-check
+make format
+ 
+ 
+ 
+ 
+🔄 กระบวนการพัฒนาและการมีส่วนร่วม
+ 
+1. สร้าง Branch
+ 
+bash  
+# อัปเดต develop ก่อนเสมอ
+git switch develop
+git pull --rebase origin develop
 
-`agent-core` · `agent-security-suite` · `agent-skill-template` · `ai-agent-skills` ·
-`ai-agents-decision-pack` · `ai-gateway-architecture-review` · `azure-cli-2026` ·
-`cwe1321-protection-suite` · `fastapi-obsidian-backend` · `firecrawl-fastapi` ·
-`gemini-cli-skills` · `gh-devops-toolkit` · `manus-client` · `notebooklm-access-suite` ·
-`notebooklm-link-share` · `onspace-ai` · `onspace-platform-integration` · `pm-backend` ·
-`product-crud` · `pure-agent-dev`
+# สร้าง Branch ใหม่
+git switch -c feature/your-feature-name
+# หรือ
+git switch -c fix/your-fix-name
+# หรือ
+git switch -c chore/your-chore-name
+ 
+ 
+2. พัฒนาและทดสอบ
+ 
+- เขียนโค้ดตามมาตรฐานโครงการ
+- เพิ่มการทดสอบสำหรับฟีเจอร์ใหม่หรือการแก้ไข
+- ตรวจสอบโค้ดด้วยเครื่องมือที่มี
+- รันการทดสอบทั้งหมดให้แน่ใจว่าผ่าน
+ 
+3. คอมมิตและพุช
+ 
+bash  
+# คอมมิตตาม Conventional Commits
+git commit -m "feat(scope): description"
+git commit -m "fix(scope): description"
+git commit -m "docs(scope): description"
 
-See [`deliverables/README.md`](./deliverables/README.md) for one-line descriptions and
-links into each suite.
-
----
-
-## Documentation
-
-[`docs/README.md`](./docs/README.md) is the index. Highlights:
-
-- **MCP** — [`docs/MCP-Guide-Complete.md`](./docs/MCP-Guide-Complete.md), a troubleshooting guide, plus `scripts/check-mcp-environment.sh` (checks Google Cloud ADC, runtimes, and API keys; never prints secret values)
-- **Security** — [`docs/knowledge-ai-agent-security-devsecops-2026.md`](./docs/knowledge-ai-agent-security-devsecops-2026.md): sandbox design, trust tiers, state isolation
-- **GitHub / DevOps** — [`docs/github-cli-gh-reference.md`](./docs/github-cli-gh-reference.md), [`docs/research-tools-free-guide.md`](./docs/research-tools-free-guide.md), `docs/github-actions/`
-- **Integrations** — `docs/GraphQL/`, `docs/FireCrawl_REST_API/`, `docs/GoogleChat_REST_API/`, `docs/supabase.md`
-
-Also at the root: [`ROADMAP.md`](./ROADMAP.md) (8-phase plan and milestone M4),
-[`TASKS.md`](./TASKS.md), [`CHANGELOG.md`](./CHANGELOG.md),
-[`PROBLEMS.md`](./PROBLEMS.md) for open blockers,
-[`SECURITY.md`](./SECURITY.md), [`CONTRIBUTING.md`](./CONTRIBUTING.md),
-[`RELEASE.md`](./RELEASE.md).
-
----
-
-## CI/CD & supply-chain integrity
-
-The repository's policy is **full-SHA pinning**: every `uses:` reference should point at
-a 40-character commit SHA, never a mutable tag such as `@v4`.
-
-**Known state (verified 2026-09-13 against `main`):**
-
-- Of the `uses:` references in `.github/workflows/`, **20 are SHA-pinned and 61 still
-  use tags** (`actions/checkout@v4`, `actions/setup-python@v5`, `actions/upload-artifact@v4`,
-  `github/codeql-action/*@v3`, and others). `ci.yml` itself is correctly pinned.
-- **Five workflow files are not valid YAML as committed, so they never run:**
-
-  | File | Parse error |
-  | ---- | ----------- |
-  | `.github/workflows/Auto-Index-Sync.yml` | invalid simple key |
-  | `.github/workflows/dependabot-automerge.yml` | invalid simple key |
-  | `.github/workflows/secret-scan.yml` | invalid simple key |
-  | `.github/workflows/test-suite.yml` | more than one document in the stream |
-  | `.github/workflows/github-actions-autodebug-autorerun` | mapping values not allowed (and it has no `.yml`/`.yaml` extension, so Actions ignores it regardless) |
-
-- Because several jobs cannot start, a feature PR can show red checks even when its own
-  tests pass locally. Background and the repair history are in
-  [`CHANGELOG.md`](./CHANGELOG.md) and [`PROBLEMS.md`](./PROBLEMS.md).
-
-Fixing workflows needs write access to `.github/workflows/`, which the automation App
-does not hold by default — it must be applied by a maintainer or with elevated App
-permissions. See [`SECURITY.md`](./SECURITY.md) for the policy.
-
----
-
-## Repository hygiene — known state
-
-- **The root carries 212 entries.** Loose scripts, dashboard exports, notebook HTML,
-  archives, and chat exports sit alongside the real tree. It has not been pruned or
-  classified. Expect to have to look around.
-- **The root Node tooling is declared but not wired up.** `package.json` lists `vercel`,
-  `eslint`, `prettier`, `vitest` and `semantic-release`, but there is **no ESLint config**
-  at the root (so `npm run lint` fails), **no `.releaserc`** for semantic-release, and
-  **`scripts.vite` holds a version range (`">=6.4.3"`) where a command belongs.**
-  `package-lock.json` exists but should be regenerated before trusting it. Treat the root
-  Node path as present but unverified.
-- **The root `Dockerfile` does not build the Python API.** It is a Node multi-stage build
-  (`node:26-alpine`, `EXPOSE 4000`, `CMD ["node", "dist/index.js"]`). The Python app has
-  its own `app/Dockerfile`, and `Dockerfile.txt` is a quoted Dockerfile stored as text
-  (with an Alpine/pgloader importer stage and a uv-based Python agent stage) rather than
-  a usable file.
-- **`app/services/__init__.py` used to break every service import.** It did
-  `from .users import UserService`, a class that has never existed in this package
-  (`users.py` defines `UserRepo`, `get_repo`, `fanout_profile`). Because a package
-  `__init__` runs first, that one wrong name stopped `app.main` — the entrypoint in
-  `app/Dockerfile` — from importing at all. It now carries no package-level imports,
-  matching `app/__init__.py`.
-- **`settings` has two sources.** `app/core/config.py` (the fuller one, requires
-  `OAUTH_CLIENT_ID`) and `app/config.py` (a thin one that defaults `ENV` to
-  `production`). `app/core/security.py` and `token_service.py` read `JWT_SECRET_KEY`
-  from the first and `JWT_SECRET` from the second — two different keys. Worth unifying.
-- **The root suite does not collect.** Covered under [Tests](#tests).
-
----
-
-## License
-
-MIT — see [LICENSE](./LICENSE).
+# พุชไปยังรีโมท
+git push -u origin feature/your-feature-name
+ 
+ 
+4. เปิด Pull Request
+ 
+- ไปที่หน้า GitHub ของโครงการ
+- เปิด PR จาก Branch ของคุณไปยัง  develop 
+- กรอกข้อมูลตามเทมเพลต
+- รอการตรวจสอบและ CI ผ่าน
+ 
+5. การตรวจสอบและผสาน
+ 
+- ต้องได้รับการตรวจสอบจากผู้มีส่วนร่วมอย่างน้อย 1 คน
+- CI ต้องผ่านทุกขั้นตอน
+- ไม่มีข้อขัดแย้งกับ Branch เป้าหมาย
+- เมื่อผ่านทุกอย่างแล้วจะถูกผสานเข้า  develop 
+ 
+ 
+ 
+🛡️ ความปลอดภัยและแนวทางปฏิบัติที่ดี
+ 
+การจัดการความลับ
+ 
+- ❌ ห้ามเก็บ Secret หรือรหัสผ่านในโค้ด
+- ✅ ใช้ตัวแปรสภาพแวดล้อมหรือ Secret Manager
+- ✅ สแกนหาความลับที่รั่วไหลด้วยเครื่องมืออัตโนมัติ
+ 
+การยืนยันตัวตนและสิทธิ์
+ 
+- ✅ ใช้ JWT ที่มีอายุการใช้งานสั้น
+- ✅ แฮชรหัสผ่านด้วยอัลกอริทึมที่แข็งแรง
+- ✅ จำกัดสิทธิ์การเข้าถึงตามบทบาท
+- ✅ ตรวจสอบสิทธิ์ทุกคำขอ
+ 
+การป้องกันการโจมตี
+ 
+- ✅ ตรวจสอบข้อมูลทุกอย่างที่เข้ามา
+- ✅ ใช้ Parameterized Queries เพื่อป้องกัน SQL Injection
+- ✅ ตั้งค่า CORS ให้เหมาะสม
+- ✅ จำกัดอัตราการร้องขอ (Rate Limiting)
+- ✅ ใช้ HTTPS เสมอในสภาพแวดล้อมจริง
+ 
+การอัปเดตความปลอดภัย
+ 
+- ✅ ติดตามการอัปเดตการพึ่งพาเป็นประจำ
+- ✅ สแกนหาช่องโหว่ด้วยเครื่องมืออัตโนมัติ
+- ✅ ปฏิบัติตามนโยบาย SECURITY.md เมื่อพบช่องโหว่
+ 
+ 
+ 
+📊 สถานะปัจจุบันและกิจกรรมล่าสุด
+ 
+- CI/CD: มี Workflow หลายตัวที่ทำงานเพื่อตรวจสอบและรักษาคุณภาพ
+- การพัฒนา: มีการอัปเดตเป็นประจำทั้งในส่วนของโค้ดและเอกสาร
+- ปัญหาที่ทราบ: บางครั้งไฟล์ Workflow อาจมีข้อผิดพลาดทางไวยากรณ์ (เช่น บรรทัด 82 ใน  Auto-Index-Sync.yml ) ซึ่งต้องตรวจสอบและแก้ไขเป็นประจำ
+- การมีส่วนร่วม: เปิดรับการมีส่วนร่วมจากชุมชนผ่าน PR และ Issue
+ 
+ 
+ 
+🎯 ข้อเสนอแนะและขั้นตอนถัดไป
+ 
+สำหรับผู้เริ่มต้น
+ 
+1. ศึกษาโครงสร้าง: ทำความเข้าใจว่าแต่ละส่วนทำงานอย่างไร
+2. ลองรันและทดสอบ: ปฏิบัติตามคู่มือเริ่มต้นเพื่อให้แน่ใจว่าทำงานได้
+3. แก้ไขตัวอย่าง: ลองแก้ไขหรือเพิ่มฟีเจอร์ตัวอย่างเพื่อฝึกฝน
+4. อ่านเอกสาร: ศึกษาเอกสารของ FastAPI, SQLAlchemy, และเครื่องมืออื่นๆ
+ 
+สำหรับการพัฒนาจริง
+ 
+1. ปรับแต่งการตั้งค่า: แก้ไขไฟล์คอนฟิกให้เหมาะกับโครงการของคุณ
+2. เพิ่มโมเดลและ API: สร้างโมเดลฐานข้อมูลและเส้นทาง API ตามความต้องการ
+3. ตั้งค่า CI/CD: ปรับแต่ง Workflow ให้เข้ากับกระบวนการของทีม
+4. เตรียมการปรับใช้: ตั้งค่าสภาพแวดล้อมการปรับใช้จริง
+ 
+สำหรับการบำรุงรักษา
+ 
+1. อัปเดตการพึ่งพา: ตรวจสอบและอัปเดตไลบรารีเป็นประจำ
+2. รักษาคุณภาพ: ตรวจสอบให้แน่ใจว่า CI ผ่านตลอดเวลา
+3. อัปเดตเอกสาร: รักษาเอกสารให้ทันกับโค้ดเสมอ
+4. ตอบสนองปัญหา: รวบรวมและแก้ไข Issue ที่ถูกรายงาน
+ 
+ 
+ 
+📚 แหล่งข้อมูลเพิ่มเติม
+ 
+- เอกสาร FastAPI: https://fastapi.tiangolo.com/
+- เอกสาร Pydantic: https://docs.pydantic.dev/
+- เอกสาร SQLAlchemy: https://docs.sqlalchemy.org/
+- เอกสาร Alembic: https://alembic.sqlalchemy.org/
+- เอกสาร uv: https://docs.astral.sh/uv/
+- เอกสาร Ruff: https://docs.astral.sh/ruff/
+- เอกสาร pytest: https://docs.pytest.org/
+ 
+ 
+ 
+✅ สรุป
+ 
+ ZyntroAI/fastapi-python-boilerplate  เป็นฐานรากที่ยอดเยี่ยมสำหรับเริ่มสร้างแอปพลิเคชัน Backend ด้วย FastAPI ด้วยสถาปัตยกรรมที่ชัดเจน, เครื่องมือที่ทันสมัย, และการตั้งค่าที่ครอบคลุมตั้งแต่การพัฒนาจนถึงการปรับใช้ โครงการนี้ช่วยลดเวลาในการเริ่มต้นและรับประกันคุณภาพโค้ดจากแรกเริ่ม ทำให้ทีมพัฒนาสามารถมุ่งเน้นไปที่การสร้างคุณสมบัติที่มีค่าแทนการตั้งค่าพื้นฐานซ้ำๆ
+ 
+พร้อมใช้งานสำหรับโครงการขนาดเล็กถึงกลาง และสามารถขยายให้รองรับโครงการขนาดใหญ่ได้ตามความต้องการ! 🚀🏰✨ 
