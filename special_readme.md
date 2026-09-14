@@ -1,8 +1,3 @@
-Title: SPECIAL README — the Refactor
-Kicker: ZyntroAI/fastapi-python-boilerplate · branch fig/organize-root-and-fix-imports @ 8bc19ee
-Theme: terracotta
-Genre: project-status
-
 # SPECIAL README — the Refactor
 
 **Scope:** branch `fig/organize-root-and-fix-imports` (head `8bc19ee`), PR
@@ -134,7 +129,9 @@ git mv ./request-change.py archive/root-2026-09/scripts/request-change.py
 
 ## Where this leads next
 
-The identical-file cleanup in `DUPLICATE-INVENTORY.md` is the same disease caught
-earlier: 35 duplicate paths (`main.py` vs `app/main.py`, case-only collisions,
-`name (1).csv` artifacts, and `k8s/deployment.yaml` holding Vercel JSON). Run it
-after this branch lands, so the two changes stay independently reviewable.
+`DUPLICATE-INVENTORY.md` and its `DUPLICATE-FIX-CHANGELOG.md` entry ship on this
+same branch. They document the same disease caught earlier: 19 stray paths in 16
+content-identical groups (`main.py` vs `app/main.py`, case-only collisions,
+`name (1).csv` artifacts, and `k8s/deployment.yaml` holding Vercel JSON). The
+inventory's script is dry-run by default and **is not applied here** — the three
+docs land as separate commits on one branch so each stays reviewable on its own.
