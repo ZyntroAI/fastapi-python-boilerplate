@@ -279,8 +279,6 @@ environments, not durable stages.
   a usable file.
 - **`uvicorn main:app --reload` starts the OAuth API, not the main application.**
   See [Entrypoints](#entrypoints--there-are-three).
-- **The LICENSE holder placeholder was never filled in.** `LICENSE` line 3 still reads
-  `Copyright (c) 2026 [zyntromedia]`. Replace it with the real copyright holder.
 
 ---
 
@@ -306,7 +304,7 @@ Recommended order of attack, highest value first:
 
 1. Repair the five unparseable workflows so CI can be trusted at all.
 2. Convert the remaining 60 tag-pinned `uses:` references to full SHAs.
-3. Fill in the LICENSE holder and add `"license": "MIT"` to `package.json`.
+3. Add `"license": "MIT"` to `package.json` (the `LICENSE` holder is now filled in).
 4. Get `.env` out of git and rotate the keys it exposed.
 5. Prune the stale `zyntromedia-*` branches and classify the root.
 
