@@ -23,6 +23,29 @@ resolved from the repo root regardless of where the caller lives.
 
 ---
 
+## Promote — option B (scripted, recommended)
+
+`promote.sh` in this directory does option A for you:
+
+```bash
+./deliverables/full-cicd-pipeline/promote.sh            # dry-run — shows what it would do
+./deliverables/full-cicd-pipeline/promote.sh --apply    # copy + validate + commit (never pushes)
+```
+
+It is **dry-run by default** and refuses to run if any of the three filenames
+already exist in `.github/workflows/` — a pre-existing file is never overwritten.
+It validates YAML parse and SHA-pinning before committing, then stops so you can
+review and push yourself.
+
+> **Scope blocker — verified 2026-09-14.** A real push of these three files was
+> attempted and rejected by GitHub:
+> `refusing to allow a GitHub App to create or update workflow
+> '.github/workflows/pipeline.yml' without 'workflows' permission`.
+> The App's repo permission reports `push=false`. Promoting from a local checkout
+> is the only path until the `workflows` scope is granted.
+
+---
+
 ## Promote — option A (no `workflows` scope needed)
 
 1. Merge this PR. The files live safely under `deliverables/`.
