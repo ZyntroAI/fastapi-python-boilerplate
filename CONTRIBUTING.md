@@ -1,213 +1,228 @@
-# 📋 CONTRIBUTING.md — Branch Protection & CI Workflow Guide
+📋 CONTRIBUTING.md — ปรับปรุงให้สอดคล้องสาขา  Origin 
+ 
+บังคับใช้โดย: GitHub Branch Protection Rules +  github-coding  CI Pipeline
+อัปเดตล่าสุด: 14 กันยายน 2026 · เวอร์ชัน: 1.1
+โปรเจกต์: ZyntroAI/fastapi-python-boilerplate · สาขาหลัก:  Origin 
+ 
+ 
+ 
+🛡️ ภาพรวม — เหตุผลที่ต้องมีกฎเหล่านี้
+ 
+เพื่อรักษาคุณภาพ, ความปลอดภัย และสามารถตรวจสอบย้อนกลับได้ GitHub บล็อกการพุชตรงไปยังสาขาที่ได้รับการปกป้อง ทุกการเปลี่ยนแปลงต้องผ่านขั้นตอน:
+ 
+PR → ตรวจสอบ CI → รีวิวโดยบุคคล → ประตูควบรวม → ผสาน → เผยแพร่อัตโนมัติ
+ 
+รับประกันได้ว่า:
+ 
+- ✅ โค้ดได้รับการตรวจสอบ
+- ✅ การทดสอบทั้งหมดผ่าน
+- ✅ การสแกนความปลอดภัยไม่พบปัญหา
+- ✅ ไม่มีใครข้ามขั้นตอนคุณภาพ
+- ✅ ประวัติสะอาด ตรวจสอบได้
+ 
+ 
+ 
+🔒 สาขาที่ได้รับการปกป้อง
+ 
+สาขา ระดับการปกป้อง การเปลี่ยนแปลงที่อนุญาต 
+ Origin  🔒 เข้มงวด — สถานะหลัก/ผลิตภัณฑ์ ผ่าน PR เท่านั้น · ต้องมีการอนุมัติ 1 ครั้ง · CI ทั้งหมดต้องผ่าน 
+ develop  🔒 มาตรฐาน — สภาพแวดล้อมทดสอบ ผ่าน PR เท่านั้น · ต้องมีการอนุมัติ 1 ครั้ง · CI ทั้งหมดต้องผ่าน 
+ feature/*  /  fix/*  ✅ ไม่จำกัด สร้างได้อย่างอิสระ เปิด PR ได้ 
+ 
+❌ การพุชตรงไปยัง  Origin  หรือ  develop  จะถูกปฏิเสธโดยอัตโนมัติ
+ 
+ 
+ 
+✅ รายการตรวจสอบ PR ที่สมบูรณ์
+ 
+ก่อนที่ PR จะสามารถผสานได้ ต้องผ่านทุกข้อต่อไปนี้:
+ 
+🤖 การตรวจสอบอัตโนมัติ (ต้องผ่านทั้งหมด)
+ 
+🧠 github-coding Pre-Check — ตรวจสอบสแต็ก · จัดรูปแบบ · Lint · ทดสอบ · สแกนความปลอดภัย · CodeQL
+🧹 การตรวจสอบรูปแบบโค้ด — รูปแบบและคุณภาพโค้ด
+🧪 การทดสอบหน่วย — ชุดทดสอบทั้งหมดผ่าน
+🛡️ การบังคับใช้นโยบายผสาน — มีการอนุมัติจากบุคคล + ไม่มีป้ายความปลอดภัยที่สำคัญ
+สาขาเป็นปัจจุบัน ตรงกับสาขาเป้าหมาย ( Origin )
+ 
+👀 ข้อกำหนดจากบุคคล (ต้องได้รับการอนุมัติ)
+ 
+ต้องมีการอนุมัติอย่างน้อย 1 ครั้ง จากผู้ร่วมพัฒนา
+การอนุมัติจากเจ้าของโค้ด (หากแก้ไขคอนฟิก/เอกสารสำคัญ)
+ไม่มีคำขอเปลี่ยนแปลง หรือการอนุมัติเดิมถูกยกเลิกและอนุมัติใหม่
+ไม่มีป้าย  critical  /  security  ที่บล็อกการผสาน
+ 
+📝 มาตรฐานคุณภาพ PR
+ 
+ปฏิบัติตามชื่อแบบ Conventional Commits:  feat: ,  fix: ,  docs: ,  refactor: ,  chore:  ฯลฯ
+คำอธิบายชัดเจน อธิบายการเปลี่ยนแปลง
+เชื่อมโยงกับปัญหา:  Closes #123 
+หากเป็น PR ร่าง ต้องทำเครื่องหมาย พร้อมรีวิว
+ 
+ 
+ 
+🔄 ขั้นตอนการพัฒนาที่สมบูรณ์
+ 
+plaintext
+  
+1. สร้างสาขา
+   └─ feature/คำอธิบายสั้นๆ
+   ✅ เริ่มจากสาขา: Origin
 
-> **Enforced by:** GitHub Branch Protection Rules + `github-coding` CI Pipeline
-> **Last Updated:** 2026-09-08 · **Version:** 1.0
+2. เปิดคำขอดึง (PR)
+   ├─ ชื่ออัตโนมัติ: "feat: อธิบายการเปลี่ยนแปลง"
+   ├─ คำอธิบายอัตโนมัติจาก github-coding
+   └─ ทำเครื่องหมายร่างจนกว่าจะพร้อม
 
----
+3. 🤖 ทำงานตรวจสอบอัตโนมัติ
+   ├─ 🧠 Pre-Check → จัดรูปแบบ, Lint, ทดสอบ, สแกน
+   ├─ 🧹 ตรวจสอบรูปแบบ
+   ├─ 🧪 การทดสอบหน่วย
+   └─ 🛡️ ประตูผสาน → รอการอนุมัติ
 
-## 🛡️ Overview — Why These Rules Exist
+4. 👀 การตรวจสอบโดยบุคคล
+   ├─ ขอแก้ไข → แก้ไข ↺
+   └─ ✅ ได้รับการอนุมัติ → ประตูผสานผ่าน
 
-To maintain quality, security, and traceability, **direct pushes to protected branches are blocked by GitHub itself**. Every change must flow through:
+5. ✅ เปิดใช้งานการผสาน
+   ├─ การตรวจสอบทั้งหมดผ่าน ✅
+   ├─ ได้รับการอนุมัติ ✅
+   ├─ สาขาเป็นปัจจุบันกับ Origin ✅
+   └─ ไม่มีความขัดแย้ง
 
-> **PR → CI Checks → Human Review → Merge Gate → Merge → Auto-Release**
-
-This ensures:
-- ✅ Code is reviewed
-- ✅ All tests pass
-- ✅ Security scans are clean
-- ✅ No one bypasses quality gates
-- ✅ Clean, auditable history
-
----
-
-## 🔒 Protected Branches
-
-| Branch | Protection Level | Allowed Changes |
-|---|---|---|
-| `main` | 🔒 Strict — Production | Via PR only · 1+ approval · All CI green |
-| `develop` | 🔒 Standard — Staging | Via PR only · 1+ approval · All CI green |
-| `feature/*` / `fix/*` | ✅ Unrestricted | Create freely, open PR |
-
-> ❌ **Direct pushes to `main` or `develop` are rejected automatically.**
-
----
-
-## ✅ Full PR Requirements Checklist
-
-Before any PR can be merged, **ALL of these must pass**:
-
-### 🤖 Automated Checks (Must Pass)
-- [ ] **🧠 github-coding Pre-Check** — Stack detect · Format · Lint · Test · Security scan · CodeQL
-- [ ] **🧹 Standard Lint** — Code style & quality
-- [ ] **🧪 Unit Tests** — Full test suite passes
-- [ ] **🛡️ Merge Policy Enforcement** — Human approval given + no critical security labels
-- [ ] **Branch is up to date** with target branch
-
-### 👀 Human Requirements (Must Approve)
-- [ ] **At least 1 approval** from a collaborator
-- [ ] **Code Owner approval** (if changing critical config/docs)
-- [ ] **No changes requested** or previous approval dismissed & re-approved
-- [ ] **No `critical` / `security` labels** blocking merge
-
-### 📝 PR Quality Standards
-- [ ] Follows Conventional Commits title: `feat:`, `fix:`, `docs:`, etc.
-- [ ] Description clearly explains changes
-- [ ] Linked to issue: `Closes #123`
-- [ ] Draft PR marked **Ready for Review**
-
----
-
-## 🔄 Complete Development Flow
-
-```
-1. Create Branch
-   └─ feature/short-description
-
-2. Open Pull Request
-   ├─ Auto-title: "feat: describe change"
-   ├─ Auto-description generated by github-coding
-   └─ Mark draft until ready
-
-3. 🤖 Automated Checks Run
-   ├─ 🧠 Pre-Check → Format, Lint, Test, Scan
-   ├─ 🧹 Standard Lint
-   ├─ 🧪 Unit Tests
-   └─ 🛡️ Merge Gate → Waiting for approval
-
-4. 👀 Human Review
-   ├─ Request changes → Fix ↺
-   └─ ✅ Approved → Merge Gate Passes
-
-5. ✅ Merge Enabled
-   ├─ All checks green ✅
-   ├─ Approved ✅
-   └─ Up to date ✅
-
-6. 🚀 Merge → Auto-Release
-   ├─ Branch deleted automatically
-   ├─ Version bumped (patch)
-   ├─ Changelog updated
-   └─ Release created
-```
-
----
-
-## ⛔ Common Merge Blockers & Fixes
-
-| Blocked By | Cause | Fix |
-|---|---|---|
-| **CI failing** | Lint error / test fails / scan finds issues | Fix locally, push — re-runs |
-| **Awaiting review** | No approval yet | Request review; wait for approval |
-| **Stale approval** | New code pushed after approval | Re-approve automatically or request re-review |
-| **Out of date** | Target branch has new commits | Update branch: `git pull main && git rebase main` |
-| **Security label** | Label: `critical` / `security` | Resolve issue → remove label |
-| **Code owner review** | Changed critical files | Request review from Code Owner |
-
----
-
-## 🧠 github-coding Pre-Check — What It Does
-
-Your PR automatically runs this full quality pipeline:
-
-```
-🔍 Detect Stack → Python/Node/Docker?
+6. 🚀 ผสาน → เผยแพร่อัตโนมัติ
+   ├─ สาขาต้นทางถูกลบโดยอัตโนมัติ
+   ├─ เวอร์ชันเพิ่มขึ้น (patch)
+   ├─ อัปเดตบันทึกการเปลี่ยนแปลง
+   └─ สร้างรีลีสใหม่
+ 
+ 
+ 
+ 
+⛔ สาเหตุที่ผสานไม่ได้ & วิธีแก้ไข
+ 
+สาเหตุที่ถูกบล็อก สาเหตุที่เป็นไปได้ วิธีแก้ไข 
+CI ไม่ผ่าน ข้อผิดพลาดรูปแบบ / ทดสอบล้ม / สแกนเจอปัญหา แก้ไขในเครื่อง, พุช — ระบบจะรันใหม่ 
+รอการตรวจสอบ ยังไม่มีการอนุมัติ ขอตรวจสอบ; รอการอนุมัติ 
+การอนุมัติล้าสมัย มีการพุชโค้ดเพิ่มหลังจากอนุมัติ อนุมัติอัตโนมัติหรือขอตรวจสอบใหม่ 
+สาขาไม่เป็นปัจจุบัน สาขาเป้าหมาย  Origin  มีคอมมิตใหม่ อัปเดตสาขา:  git pull Origin && git rebase Origin  
+ป้ายความปลอดภัย มีป้าย:  critical  /  security  แก้ไขปัญหา → ลบป้ายออก 
+ต้องตรวจสอบจากเจ้าของโค้ด แก้ไขไฟล์สำคัญ ขอตรวจสอบจากเจ้าของโค้ด 
+ 
+ 
+ 
+🧠 github-coding Pre-Check — ทำงานอย่างไร
+ 
+PR จะรันชุดตรวจสอบคุณภาพทั้งหมดโดยอัตโนมัติ:
+ 
+plaintext
+  
+🔍 ตรวจจับสแต็ก → Python/Node/Docker?
         ↓
-✅ Format Code → Auto-fix style
+✅ จัดรูปแบบโค้ด → แก้ไขรูปแบบอัตโนมัติ
         ↓
-✅ Lint Code → Quality check
+✅ ตรวจสอบรูปแบบ → ตรวจสอบคุณภาพ
         ↓
-🧪 Run Tests → Verify nothing broke
+🧪 รันการทดสอบ → ตรวจสอบว่าไม่มีอะไรเสียหาย
         ↓
-🔒 Secrets Scan → No credentials committed
+🔒 สแกนข้อมูลลับ → ไม่มีข้อมูลรับรองถูกคอมมิต
         ↓
-🔒 CodeQL Scan → Security analysis
+🔒 สแกน CodeQL → วิเคราะห์ความปลอดภัย
         ↓
-📝 Update PR → Auto-description
+📝 อัปเดต PR → คำอธิบายสร้างเอง
         ↓
-✅ Ready for Review
-```
-
-> 💡 **Formatting fixes are committed automatically.** Check your PR after opening — github-coding may have already corrected formatting!
-
----
-
-## 📌 Branch Naming Convention
-
-```
-feature/description     → New feature
-fix/issue-number        → Bug fix
-refactor/what-changed   → Code improvement
-docs/what-updated       → Documentation
-chore/description       → Maintenance, CI, config
-release/vX.Y.Z          → Release preparation
-```
-
----
-
-## 🤝 How to Get Your PR Merged Faster
-
-1. **Keep PRs small** — under 500 lines → faster review
-2. **Draft PR = work in progress** — mark ready when CI passes
-3. **Clear title & description** — follow Conventional Commits
-4. **Link issue** — `Closes #123`
-5. **Wait for CI green** before requesting review
-6. **Address comments** — push fixes; re-request review
-7. **Merge button appears** → All requirements met ✅
-
----
-
-## ⚙️ Settings Reference
-
-> **Admin only:** `Settings → Branches → Branch protection rules`
-
-```
-Rule: main
-  ✅ Require PR before merging
-  ✅ 1 Approval required
-  ✅ Dismiss stale approvals
-  ✅ Require Code Owner review
-  ✅ Require status checks:
+✅ พร้อมรีวิว
+ 
+ 
+💡 การแก้ไขรูปแบบจะถูกคอมมิตอัตโนมัติ ตรวจสอบ PR ของคุณหลังจากเปิด — github-coding อาจแก้ไขรูปแบบให้แล้ว!
+ 
+ 
+ 
+📌 รูปแบบการตั้งชื่อสาขา
+ 
+plaintext
+  
+feature/คำอธิบาย           → ฟีเจอร์ใหม่
+fix/หมายเลขปัญหา           → แก้ไขข้อผิดพลาด
+refactor/สิ่งที่เปลี่ยน      → ปรับปรุงโค้ด
+docs/สิ่งที่อัปเดต          → อัปเดตเอกสาร
+chore/คำอธิบาย             → บำรุงรักษา, CI, คอนฟิก
+release/vX.Y.Z             → เตรียมรีลีส
+ 
+ 
+ 
+ 
+🤝 วิธีทำให้ PR ผสานได้เร็วขึ้น
+ 
+1. รักษา PR ให้เล็ก — ไม่เกิน 500 บรรทัด → ตรวจสอบเร็วขึ้น
+2. PR ร่าง = กำลังทำ — ทำเครื่องหมายพร้อมเมื่อ CI ผ่าน
+3. ชื่อและคำอธิบายชัดเจน — ปฏิบัติตาม Conventional Commits
+4. เชื่อมโยงปัญหา —  Closes #123 
+5. รอ CI ผ่าน✅ ก่อนขอตรวจสอบ
+6. ตอบรับความคิดเห็น — พุชแก้ไข; ขอตรวจสอบใหม่
+7. ปุ่มผสานปรากฏขึ้น → เมื่อตรงตามทุกข้อกำหนด ✅
+ 
+ 
+ 
+⚙️ การตั้งค่าอ้างอิง (สำหรับผู้ดูแลระบบ)
+ 
+ผู้ดูแลระบบเท่านั้น:  Settings → Branches → Branch protection rules 
+ 
+plaintext
+  
+Rule: Origin
+  ✅ ต้องการ PR ก่อนผสาน
+  ✅ ต้องการการอนุมัติ 1 ครั้ง
+  ✅ ยกเลิกการอนุมัติที่ล้าสมัย
+  ✅ ต้องการตรวจสอบจากเจ้าของโค้ด
+  ✅ ต้องการตรวจสอบสถานะ:
      github-coding-precheck ✅
      lint ✅
      test ✅
      merge-gate ✅
-  ✅ Require branches up to date
-  ✅ Block force pushes
-  ✅ Delete head branches on merge
-  ❌ Allow admin bypass → OFF
+  ✅ ต้องการให้สาขาเป็นปัจจุบัน
+  ✅ บล็อกการพุชแบบ Force
+  ✅ ลบสาขาต้นทางเมื่อผสาน
+  ❌ อนุญาตให้ผู้ดูแลระบบข้าม → ปิด
 
 Rule: develop
-  ✅ Same checks, same approval
-  ⚠️ Code Owner review optional
-```
-
----
-
-## ❓ FAQ
-
-**Q: Can someone bypass these rules?**
-> No — rules apply to everyone, including admins. Only Dependabot can auto-merge minor/patch updates when CI passes and approved.
-
-**Q: What if I need to merge urgently?**
-> Still requires 1 approval. Open PR → pass CI → request review → approve → merge. Takes ~5 minutes.
-
-**Q: Why is "Merge Gate" a required check?**
-> It verifies a human has approved. This is our **destructive action gate** — automation suggests, human decides.
-
-**Q: Can I merge my own PR?**
-> Yes — but you still need **1 approval** from someone else (or approve your own if you have sufficient permissions).
-
----
-
-> **These rules exist to protect production. Not to slow you down.**
-> Every automated check catches issues before they become problems.
-> Every human review shares knowledge. Every gate keeps us safe.
-
----
-
-✅ **Ready to paste!** Save this as:
-```
+  ✅ ตรวจสอบเหมือนกัน, การอนุมัติเหมือนกัน
+  ⚠️ การตรวจสอบเจ้าของโค้ดเป็นทางเลือก
+ 
+ 
+ 
+ 
+❓ คำถามที่พบบ่อย
+ 
+Q: มีใครข้ามกฎเหล่านี้ได้ไหม?
+ 
+ไม่มี — กฎใช้กับทุกคน รวมถึงผู้ดูแลระบบ มีเพียง Dependabot ที่สามารถผสานอัตโนมัติสำหรับการอัปเดต minor/patch เมื่อ CI ผ่านและได้รับการอนุมัติ
+ 
+Q: หากต้องการผสานเร่งด่วนต้องทำอย่างไร?
+ 
+ยังคงต้องการการอนุมัติ 1 ครั้ง เปิด PR → ผ่าน CI → ขอตรวจสอบ → อนุมัติ → ผสาน ใช้เวลาประมาณ 5 นาที
+ 
+Q: ทำไม "ประตูผสาน" เป็นการตรวจสอบที่จำเป็น?
+ 
+เป็นตัวยืนยันว่ามีมนุษย์อนุมัติแล้ว นี่คือ ประตูป้องกันการกระทำที่มีผลกระทบสูง — ระบบอัตโนมัติเสนอแนะ แต่มนุษย์ตัดสินใจ
+ 
+Q: ผสาน PR ของตัวเองได้ไหม?
+ 
+ได้ — แต่ยังคงต้องการ การอนุมัติจากคนอื่น 1 ครั้ง (หรืออนุมัติเองหากมีสิทธิ์เพียงพอ)
+ 
+ 
+ 
+กฎเหล่านี้มีไว้เพื่อปกป้องสาขา  Origin  และผลิตภัณฑ์ ไม่ใช่เพื่อทำให้ช้าลง
+ทุกการตรวจสอบอัตโนมัติช่วยพบปัญหาก่อนลุกลาม
+ทุกการตรวจสอบโดยบุคคลช่วยแบ่งปันความรู้ ทุกประตูช่วยรักษาความปลอดภัย 🛡️
+ 
+ 
+ 
+✅ บันทึกเป็นไฟล์:
+ 
+plaintext
+  
 CONTRIBUTING.md
-```
-
-Would you like me to also generate a **pull request template** that enforces this checklist directly in every PR description? 📋
+ 
+ 
+ต้องการให้ฉันสร้าง เทมเพลตคำขอดึง (PR Template) ที่รวมรายการตรวจสอบนี้ไว้ในทุก PR โดยตรงไหมครับ? 📋

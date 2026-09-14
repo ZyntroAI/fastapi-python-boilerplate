@@ -9,6 +9,7 @@ Markdown file with YAML front matter, suitable for shelling into an Obsidian vau
 
 | Note | Area | Sources | Words |
 |---|---|---:|---:|
+| [GitHub Actions SHA Pinning Guidelines](github-actions-sha-pinning-guidelines.md) | Engineering / CI-CD | 12 | 944 |
 | [Supabase Audit Log Drains Guidelines](supabase-audit-log-drains-guidelines.md) | Platform / Logging | 12 | 1,557 |
 | [Supabase Audit Logs Guideline](supabase-audit-logs-guideline.md) | Auth / Platform / Database | 15 | 1,630 |
 | [Supabase Feature Preview Guidelines](supabase-feature-preview-guidelines.md) | Platform / Change Control | 14 | 1,258 |
@@ -22,12 +23,15 @@ Markdown file with YAML front matter, suitable for shelling into an Obsidian vau
 |---|---:|---|
 | `#knowledge/authentication` | 2 | [supabase-oauth-apps-guidelines.md](supabase-oauth-apps-guidelines.md), [supabase-sso-signing-guidelines.md](supabase-sso-signing-guidelines.md) |
 | `#knowledge/change-control` | 1 | [supabase-feature-preview-guidelines.md](supabase-feature-preview-guidelines.md) |
+| `#knowledge/ci` | 1 | [github-actions-sha-pinning-guidelines.md](github-actions-sha-pinning-guidelines.md) |
 | `#knowledge/compliance` | 2 | [supabase-audit-logs-guideline.md](supabase-audit-logs-guideline.md), [supabase-legal-documents-guidelines.md](supabase-legal-documents-guidelines.md) |
+| `#knowledge/github-actions` | 1 | [github-actions-sha-pinning-guidelines.md](github-actions-sha-pinning-guidelines.md) |
 | `#knowledge/legal` | 1 | [supabase-legal-documents-guidelines.md](supabase-legal-documents-guidelines.md) |
 | `#knowledge/observability` | 1 | [supabase-audit-log-drains-guidelines.md](supabase-audit-log-drains-guidelines.md) |
 | `#knowledge/platform` | 1 | [supabase-feature-preview-guidelines.md](supabase-feature-preview-guidelines.md) |
-| `#knowledge/security` | 4 | [supabase-audit-log-drains-guidelines.md](supabase-audit-log-drains-guidelines.md), [supabase-audit-logs-guideline.md](supabase-audit-logs-guideline.md), [supabase-oauth-apps-guidelines.md](supabase-oauth-apps-guidelines.md), [supabase-sso-signing-guidelines.md](supabase-sso-signing-guidelines.md) |
+| `#knowledge/security` | 5 | [github-actions-sha-pinning-guidelines.md](github-actions-sha-pinning-guidelines.md), [supabase-audit-log-drains-guidelines.md](supabase-audit-log-drains-guidelines.md), [supabase-audit-logs-guideline.md](supabase-audit-logs-guideline.md), [supabase-oauth-apps-guidelines.md](supabase-oauth-apps-guidelines.md), [supabase-sso-signing-guidelines.md](supabase-sso-signing-guidelines.md) |
 | `#knowledge/supabase` | 6 | [supabase-audit-log-drains-guidelines.md](supabase-audit-log-drains-guidelines.md), [supabase-audit-logs-guideline.md](supabase-audit-logs-guideline.md), [supabase-feature-preview-guidelines.md](supabase-feature-preview-guidelines.md), [supabase-legal-documents-guidelines.md](supabase-legal-documents-guidelines.md), [supabase-oauth-apps-guidelines.md](supabase-oauth-apps-guidelines.md), [supabase-sso-signing-guidelines.md](supabase-sso-signing-guidelines.md) |
+| `#knowledge/supply-chain` | 1 | [github-actions-sha-pinning-guidelines.md](github-actions-sha-pinning-guidelines.md) |
 
 ## Conventions
 
@@ -38,17 +42,6 @@ Markdown file with YAML front matter, suitable for shelling into an Obsidian vau
 - **Citations** — each note ends with a `การอ้างอิง:` block listing numbered
   `[n] Title URL` entries; inline markers `[n]` refer to it. Preserve both.
 - **Never** put credentials, client secrets, tokens, or private keys in a note.
-  Record only a secrets-manager reference.
-- **Body text is authoritative** — front matter is metadata; do not edit the body
-  when only re-indexing.
 
-## Indexing
-
-`knowledge/sync_knowledge_index.py` walks the notes in this directory, parses the
-front matter, and emits an Algolia-shaped index (one record per heading). The
-`knowledge-index-sync` workflow runs it on every change to `knowledge/**` and on
-a nightly schedule.
-
-```bash
-python knowledge/sync_knowledge_index.py --root knowledge --out knowledge_index.json --dry-run
-```
+> This index is generated — run `python3 knowledge/build_knowledge_readme.py`
+> after adding or editing a note. `--check` verifies it in CI.
