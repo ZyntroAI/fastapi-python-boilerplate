@@ -1,0 +1,8 @@
+{
+  "$schema": "./schemas/fig.security.schema.json",
+  "enforceRBAC": true,
+  "enforceAudit": true,
+  "enforceOwnerApproval": true,
+  "enforceProtectedRoutes": true,
+  "enforceJWT": true
+}

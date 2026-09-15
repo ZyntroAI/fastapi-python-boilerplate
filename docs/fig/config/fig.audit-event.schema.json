@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fig.audit-event.schema.json",
+  "title": "FIG Enterprise Audit Event",
+  "type": "object",
+  "required": [
+    "organization",
+    "repository",
+    "actor",
+    "action",
+    "resource",
+    "timestamp"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "organization": {
+      "type": "string"
+    },
+    "repository": {
+      "type": "string"
+    },
+    "actor": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "MASTERFILE_UPDATE",
+        "MASTERFILE_READ",
+        "ROLE_CHANGE",
+        "PROTECTED_ROUTE_ACCESS",
+        "PLUGIN_INSTALL"
+      ]
+    },
+    "resource": {
+      "type": "string",
+      "pattern": "^/"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
