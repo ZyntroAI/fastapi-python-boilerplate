@@ -348,6 +348,39 @@ anyone browsing by filename.
 
 ---
 
+### P-012 — `new-crystalcastle` PR #163: `react-dom@19.3.0` breaks `@react-three/fiber` — OPEN
+
+**Owner:** none yet
+
+PR #163 (dependabot) bumps `react-dom` `^19.2.8 → ^19.3.0` and
+`@types/react-dom` `^19.2.7 → ^19.3.0`. `@react-three/fiber@9.7.0` declares a
+narrower peer range, so `npm ci` cannot resolve:
+
+```
+npm error peerOptional react-dom@">=19 <19.3" from @react-three/fiber@9.7.0
+npm error Could not resolve dependency:
+```
+
+Established by running `npm ci` on both refs, not by reading the log:
+
+| ref | result |
+| --- | --- |
+| `main` | `added 703 packages`, exit 0 |
+| PR #163 head `74e895d` | `ERESOLVE could not resolve`, exit 1 |
+
+`9.7.0` is the newest stable `@react-three/fiber`; nothing published accepts
+`react-dom@19.3.0` (only `10.0.0-canary.*`). The bump therefore **cannot merge**
+until fiber widens its peer range or ships a stable 10.x.
+
+**Note:** the other 11 red checks on #163 (missing root `requirements.txt`, fake
+codeql SHAs) are **pre-existing on `main`** — see P-007 and P-002. Only 2 of the
+13 failures belong to this PR.
+
+**Fix:** hold or close #163; retry when `@react-three/fiber` accepts
+`react-dom >=19.3`.
+
+---
+
 ## How to add an entry
 
 1. Put it under the date section matching its changelog counterpart.
