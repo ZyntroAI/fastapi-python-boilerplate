@@ -5,6 +5,11 @@ All notable changes to this repository. Dates are UTC.
 Open problems and known blockers are tracked separately in
 [`PROBLEMS.md`](./PROBLEMS.md), using the same date sections.
 
+## [2026-09-16]
+
+### Added
+- **PR #297** — docs: added `PROBLEMS.md` P-012, recording why `new-crystalcastle` PR #163 cannot merge. The dependabot bump to `react-dom@19.3.0` sits outside `@react-three/fiber@9.7.0`'s declared peer range (`>=19 <19.3`), so `npm ci` fails with `ERESOLVE`. Established by running `npm ci` on both refs rather than reading the log: `main` installs 703 packages (exit 0), the PR head fails (exit 1). No published stable fiber accepts `react-dom@19.3.0` yet — only `10.0.0-canary.*`. The entry also separates this PR's 2 failures from the 11 that are pre-existing on `main` (P-002, P-007).
+
 ## [2026-09-15]
 
 ### Added
