@@ -1,0 +1,89 @@
+# .github/workflows/skills-tests.yml
+name: Skills Tests
+
+on:
+  pull_request:
+    paths:
+      - "skills/**"
+      - ".github/workflows/skills-tests.yml"
+
+jobs:
+  workflow-permission-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pytest
+      - run: pytest skills/workflow-permission-check/tests --maxfail=1 --disable-warnings -q
+
+  workflow-repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pytest
+      - run: pytest skills/workflow-repair/tests --maxfail=1 --disable-warnings -q
+
+  permission-aware-git:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pytest
+      - run: pytest skills/permission-aware-git/tests --maxfail=1 --disable-warnings -q
+
+  branch-cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pytest
+      - run: pytest skills/branch-cleanup/tests --maxfail=1 --disable-warnings -q
+
+  workflow-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pytest
+      - run: pytest skills/workflow-validation/tests --maxfail=1 --disable-warnings -q
+
+  permission-escalation-request:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pytest
+      - run: pytest skills/permission-escalation-request/tests --maxfail=1 --disable-warnings -q
+
+  handoff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pytest
+      - run: pytest skills/handoff/tests --maxfail=1 --disable-warnings -q
+
+  project-status-auto-update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pytest
+      - run: pytest skills/project-status-auto-update --maxfail=1 --disable-warnings -q

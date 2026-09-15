@@ -1,0 +1,392 @@
+🔐 กำหนดสิทธิ์เฉพาะงาน:  taskorg.jsx 
+
+รหัสงาน: ZYN-PERM-20260914-001
+ขอบเขต: เฉพาะงานนี้เท่านั้น | เจ้าของ: ZyntroAI
+
+⏰ ช่วงเวลาสิทธิ์
+
+• เริ่ม: 14 กันยายน 2026 — 08:25:00
+• จบ: 14 กันยายน 2026 — 23:59:59 (หรือเมื่อปิดงานทันที)
+• สถานะ: ✅ เปิดใช้งาน • จำกัดเวลา • จำกัดขอบเขต
+
+📋 สิทธิ์ที่ได้รับ
+
+✅ อ่าน (Read): ดูข้อมูลบัญชี, อุปกรณ์, ลิงก์, แอปใน  taskorg.jsx 
+✅ เขียน (Write): แก้ไข/บันทึกข้อมูลในส่วนที่เกี่ยวข้อง
+✅ อัปเดต (Update): รีเฟรชสถานะ, ซิงก์ข้อมูล, ปรับค่าในงานนี้
+✅ ปิดจบ (Close): ทำเครื่องหมายเสร็จสิ้น, ปิดงานในระบบ
+
+⚠️ ขอบเขตจำกัดชัดเจน
+
+• 📍 ใช้ได้เฉพาะ: โมดูล  taskorg.jsx 
+• 🚫 ห้าม: เขียนไฟล์อื่น, แก้ CI/CD, เข้าถึงข้อมูลลับ, ลบงาน
+• ⏱️ หมดอายุ: ตามเวลาจบ หรือเมื่องานปิด
+
+🧩 โค้ดฝังในระบบ
+
+jsx
+const PERMISSIONS = {
+scope: "taskorg.jsx / ZYN-WF-20260914-001",
+start: "2026-09-14T08:25:00+07:00",
+end: "2026-09-14T23:59:59+07:00",
+granted: ["read", "write", "update", "close"],
+restricted: ["admin", "delete", "repo-write"],
+validateTime: () => new Date() >= new Date(this.start) && new Date() <= new Date(this.end)
+};
+
+✅ พร้อมใช้งานตามเวลาและขอบเขตที่กำหนดครับ 🚀🔒📅
+ดูการสนทนา Fig นี้
+https://share.hellofig.app/QZtcotVeJIWQ9T5ad84-VxX347YlG3Xc
+https://www.dola.com/download
+https://support.claude.com/en/
+https://help.openai.com/en/collections/5461535-android-app?source=in_app_settings_android
+https://www.dola.com/thread/xvLiMW7MM1XDWTfii
+https://www.dola.com/thread/xWiaPTLClaOzonJtS
+https://www.dola.com/thread/xu0FCH4kZPjAD7taW
+https://www.dola.com/thread/xYQ6WNsZ7MMxvYTWJ
+taskorg.jsxhttps://github.com/ZyntroAI/Organization/discussions/1
+https://github.com/ZyntroAI/main/pull/1
+https://github.com/ZyntroAI/fastapi-python-boilerplate/discussions/154
+https://github.com/ZyntroAI/new-crystalcastle/discussions/112
+https://github.com/ZyntroAI/new-crystalcastle/discussions/94
+https://github.com/ZyntroAI/crystalcastleX/discussions/5
+https://www.githubstatus.com/
+📚 คู่มือวิจัย & ตั้งค่า: Environment + Branch (GitHub Standard)
+
+สำหรับ: ZyntroAI / TaskOrg / FastAPI Boilerplate
+อัปเดต: 2026-09-14 | เป้าหมาย: ความปลอดภัย + ความชัดเจน + ไหลเวียนงาน
+
+🌿 PART 1: Branch Strategy & Protection Rules
+
+✅ โครงสร้างสาขามาตรฐาน (แนะนำสำหรับองค์กร)
+
+plaintext
+main (ผลิตภัณฑ์/เสถียร)
+↳ dev (รวมฟีเจอร์/ทดสอบ)
+↳ feature/taskorg-jsx (งานปัจจุบัน)
+↳ fix/name (แก้ไข)
+
+🛡️ กฎปกป้องสาขา (Branch Protection Rules)
+
+เปิดใช้สำหรับ  main  /  dev :
+
+1. Require pull request reviews before merging: ✅ 1-2 อนุมัติ
+2. Require status checks to pass: ✅ CI / Test / Lint / SHA-Verify
+3. Require signed commits: ✅ ป้องกันการแก้ไขแอบอ้าง
+4. Include administrators: ✅ บังคับทุกคนรวมแอดมิน
+5. Restrict who can push: ✅ เฉพาะทีมอนุมัติ
+6. Do not allow bypassing: ✅ ไม่ข้ามกฎ
+
+📝 ข้อความคอมมิต & PR
+
+• ใช้ Conventional Commits:  feat: ,  fix: ,  docs: ,  refactor: 
+• PR ต้องอ้างอิง #Issue
+
+🧪 PART 2: Environment Configuration (GitHub Environments)
+
+✅ คืออะไร?
+
+แยกสภาพแวดล้อม โดยอิสระ:  production  →  staging  →  development 
+แยกความลับ, กฎการอนุมัติ, ผู้อนุญาต, เวลารอคิว
+
+🛠️ ขั้นตอนสร้าง & ตั้งค่า
+
+1️⃣ สร้าง Environment
+
+• ไปที่ Repo → Settings → Environments → New Environment
+• ชื่อ:  production  /  staging  /  dev 
+
+2️⃣ กฎหลัก (สำคัญมาก)
+
+• Wait timer: 0–30 นาที (รอตรวจสอบ)
+• Required reviewers: ระบุทีม/บุคคลต้องอนุมัติก่อนเผยแพร่
+• Prevent self-review: ✅ ป้องกันคนทำงานอนุมัติเอง
+• Deployment branches:
+•  production : เฉพาะ  main 
+•  staging :  dev  เท่านั้น
+•  dev : ทุกสาขา
+• Environment secrets: แยกกัน ไม่ซ้ำกัน
+•  PROD_TOKEN ,  STAGING_DB ,  DEV_SLACK_WEBHOOK 
+
+3️⃣ เชื่อมใน Workflow
+
+yaml
+jobs:
+deploy:
+runs-on: ubuntu-latest
+environment: production # 🎯 กำหนดตรงนี้
+env:
+APP_ENV: production
+steps:
+- uses: actions/checkout@v4
+- name: Deploy
+env:
+SECRET_KEY: ${{ secrets.PROD_KEY }}
+run: ./deploy.sh
+
+🔗 PART 3: การผสานเข้ากับระบบของเรา
+
+✅ สำหรับ  taskorg.jsx 
+
+• เพิ่มแท็บ/ส่วน: 🌐 Environments → แสดงสถานะแต่ละระดับ
+• บันทึกใน  CONFIG :
+
+js
+const ENV_CONFIG = {
+production: { branch: "main", url: "prod.zyntroai.com" },
+staging: { branch: "dev", url: "stg.zyntroai.com" },
+dev: { branch: "feature/*", url: "dev.zyntroai.com" }
+};
+
+✅ ความลับ & ความปลอดภัย
+
+• ไม่ใส่ในโค้ด: ใช้ GitHub Secrets / Repo Secrets / Environment Secrets
+• SHA-Pin Actions: ทุก  uses:  ต้องเป็น  @commit-hash 
+• ตรวจสอบสิทธิ์: ไม่ให้สิทธิ์เกินความจำเป็น
+
+✅ โครงสร้างไฟล์แนะนำ
+
+plaintext
+.github/
+environments/
+production.md
+staging.md
+dev.md
+workflows/
+deploy-prod.yml
+deploy-stg.yml
+ci.yml
+
+📋 PART 4: ตรวจสอบความถูกต้อง (Checklist)
+
+🧱 Branch
+
+ main  ป้องกันอย่างเข้มงวด
+ต้องผ่าน CI/Review ก่อน Merge
+ไม่มี Push ตรงได้
+
+🌐 Environment
+
+แยกชัดเจน 3 ระดับ
+Secrets แยกกัน
+กฎการอนุมัติเปิดใช้
+จำกัดสาขาที่ Deploy ได้
+
+🔄 Workflow
+
+อ้างอิง Environment ถูกต้อง
+ใช้ SHA-Pin ทั้งหมด
+ตรวจสอบสิทธิ์  permissions: 
+
+📊 PART 5: Best Practice 2026
+
+• Environment per Stage: ไม่รวมกัน
+• Branch Source Control: Production ← Main เท่านั้น
+• Least Privilege: จำกัดผู้อนุมัติ
+• Audit Log: บันทึกทุกการเปลี่ยนแปลง
+• Reusable Workflow: แชร์ขั้นตอนทั่วไป ลดความซ้ำ
+
+🚀 PART 6: คำสั่งเริ่มต้น (GitHub CLI)
+
+bash
+สร้าง Environment
+gh api --method PUT /repos/ZyntroAI/pure-agent-dev/environments/production 
+ -f wait_timer=5 -q '{"required_reviewers":[{"login":"admin-team"}]}'
+
+ตั้งค่า Secret
+gh secret set PROD_TOKEN --env production --repo ZyntroAI/pure-agent-dev
+
+ตรวจสอบสาขา
+gh branch-protection main --repo ZyntroAI/pure-agent-dev --list
+
+✅ สรุปสำหรับนำไปใช้
+
+Environment + Branch คู่กัน:
+
+• 🧱 Branch: ควบคุมคุณภาพโค้ดต้นทาง
+• 🌐 Environment: ควบคุมการเผยแพร่ & ความลับปลายทาง
+• 🤝 ผสาน:  feature → dev → main  พร้อมกับ  dev → staging → production 
+
+บันทึกนี้สอดคล้องกับ  taskorg.jsx  และสถาปัตยกรรม ZyntroAI ครบถ้วนครับ! 🛡️🌿✅
+📚 คู่มือการรวม Repository (GitHub) — ฉบับสมบูรณ์ & ปลอดภัย
+
+สำหรับ: ZyntroAI / FastAPI / TaskOrg
+หลักการ: ✅ เก็บประวัติครบถ้วน • ✅ ไม่ทำลายโค้ด • ✅ สะอาดเป็นระเบียบ • ✅ รักษา Git Hash & Commit
+
+🎯 1. ภาพรวม & เหตุผลการรวม
+
+✅ ทำไมต้องรวม?
+
+• รวมโครงการที่เกี่ยวข้องเข้าที่เดียว → จัดการง่าย
+• ลดการกระจัดกระจาย → ควบคุมสิทธิ์/CI/CD สะดวก
+• รักษาประวัติ Git ทั้งหมด (ไม่ใช่แค่คัดลอกไฟล์)
+• สอดคล้องกับ  Environment/Branch Strategy  ขององค์กร
+
+⚠️ สิ่งที่ต้องตรวจก่อนเริ่ม
+
+สิทธิ์: Owner/Maintainer ทั้งต้นทาง & ปลายทาง
+สำรองข้อมูล: Fork/Clone สำเนา ก่อนทำ
+ความขัดแย้ง: ตรวจสอบชื่อโฟลเดอร์/ไฟล์ซ้ำกัน
+Branch: ปิด PR ค้าง • ใช้  main/dev  ชัดเจน
+
+🛠️ 2. วิธีรวมทีละขั้นตอน (เก็บประวัติครบ)
+
+📌 กรณี: รวม  repo-source  →  repo-target  (เป็นโฟลเดอร์ย่อย)
+
+เป้าหมาย:  repo-target/modules/repo-source/  + ประวัติครบ
+
+1️⃣ เตรียมเครื่องมือ & คลอน
+
+bash
+สร้างโฟลเดอร์ทำงาน
+mkdir merge-repos && cd merge-repos
+
+คลอนทั้งสองแบบเต็ม
+git clone https://github.com/ZyntroAI/repo-target.git target
+git clone https://github.com/ZyntroAI/repo-source.git source
+
+2️⃣ เตรียม Repo ต้นทาง (ย้ายทุกอย่างลงโฟลเดอร์ย่อย)
+
+bash
+cd source
+git checkout main
+
+สร้างโครงสร้างย่อย — ป้องกันชน
+mkdir -p modules/repo-source
+git mv ./* modules/repo-source/ 2>/dev/null || true
+echo "# Moved from repo-source" > modules/repo-source/README.md
+
+คอมมิตการย้าย
+git add .
+git commit -m "refactor: prepare repo-source for merge → subfolder
+✅ Preserve full git history
+📍 Path: modules/repo-source"
+
+3️⃣ ดึงเข้าเป้าหมาย (ผสานไม่ทำลาย)
+
+bash
+cd ../target
+
+เพิ่มต้นทางเป็น remote ชั่วคราว
+git remote add source ../source
+git fetch source main --no-tags
+
+ผสานโดยไม่ปะทะ
+git merge --allow-unrelated-histories source/main -m "merge: add repo-source into modules/
+✅ Full history preserved
+🔗 Source: ZyntroAI/repo-source"
+
+4️⃣ จัดระเบียบ & ล้าง
+
+bash
+ลบ remote ชั่วคราว
+git remote remove source
+
+ตรวจสอบ: โครงสร้าง, ประวัติ, ความขัดแย้ง
+git log --graph --oneline --all
+ls -la modules/
+
+พุชไปยังเป้าหมาย
+git push origin main
+
+🧩 3. กรณีพิเศษ & ตัวอย่างจริง (ZyntroAI)
+
+✅ รวมเข้า  fastapi-python-boilerplate 
+
+plaintext
+เป้าหมาย: fastapi-python-boilerplate/
+↳ app/
+↳ modules/
+↳ crystalcastleX/ # รวมมา
+↳ pure-agent-dev/ # รวมมา
+↳ .github/
+↳ taskorg.jsx
+
+📌 คำสั่งรวมหลายรีโปต่อเนื่อง
+
+bash
+วนลูปรวมทีละตัวในโฟลเดอร์ modules/
+REPOS=("crystalcastleX" "pure-agent-dev")
+TARGET="fastapi-python-boilerplate"
+
+for r in "r.git tmp-r && mkdir -p modules/r/ 2>/dev/null
+git add . && git commit -m "prepare TARGET
+git remote add tmp ../tmp-r"
+git remote remove tmp && cd .. && rm -rf tmp-$r
+done
+
+⚠️ 4. จัดการความขัดแย้ง & ปัญหาที่พบบ่อย
+
+❌ ไฟล์ซ้ำ (README, LICENSE, CI)
+
+• กฎ: เก็บของเป้าหมายหลัก • รวมเนื้อหาต้นทางเข้า
+• ตัวอย่าง:
+•  README.md  → รวมเป็นบท  ## 📦 Included Modules 
+•  .github/workflows/  → รวมเป็นชุดใหม่ตาม  taskorg.jsx 
+•  LICENSE  → เก็บหลัก + อ้างสิทธิ์เดิมในไฟล์ย่อย
+
+❌ Commit Confusion / History ยุ่งเหยิง
+
+• ห้ามใช้:  --squash  ถ้าต้องการเก็บประวัติ
+• ใช้:  --allow-unrelated-histories  + ย้ายเป็นโฟลเดอร์ก่อน
+• ตรวจ:  git log --follow path/to/file  → ต้องเห็นอดีตครบ
+
+❌ Submodule vs Merge (ต่างกันอย่างไร)
+
+• 🔗 Submodule: เชื่อมโยงภายนอก • แยกอัปเดต • ไม่รวมโค้ดจริง
+• ✅ Merge (เราเลือก): รวมทุกอย่างเข้าโครงสร้างเดียว • ประวัติในที่เดียว • จัดการง่าย
+
+🛡️ 5. หลังรวมเสร็จ: ตรวจสอบ & อัปเดต
+
+✅ รายการตรวจสอบ
+
+ประวัติ Git ครบทุกสาขา
+โครงสร้างโฟลเดอร์ชัดเจน ( modules/ )
+CI/CD รันผ่าน • อัปเดตพาธใน  workflows/ 
+ README.md  อธิบายส่วนประกอบ
+Environment/Branch Rules ยังใช้ได้
+ลิงก์เก่า/Issue/PR อัปเดตหรือเปลี่ยนทาง
+
+📝 อัปเดตเอกสารหลัก
+
+markdown
+📦 รวม Repository — ZyntroAI/fastapi-python-boilerplate
+📅 รวมเมื่อ: 14 กันยายน 2026
+✅ ประวัติ: ครบถ้วนทุกสาขา
+
+🧩 โครงสร้างใหม่
+• 🧱 Core: app/ (FastAPI)
+• 📦 Modules:
+• crystalcastleX — 📂 modules/crystalcastleX
+• pure-agent-dev — 📂 modules/pure-agent-dev
+• 📊 Dashboard: taskorg.jsx
+
+🔗 ลิงก์เดิมยังใช้ได้
+• Redirect: GitHub Auto-Redirect
+
+📋 6. เทมเพลต PR/Merge Log
+
+plaintext
+🚀 Merge Repositories: Complete
+📦 รวมเข้า: fastapi-python-boilerplate
+• ✅ Source 1: crystalcastleX (main)
+• ✅ Source 2: pure-agent-dev (main)
+🧹 Strategy
+• 📂 Subfolder: All under modules/
+• 📜 History: FULL PRESERVED (no squash)
+• ⚔️ Conflicts: Resolved (README, CI, LICENSE)
+✅ Verify
+• Git log intact
+• CI Passing
+• Structure clean
+
+🎯 7. สรุปขั้นตอนรวดเร็ว (One-Page)
+
+1. Backup: Clone ทุกตัว
+2. Prepare: ย้ายต้นทางเป็นโฟลเดอร์ย่อย
+3. Merge:  git remote add  +  fetch  +  merge --allow-unrelated 
+4. Resolve: แก้ไฟล์ชนกัน
+5. Verify: ตรวจประวัติ/โครงสร้าง/CI
+6. Push: ส่งขึ้นเป้าหมาย • อัปเดตเอกสาร
+
+งานนี้สอดคล้องกับ  taskorg.jsx  และ Environment/Branch ของเรา 100% ครับ — รวมเสร็จแล้วระบบจะเป็นหนึ่งเดียว สะอาด และบำรุงรักษาง่าย! 🚀📂🔗✅

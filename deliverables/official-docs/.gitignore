@@ -1,0 +1,4 @@
+node_modules/
+.render-tmp/
+__pycache__/
+*.pyc

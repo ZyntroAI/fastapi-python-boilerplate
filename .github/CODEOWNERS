@@ -1,0 +1,38 @@
+# CODEOWNERS -- who must review what
+#
+# Order matters: the LAST matching pattern wins. Put broad rules first and
+# specific overrides below them.
+#
+# Owners below are placeholders pointing at the organisation. Replace them with
+# the real team handles before relying on review routing -- an unresolvable
+# owner means GitHub falls back to "any approver" for that path.
+
+# --- Default: anything not matched below ------------------------------------
+*                       @ZyntroAI
+
+# --- Knowledge base: content requires a knowledge owner ---------------------
+/knowledge/             @ZyntroAI
+/knowledge/manifest.yml @ZyntroAI
+
+# --- Agent task skills ------------------------------------------------------
+/knowledge/agents/      @ZyntroAI
+
+# --- CI and merge protection: the highest-consequence paths -----------------
+/.github/workflows/     @ZyntroAI
+/.github/CODEOWNERS     @ZyntroAI
+/.github/merge_rules.json @ZyntroAI
+/.gitattributes         @ZyntroAI
+
+# --- Application code --------------------------------------------------------
+/app/                   @ZyntroAI
+/backend/               @ZyntroAI
+/deliverables/          @ZyntroAI
+/skills/                @ZyntroAI
+
+# --- Security-sensitive ------------------------------------------------------
+/security/              @ZyntroAI
+/.github/dependabot.yml @ZyntroAI
+
+# --- Repo-wide policy --------------------------------------------------------
+/CONTRIBUTING.md        @ZyntroAI
+/SECURITY.md            @ZyntroAI

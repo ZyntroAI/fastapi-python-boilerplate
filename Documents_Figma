@@ -1,0 +1,96 @@
+ยินดีต้อนรับสู่หัวข้อ **Figma Design System & Accessibility** ครับ! ในบทเรียนนี้ เราจะเจาะลึกโครงสร้างการสร้าง Design System ที่ได้มาตรฐานระดับสากล การจัดการ Component Properties และขั้นตอนการทำ Accessibility Audit ตามมาตรฐาน **WCAG 2.2** เพื่อให้ UI Components ของคุณพร้อมสำหรับการ Handoff ให้ทีม Developer นำไปพัฒนาต่อได้อย่างสมบูรณ์แบบ [1, 2]
+
+---
+
+### 1. สถาปัตยกรรม Design Tokens แบบ 3 ชั้น (3-Tier Token Architecture)
+
+ในการสร้าง Design System ที่สามารถขยายตัว (Scale) และรองรับการเปลี่ยนธีม (Theming / Dark Mode) ได้อย่างมีประสิทธิภาพ แหล่งข้อมูลแนะนำให้แบ่งโครงสร้าง **Figma Variables (Design Tokens)** ออกเป็น 3 ชั้นหลัก [3]:
+
+```
+[Brand Collection (Primitives)]
+              ↓
+ [Alias Collection (Semantic)]
+              ↓
+[Mapped Collection (Components / UI)]
+```
+
+#### ชั้นที่ 1: Brand Collection (Primitives)
+เก็บค่าสี ตัวเลข และแบบอักษรในรูปแบบดิบที่บริสุทธิ์ที่สุด (Purest Form) โดยยังไม่มีการกำหนดบทบาทหน้าที่ของค่านั้นๆ [4, 5]:
+*   **Color Scales:** กำหนดชื่อตามสเกลความเข้มแบบ 100 สเกล (เช่น `purple-100` ถึง `purple-800`, `red-100` ถึง `red-800`) [4]
+*   **Number Scale:** ใช้สเกลตัวเลขฐาน 4 (Multiples of 4) สำหรับระยะห่างและขนาด เช่น `25` (1px), `50` (2px), `100` (4px), `200` (8px), `300` (12px), `400` (16px) [6]
+*   **Typography:** เก็บชื่อ Font Family (เช่น `Inter`) และ Font Weight (`Regular`, `Medium`, `Semi-Bold`, `Bold`) [7-9]
+
+#### ชั้นที่ 2: Alias Collection (Semantic)
+นำค่าจาก Brand Collection มามอบบทบาทหน้าที่ (Roles) เพื่อการนำไปใช้งานเชิงความหมาย [10]:
+*   **Color Roles:** กำหนดหน้าที่ เช่น `Primary`, `Error` (อ้างอิงจาก `red`), `Success` (อ้างอิงจาก `green`), `Neutral` (อ้างอิงจาก `gray`), `Warning`, `Information` [11-13]
+*   **Border & Radius:** กำหนดขนาดเส้นขอบและมุมโค้งแบบ Semantic เช่น `border-width/small` (1px), `border-radius/medium` (4px หรือ 8px) [14]
+*   **Multi-Brand & Theming:** หากมีหลายแบรนด์ (Branded House) สามารถเพิ่ม Mode ใน Alias Collection เพื่อสลับโทนสีหลักได้โดยไม่ต้องเปลี่ยนโครงสร้างส่วนอื่น [15, 16]
+
+#### ชั้นที่ 3: Mapped Collection (Scoped UI)
+เป็นชั้นที่เชื่อมโยง Alias Tokens ไปสู่เลเยอร์ UI จริงที่ปรากฏบนหน้าจอ [17, 18]:
+*   **Text Variables:** `text/headings`, `text/body`, `text/action`, `text/disabled`, `text/on-action` [19-21]
+*   **Surface Variables:** `surface/page` (พื้นหลังหน้าเว็บ), `surface/default` (การ์ด), `surface/action` (ปุ่ม) [22, 23]
+*   **Border & Icon Variables:** `border/default`, `border/focus`, `icon/default`, `icon/action` [24-26]
+*   **Light / Dark Mode:** สร้าง Mode ซ้อนใน Mapped Collection โดยทำการสลับสลับค่าสี (Inverse) เช่น ใน Light Mode `surface/page` ใช้สีขาว แต่ใน Dark Mode สลับไปใช้ `neutral-800` [26, 27]
+
+---
+
+### 2. การสร้าง UI Components และการกำหนด Component Properties
+
+เพื่อให้ Component ใน Figma มีความยืดหยุ่น ลดจำนวน Variant ที่ซ้ำซ้อน และใช้งานง่ายในฝั่ง Dev Mode Figma มีคุณสมบัติหลัก 5 ประเภท [28, 29]:
+
+| ประเภท Property [28] | สภาพการใช้งาน [28] | ตัวอย่างการประยุกต์ใช้ [30-33] |
+| :--- | :--- | :--- |
+| **Variant Property** [33] | กำหนดรูปแบบหลัก สถานะ หรือขนาดของ Component [33] | `Size` (Small/Large), `State` (Default/Hover/Disabled) [33] |
+| **Boolean Property** [30] | เปิด/ปิดการมองเห็นของ Layer (True/False) [30, 34] | เปิด/ปิดไอคอนหน้าปุ่ม (`showIcon`) โดยไม่ต้องสร้าง Variant ใหม่ [30] |
+| **Instance Swap Property** [31] | สลับสับเปลี่ยน Component ย่อยที่อยู่ข้างใน [31] | สลับไอคอนซ้าย/ขวาในปุ่ม พร้อมตั้งค่า **Preferred Instances** เพื่อจำกัดตัวเลือกไอคอนที่ถูกต้อง [31, 35] |
+| **Text Property** [32] | แก้ไขข้อความใน Component จาก Inspector Panel [32, 36] | เปลี่ยนข้อความปุ่ม หรือ Label โดยไม่ต้องกด Double-click เจาะเข้าไปใน Layer [32] |
+| **Slot Property** [37] | พื้นที่ว่างยืดหยุ่นสำหรับใส่ Content เพิ่มเติม [37] | ใช้ใน Modal หรือ Card เพื่อให้วาง Layout อิสระได้โดยไม่ต้อง Detach Component [37] |
+
+#### การ Expose Nested Instances
+เมื่อมี Component ซ้อนกันหลายชั้น (เช่น Card มี Button และ Avatar อยู่ภายใน) เราสามารถตั้งค่า **Expose Nested Instances** ที่ Top-level Component เพื่อให้ Designer หรือ Developer เลือกแก้ไข Properties ของ Component ย่อยได้ทันทีที่แถบซ้ายมือโดยไม่ต้องกดคลิกลึกลงไปหลายชั้น [38, 39]
+
+---
+
+### 3. ขั้นตอนการทำ Accessibility Audit (WCAG 2.2 AA Standard)
+
+การตรวจสอบการเข้าถึงตั้งแต่ขั้นตอนการออกแบบใน Figma ช่วยลดเวลาและค่าใช้จ่ายในการแก้ไขโค้ดของ Developer ได้มากกว่า 30% [1, 40] โดยมี 5 ขั้นตอนสำคัญดังนี้:
+
+#### ขั้นตอนที่ 1: แยกหน้า Audit Page (Dedicated Audit Page)
+คัดลอกหน้า Design ไปไว้ในหน้าใหม่ชื่อ **`Accessibility Audit`** [41] พร้อมใส่ Header ระบุวันที่ ชื่อผู้อรวจสอบ ระดับ WCAG ที่เป้าหมาย (AA) และสถานะ Pass/Fail เพื่อป้องกันความสับสนและข้อผิดพลาดเมื่อทำ Branching Workflow [41]
+
+#### ขั้นตอนที่ 2: ตรวจสอบความต่างของสี (Contrast Ratios - WCAG SC 1.4.3)
+ใช้ปลั๊กอินเช่น **Stark** หรือ **Able** ตรวจสอบค่าความต่างของสีพื้นหลังและข้อความ [42-44]:
+*   **Normal Text (< 18pt regular / < 14pt bold):** อัตราส่วนขั้นต่ำ **4.5:1** [44]
+*   **Large Text (≥ 18pt regular / ≥ 14pt bold):** อัตราส่วนขั้นต่ำ **3.0:1** [44]
+*   **UI Components & Graphical Objects:** อัตราส่วนขั้นต่ำ **3.0:1** [44]
+*   *หากจุดใดไม่ผ่าน:* ใส่ป้ายสติ๊กเกอร์เตือน `FAIL - 1.4.3` พร้อมระบุค่าที่วัดได้เพื่อปรับแก้ในระดับ Design Token [45]
+
+#### ขั้นตอนที่ 3: จำลองภาวะตาบอดสี (Colour Blindness Simulation - WCAG SC 1.4.1)
+รัน Vision Simulator ทั้ง 8 สภาวะ (เช่น Deuteranopia, Protanopia) [44, 46] เพื่อตรวจสอบตามหลัก SC 1.4.1 ที่ **ห้ามใช้สีเพียงอย่างเดียวในการสื่อสารข้อมูล** [47] (เช่น สถานะ Error ต้องมีไอคอนหรือข้อความเตือนควบคู่กับสีแดงเสมอ) [47]
+
+#### ขั้นตอนที่ 4: ระบุลำดับการโฟกัสคีย์บอร์ด (Focus Order Annotation - WCAG SC 2.4.1)
+ใช้สติ๊กเกอร์ตัวเลขจาก A11y Annotation Kit ปักลำดับการกดปุ่ม `Tab` บนหน้าจอ [42, 48]:
+1.  **ลำดับที่ 1:** ปักที่ **Skip to main content link** (เพื่อข้ามส่วน Header) [49]
+2.  **ลำดับถัดไป:** ปักเรียงตามลำดับการอ่านและการทำงานที่เป็นธรรมชาติ (Left-to-Right / Top-to-Bottom) สำหรับองค์ประกอบที่มีปฏิสัมพันธ์ได้ (Buttons, Inputs, Links) [48, 49]
+
+#### ขั้นตอนที่ 5: ตรวจสอบขนาดจุดสัมผัส (Touch Target Sizes - WCAG SC 2.5.8)
+ปุ่มหรือองค์ประกอบที่กดได้บนหน้าจอมือถือ ต้องมีขนาดพื้นที่สัมผัสขั้นต่ำ **24 × 24px** (และแนะนำมาตรฐาน **44 × 44px** ตาม Apple HIG / Android Material) [50]
+*   *เทคนิค:* สร้าง Component ชื่อ `Touch Target Wrapper` ที่เป็นกล่องใสขนาด 44 × 44px ครอบไอคอนขนาดเล็กไว้ เพื่อให้พื้นที่กดได้มาตรฐานโดยไม่เสียดีไซน์ [51]
+
+---
+
+### 4. การแปลงดีไซน์เป็นโค้ดและการ Handoff ให้ Developer
+
+เมื่อตั้งค่า Design Tokens และทำ Accessibility Audit เรียบร้อยแล้ว การแปลผลดีไซน์เป็นโค้ด (เช่น React + Tailwind) สามารถทำได้อย่างราบรื่น [52]:
+1.  **Token Mapping:** นำค่าใน Figma Mapped Collection ไปผูกกับ CSS Variables หรือ Tailwind Config (เช่น `bg-primary`, `text-body`) เพื่อหลีกเลี่ยงการใช้ Hardcoded Hex Codes [52, 53]
+2.  **Dev Mode Component Playground:** Developer สามารถเปิด Dev Mode เพื่อทดลองเปลี่ยน Properties ของ Component ดูสเปกการเว้นระยะ (Spacing) และคัดลอกโค้ดโครงสร้างไปใช้งานได้ทันที [29]
+3.  **Semantic Mapping:** ใช้ข้อความกำกับ Alt Text และ ARIA Roles บนรูปภาพและปุ่มกดเพื่อให้นักพัฒนาเขียน HTML ที่ถูกต้องตามหลักโครงสร้าง Semantic [40, 54]
+
+---
+
+💡 **คำแนะนำถัดไป:** หากคุณต้องการทดลองฝึกปฏิบัติต่อ เราสามารถเลือกทำสิ่งเหล่านี้ได้ครับ:
+1. ดูตัวอย่างการสร้าง **Component `Button` และ `Input`** ที่มีทั้งสถานะ Default, Hover, Focus, Disabled พร้อมระบบ Focus Ring ใน Figma [55-59]
+2. ดูแนวทางการเขียน **Tailwind Config** เพื่อรับค่า Design Tokens จาก Figma มาใช้ในโปรเจกต์ Vite + React [52]
+
+คุณสนใจดูรายละเอียดในส่วนไหนเพิ่มเติมไหมครับ?

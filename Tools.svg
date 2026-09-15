@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <!-- Background -->
+  <rect width="800" height="600" rx="16" fill="#f7f9fc" />
+
+  <!-- Title -->
+  <text x="400" y="60" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#1e293b" text-anchor="middle">
+    Tools
+  </text>
+
+  <!-- Subtitle -->
+  <text x="400" y="95" font-family="Arial, sans-serif" font-size="16" fill="#64748b" text-anchor="middle">
+    Team-Based Agent Skill Toolkit
+  </text>
+
+  <!-- Grid Cards -->
+  <g transform="translate(60, 130)">
+    <!-- Card 1 -->
+    <rect x="0" y="0" width="180" height="200" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+    <text x="90" y="50" font-family="Arial, sans-serif" font-size="20" fill="#2563eb" text-anchor="middle">✅</text>
+    <text x="90" y="85" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#1e293b" text-anchor="middle">
+      Validate
+    </text>
+    <text x="90" y="110" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">
+      Check schema structure
+    </text>
+    <text x="90" y="130" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">
+      Verify roles and status
+    </text>
+    <text x="90" y="150" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">
+      Ensure team consistency
+    </text>
+
+    <!-- Card 2 -->
+    <rect x="210" y="0" width="180" height="200" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+    <text x="300" y="50" font-family="Arial, sans-serif" font-size="20" fill="#22c55e" text-anchor="middle">🧪</text>
+    <text x="300" y="85" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#1e293b" text-anchor="middle">
+      Test
+    </text>
+    <text x="300" y="110" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">
+      Run prompt tests
+    </text>
+    <text x="300" y="130" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">
+      Compare skill versions
+    </text>
+    <text x="300" y="150" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">
+      Measure latency and cost
+    </text>
+
+    <!-- Card 3 -->
+    <rect x="420" y="0" width="180" height="200" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+    <text x="510" y="50" font-family="Arial, sans-serif" font-size="20" fill="#f59e0b" text-anchor="middle">
+      📊
+    </text>
+    <text x="510" y="85" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#1e293b" text-anchor="middle">
+      Visualize
+    </text>
+    <text x="510" y="110" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">
+      Show team workflow
+    </text>
+    <text x="510" y="130" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">
+      Display task status
+    </text>
+    <text x="510" y="150" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">
+      Build dashboards
+    </text>
+
+    <!-- Card 4 -->
+    <rect x="0" y="250" width="180" height="200" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+    <text x="90" y="300" font-family="Arial, sans-serif" font-size="20" fill="#8b5cf6" text-anchor="middle">
+      🔗
+    </text>
+    <text x="90" y="335" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#1e293b" text-anchor="middle">
+      Integrate
+    </text>
+    <text x="90" y="360" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">
+      Connect GitHub, Slack
+    </text>
+    <text x="90" y="380" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">
+      Sync Jira and Asana
+    </text>
+    <text x="90" y="400" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">
+      Send team notifications
+    </text>
+
+    <!-- Card 5 -->
+    <rect x="210" y="250" width="180" height="200" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+    <text x="300" y="300" font-family="Arial, sans-serif" font-size="20" fill="#ec4899" text-anchor="middle">
+      🧱
+    </text>
+    <text x="300" y="335" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#1e293b" text-anchor="middle">
+      Develop
+    </text>
+    <text x="300" y="360" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">
+      Generate skill templates
+    </text>
+    <text x="300" y="380" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">
+      Create mock data
+    </text>
+    <text x="300" y="400" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">
+      Compare schema versions
+    </text>
+
+    <!-- Card 6 -->
+    <rect x="420" y="250" width="180" height="200" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+    <text x="510" y="300" font-family="Arial, sans-serif" font-size="20" fill="#06b6d4" text-anchor="middle">
+      🚀
+    </text>
+    <text x="510" y="335" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#1e293b" text-anchor="middle">
+      Automate
+    </text>
+    <text x="510" y="360" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">
+      Run CI checks
+    </text>
+    <text x="510" y="380" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">
+      Auto-update docs
+    </text>
+    <text x="510" y="400" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">
+      Deploy team workflows
+    </text>
+  </g>
+</svg>

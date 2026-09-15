@@ -1,0 +1,33 @@
+name: docs-verify
+title: Documentation Drift Verifier
+version: 0.1.0-origin
+verified_on: "2026-09-14"
+description: >-
+  Checks that the repository's own documentation still describes the
+  repository: counts the README declares, paths it presents as present,
+  workflow parse state, the SHA-pin split, licence holder, and the structural
+  health of PROBLEMS.md. Read-only, no network, standard library only.
+
+entrypoints:
+  py: src/docs_verify.py
+  cli: scripts/verify_docs.py
+
+commands:
+  check: python scripts/verify_docs.py
+  check_json: python scripts/verify_docs.py --json
+  test: python -m pytest tests/ -q
+
+permissions:
+  network: none
+  writes: none
+
+security:
+  network_access: false
+  reads: [README.md, LICENSE, package.json, PROBLEMS.md, deliverables/, docs/, .github/workflows/]
+
+notes: >-
+  Counts are compared against what the README itself declares, not against a
+  frozen number, so the checks survive the tree legitimately changing and fail
+  only on real drift. A count in prose ("Five of the eleven") is parsed too.
+  PyYAML is optional: without it the workflow-parse checks report as skipped
+  rather than failing.

@@ -1,0 +1,49 @@
+# .gitattributes -- merge strategy and diff behaviour
+#
+# Policy: documentation is merged additively (union) so two branches appending
+# to the same note never produce a conflict. Code is merged strictly, with
+# conflict markers left intact for a human to resolve.
+#
+# NOTE: merge=union is only safe for files where line order does not carry
+# meaning. It must NEVER be applied to code, config, or lock files.
+
+# --- Documentation: additive merge -----------------------------------------
+*.md      merge=union
+*.mdx     merge=union
+knowledge/**/*.md  merge=union
+
+# --- Code: strict merge, never union ---------------------------------------
+*.py      merge=text diff=python
+*.js      merge=text diff=javascript
+*.ts      merge=text diff=javascript
+*.tsx     merge=text diff=javascript
+*.yml     merge=text
+*.yaml    merge=text
+*.json    merge=text
+*.toml    merge=text
+
+# --- Generated / lock files: do not attempt a content merge ----------------
+*.lock      merge=binary -diff
+poetry.lock merge=binary -diff
+package-lock.json  merge=binary -diff
+uv.lock     merge=binary -diff
+
+# --- Never show these in diffs or language stats ---------------------------
+*.pyc       -diff linguist-generated
+__pycache__/  export-ignore
+*.min.js    -diff linguist-generated
+*.min.css   -diff linguist-generated
+
+# --- Line endings -----------------------------------------------------------
+* text=auto eol=lf
+*.ps1   text eol=crlf
+*.bat   text eol=crlf
+
+# --- Binary assets ----------------------------------------------------------
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.pdf   binary
+*.zip   binary

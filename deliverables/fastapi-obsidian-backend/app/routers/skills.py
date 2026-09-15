@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from ..config import settings
-from ..db import db
 from ..security import get_current_user
+from ..user_store import user_store
 
 router = APIRouter(prefix="/skills", tags=["skills"])
 
@@ -51,10 +51,7 @@ def _parse_skill(path: Path) -> Skill:
 
 
 def _allowed_skills(username: str) -> set | None:
-    users = db.get("users", {})
-    record = users.get(username)
-    allowed = (record or {}).get("allowed_skills")
-    return None if allowed is None else set(allowed)
+    return user_store.allowed_skills(username)
 
 
 def _filter_for_user(skills_list: list, username: str) -> list:

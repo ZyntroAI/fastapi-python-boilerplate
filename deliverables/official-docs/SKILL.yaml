@@ -1,0 +1,56 @@
+name: official-docs
+title: Official Documentation Registry
+version: 1.2.0-origin
+verified_on: "2026-09-14"
+description: >-
+  Registry of official documentation links (FastAPI, Python, FIG, Dola,
+  ZyntroAI) with live link verification, plus the docs bar and image gallery
+  components that surface them.
+
+sources:
+  - key: fastapi
+    name: FastAPI Official
+    label: Core Framework
+    primary: https://fastapi.tiangolo.com/
+  - key: python
+    name: Python Docs
+    label: Language Reference
+    primary: https://docs.python.org/3/
+  - key: fig
+    name: FIG Platform
+    label: Asset Source
+    primary: https://hellofig.app/
+  - key: dola
+    name: Dola AI Vision
+    label: Image Intelligence
+    primary: https://dola.ai/
+  - key: zyntroai
+    name: ZyntroAI Origin Standard
+    label: Internal Standard
+    primary: https://github.com/ZyntroAI/fastapi-python-boilerplate/tree/Origin
+
+entrypoints:
+  js: src/official-docs.js
+  py: src/official_docs.py
+  ts: src/utils.ts
+  json: src/official-docs.json
+  ui: src/Company.jsx
+
+commands:
+  export: node scripts/export_registry.mjs
+  test_js: node --test tests/
+  test_py: python -m pytest tests/ -q
+  verify_links: python scripts/verify_links.py
+  render_smoke: node scripts/render_smoke.mjs
+
+permissions:
+  network: read-only (link verification only)
+  writes: none
+
+security:
+  url_scheme_allowlist: [http, https]
+  external_link_rel: "noopener noreferrer"
+
+notes: >-
+  src/official-docs.json is generated from src/official-docs.js — never edit it
+  by hand. ParityTest fails the Python suite if the two drift.
