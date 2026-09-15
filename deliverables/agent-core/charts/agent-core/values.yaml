@@ -1,0 +1,114 @@
+# Default values for agent-core.
+# Image tag defaults to the chart's appVersion. Pin a version tag or a
+# sha256 digest in production — never `latest`.
+
+replicaCount: 2
+
+image:
+  repository: zyntroai/agent-core
+  # Empty -> .Chart.AppVersion. Override with a version tag or an image digest.
+  tag: ""
+  # Set to "sha256:<digest>" to pin the image by digest (preferred in prod).
+  digest: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+# Non-secret configuration. Secret values live in `secrets` below.
+config:
+  AGENT_PROVIDER: "agent"
+  AGENT_BASE_URL: "https://api.agent.ai/v2"
+  AGENT_TIMEOUT: "120"
+  AGENT_MAX_RETRIES: "3"
+  AGENT_POLL_INTERVAL: "2"
+  AGENT_POLL_TIMEOUT: "300"
+
+# Secret configuration. Leave `existingSecret` empty to have the chart create a
+# Secret from the values here — but prefer `existingSecret` (or an External
+# Secrets operator) so credentials never sit in values.yaml.
+secrets:
+  existingSecret: ""
+  AGENT_API_KEY: ""
+  SUPABASE_URL: ""
+  SUPABASE_SERVICE_KEY: ""
+
+service:
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: agent-core.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: "1"
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# The container runs non-root (uid 10001) already; these enforce it on the pod.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+# Writable scratch for the non-root, read-only-rootfs container.
+emptyDir:
+  sizeLimit: 64Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 75
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

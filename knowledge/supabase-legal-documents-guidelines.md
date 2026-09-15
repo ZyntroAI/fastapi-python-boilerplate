@@ -1,0 +1,311 @@
+---
+title: "Supabase Legal Documents Guidelines"
+description: "Legal register for ToS, DPA, subprocessors, privacy, and security evidence."
+tags:
+  - knowledge/supabase
+  - knowledge/legal
+  - knowledge/compliance
+supabase_area: "Legal / Compliance"
+doc_kind: "guideline"
+status: "active"
+owner: "Platform Engineering"
+last_reviewed: "2026-09-13"
+review_frequency: "Annual"
+source: "Supabase official documentation"
+---
+
+Supabase Legals Documents Guidelines
+
+## Supabase legal-document guidelines
+
+Supabase’s Legal Hub currently groups customer resources into the **Terms of Service, Data Processing Addendum, Subprocessor List, Support Policy, and Service Level Agreement**. Keep these documents in a controlled legal register rather than copying their full text into internal technical documentation.[1]
+
+This is an operational documentation guide, not legal advice. Have qualified counsel review your organization’s obligations, especially for privacy, regulated data, international transfers, and negotiated enterprise terms.
+
+## Legal register
+
+Create one record for every applicable Supabase document:
+
+```yaml
+legal_document:
+  name: "Data Processing Addendum"
+  document_type: "DPA"
+  supplier: "Supabase Pte. Ltd."
+  source_url: "https://supabase.com/legal/customer-resources/data-processing-addendum"
+  version: "Version 1 — August 1, 2026"
+  effective_date: "2026-08-01"
+  applies_to:
+    - "Production Supabase organization"
+  owner: "Legal / Privacy"
+  business_owner: "Platform Engineering"
+  status: "Active"
+  review_frequency: "At least annually and on every material update"
+  related_documents:
+    - "Terms of Service"
+    - "Subprocessor List"
+    - "Security documentation"
+  approval_reference: "LEGAL-0000"
+```
+
+Record the source URL, version, effective date, retrieval date, applicability, owner, and approval status. Preserve an approved copy where your retention policy allows, but always compare it with the current official source before renewal or a compliance assessment.
+
+## Required document categories
+
+### Terms of Service
+
+Record:
+
+- Contracting Supabase entity.
+- Effective-date mechanism.
+- Order form or negotiated agreement.
+- Permitted use and Authorized Users.
+- Customer responsibilities.
+- Fees, taxes, suspension, and termination.
+- Confidentiality.
+- Data ownership and Supabase’s service-use rights.
+- Third-party products.
+- AI-tool provisions, if applicable.
+- Warranties, indemnification, liability limits, and dispute terms.
+
+The current Terms state that the agreement is with Supabase Pte. Ltd. and governs use of the Cloud Services unless an Order or separate agreement provides different terms. They also place responsibility on the customer for Customer Data, credentials, configuration, security, and backups.[2]
+
+### Data Processing Addendum
+
+Record:
+
+- Customer role: controller, business, processor, or service provider.
+- Supabase role: processor or subprocessor.
+- Categories of personal data.
+- Categories of data subjects.
+- Processing purpose and duration.
+- Processing locations and regions.
+- Subprocessor mechanism.
+- Data-subject request process.
+- Security measures.
+- Security-incident notification process.
+- Audit and certification rights.
+- Deletion and return procedure.
+- International-transfer mechanism.
+- SCC, UK Addendum, or Swiss requirements.
+
+The current DPA identifies Supabase as a processor or service provider and the customer as controller or business, subject to the applicable use case. It also covers subprocessor authorization, data-subject requests, security measures, audit reports, security incidents, deletion, and international transfers.[3]
+
+### Subprocessor List
+
+Document:
+
+- List URL.
+- Date last reviewed.
+- Processing purpose.
+- Subprocessor name and location.
+- Data categories involved.
+- Notification subscription owner.
+- Objection process.
+- Legal review status.
+
+The DPA authorizes subprocessors through Supabase’s maintained Subprocessor List and provides a notification and objection mechanism for changes. Subscribe to updates and assign a named owner to review them.[3]
+
+### Privacy Policy
+
+Separate Supabase’s privacy policy from your application privacy notice.
+
+Document:
+
+- What account or support information Supabase processes.
+- Applicable controller relationship.
+- Privacy-contact details.
+- Data-subject request route.
+- Relationship to Customer Data processed under the DPA.
+- Internal privacy notice shown to your application users.
+
+Your application remains responsible for explaining its own collection and use of end-user data. The DPA states that the customer must provide required notices, obtain necessary consent, and handle data-subject requests.[3][4]
+
+### Security and compliance evidence
+
+Maintain references to:
+
+- SOC 2 Type 2 evidence.
+- ISO 27001 evidence.
+- HIPAA or BAA documentation, if applicable.
+- Security overview.
+- Shared Responsibility Model.
+- Penetration-testing or audit materials.
+- Security Advisor evidence.
+- Region and residency configuration.
+- Access-control and logging configuration.
+
+Supabase describes SOC 2 Type 2 compliance, ISO 27001 certification, GDPR support, and HIPAA-related offerings, but your organization remains responsible for configuring and operating its application securely.[5][6]
+
+## Responsibility matrix
+
+| Area | Supabase responsibility | Customer responsibility |
+|---|---|---|
+| Infrastructure | Operate and protect the hosted platform | Validate the service meets business needs |
+| Customer data | Process it according to the agreement and DPA | Decide what data is collected and uploaded |
+| Access | Protect Supabase-controlled systems | Manage accounts, MFA, roles, credentials, and keys |
+| Database security | Provide platform controls | Configure RLS, privileges, schemas, and policies |
+| Backups | Provide platform backup features described by the service | Verify backup settings, recovery objectives, and restoration |
+| Privacy | Handle Supabase’s own processing | Provide notices, collect consent, and respond to end-user requests |
+| Regulated data | Provide required contractual options where available | Obtain BAA or other agreement and meet regulatory obligations |
+| Subprocessors | Maintain the subprocessors and contractual controls | Monitor updates and exercise objection rights |
+| Incident response | Notify and assist according to the agreement | Investigate application-side impact and meet regulator or user duties |
+
+Supabase’s shared-responsibility guidance makes clear that customers are responsible for accounts, access management, data, security controls, database permissions, secrets, RLS, and responding to Security Advisor recommendations.[7]
+
+## Regulated-data checklist
+
+### GDPR and privacy
+
+```markdown
+- [ ] Data controller/processor roles are documented.
+- [ ] A DPA is active for the applicable account.
+- [ ] Processing details are accurate.
+- [ ] Hosting region and transfer requirements are reviewed.
+- [ ] Privacy notice covers application processing.
+- [ ] Data-subject request workflow exists.
+- [ ] Subprocessor notifications are monitored.
+- [ ] Deletion and export procedures are tested.
+- [ ] Retention periods are approved.
+```
+
+Supabase identifies EU-region hosting and a DPA as tools supporting GDPR-related deployments, but compliance remains a shared responsibility.[6]
+
+### HIPAA
+
+```markdown
+- [ ] A BAA is signed before PHI is processed.
+- [ ] The project is marked or configured as required.
+- [ ] MFA is enforced for all relevant accounts.
+- [ ] Point-in-Time Recovery is enabled where required.
+- [ ] SSL enforcement is enabled.
+- [ ] Network restrictions are configured.
+- [ ] Postgres connection logging is enabled.
+- [ ] Sensitive data is not stored in public Storage buckets.
+- [ ] Security Advisor findings are reviewed.
+- [ ] PHI-processing scope is documented.
+```
+
+Supabase states that PHI requires a Business Associate Agreement and additional customer controls, including MFA, PITR, SSL enforcement, network restrictions, and connection logging.[7][8]
+
+### Payment-card data
+
+```markdown
+- [ ] Payment-card data is excluded unless Supabase has provided prior written approval.
+- [ ] A payment provider is used where appropriate.
+- [ ] The data-flow diagram shows where payment data goes.
+- [ ] Logs and audit records are checked for card-data leakage.
+```
+
+The current Terms prohibit storing or processing payment-cardholder information without Supabase’s prior written approval.[2]
+
+## Change-management procedure
+
+```markdown
+## Legal-document change procedure
+
+1. Monitor Supabase Legal Hub, DPA, and Subprocessor List updates.
+2. Save the updated source and record its version and retrieval date.
+3. Compare the new document with the approved version.
+4. Identify changes affecting data processing, liability, transfers, subprocessors, retention, or regulated data.
+5. Ask Legal or Privacy to assess material changes.
+6. Update the responsibility matrix and technical controls.
+7. Notify affected internal owners.
+8. Record acceptance, objection, renegotiation, or termination decision.
+9. Update the next-review date.
+```
+
+Do not rely on an old PDF alone. The current Legal Hub links to the authoritative customer resources, and the DPA itself is versioned and dated.[1][3]
+
+## Ready-to-use legal register
+
+```markdown
+# Supabase Legal and Compliance Register
+
+## Supplier
+
+- Legal entity:
+- Service:
+- Organization:
+- Projects:
+- Environments:
+- Contract owner:
+- Legal owner:
+- Security owner:
+
+## Active documents
+
+| Document | Version/date | Source | Applies? | Owner | Review date |
+|---|---|---|---|---|---|
+| Terms of Service |  |  |  |  |  |
+| Data Processing Addendum |  |  |  |  |  |
+| Subprocessor List |  |  |  |  |  |
+| Privacy Policy |  |  |  |  |  |
+| Support Policy |  |  |  |  |  |
+| Service Level Agreement |  |  |  |  |  |
+| BAA, if applicable |  |  |  |  |  |
+
+## Processing profile
+
+- Customer role:
+- Supabase role:
+- Personal-data categories:
+- Data-subject categories:
+- Sensitive-data categories:
+- Processing purpose:
+- Processing duration:
+- Regions:
+- Transfer mechanism:
+- Retention:
+- Deletion process:
+
+## Technical controls
+
+- MFA:
+- SSO:
+- RLS:
+- SSL enforcement:
+- Network restrictions:
+- Database secrets management:
+- Backups/PITR:
+- Audit logging:
+- Log drains:
+- Security Advisor:
+- Storage access controls:
+
+## Open issues
+
+- Issue:
+- Risk:
+- Owner:
+- Due date:
+- Legal decision required:
+
+## Approval
+
+- Legal:
+- Privacy:
+- Security:
+- Engineering:
+- Business owner:
+- Approval date:
+```
+
+## Key rule
+
+Keep **legal terms, privacy obligations, security evidence, and technical configuration linked but separate**. Legal documents define the contractual relationship; the DPA defines processing obligations; Supabase security documents provide evidence and guidance; your internal records demonstrate that your organization actually configured and operated the controls.
+
+การอ้างอิง:
+[1] Legal Hub - supabase.com https://supabase.com/legal
+[2] Terms of Service - Supabase https://supabase.com/terms
+[3] Data Processing Addendum - Supabase https://supabase.com/legal/customer-resources/data-processing-addendum
+[4] Privacy Policy | Supabase https://supabase.com/privacy
+[5] Supabase Docs - Security https://supabase.com/docs/guides/security
+[6] GDPR compliance and Supabase https://supabase.com/docs/guides/security/gdpr-compliance
+[7] Shared Responsibility Model https://supabase.com/docs/guides/deployment/shared-responsibility-model
+[8] HIPAA Compliance and Supabase https://supabase.com/docs/guides/security/hipaa-compliance
+[9] Supabase DPA (August 5, 2025) https://supabase.com/downloads/docs/Supabase+DPA+250805.pdf
+[10] Supabase DPA - 11 December 2023 https://supabase.com/downloads/docs/Supabase+DPA+231211.pdf
+[11] Security testing of your Supabase projects https://supabase.com/docs/guides/security/security-testing
+[12] Secure configuration of Supabase products https://supabase.com/docs/guides/security/product-security
+[13] Network Restrictions https://supabase.com/docs/guides/security/platform-security
+[14] Security at Supabase https://supabase.com/security

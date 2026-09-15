@@ -1,0 +1,16 @@
+autolabeler:
+  - label: "feature"
+    title:
+      - "/^feat(ure)?[:\\(]/i"
+  - label: "bug"
+    title:
+      - "/^fix[:\\(]/i"
+  - label: "documentation"
+    title:
+      - "/^docs?[:\\(]/i"
+  - label: "chore"
+    title:
+      - "/^chore[:\\(]/i"
+  - label: "breaking-change"
+    title:
+      - "/breaking/i"

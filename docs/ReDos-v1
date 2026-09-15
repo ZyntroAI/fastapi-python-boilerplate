@@ -1,0 +1,458 @@
+Title: คู่มือ Migration — ReDoS Detector v1 → v2
+Kicker: CWE-1333 · Inefficient Regular Expression Complexity
+Theme: Security Engineering · ZyntroAI
+Genre: sop
+
+# คู่มือ Migration: ReDoS Detector v1 → v2
+
+**CWE-1333 · Inefficient Regular Expression Complexity**
+
+เอกสารนี้อธิบายวิธีอัปเกรดจาก ReDoS detector เวอร์ชันแรก (v1) ขึ้นเป็น v2.0.0
+พร้อมหลักฐานว่าทำไมการอัปเกรดจึงไม่ใช่แค่เรื่อง "ของใหม่กว่า" แต่เป็นเรื่องที่
+**v1 ตรวจไม่เจอในสิ่งที่มันถูกเขียนมาดัก**
+
+> **สรุปสั้นสำหรับคนรีบ:** อัปเกรดเป็น v2 — ไม่ใช่เพราะ API สวยกว่า แต่เพราะ
+> หลักฐานชี้ว่า v1 **รันไม่ได้เลยทั้งสองฝั่ง** (JS ที่ root เป็นไฟล์เอกสาร ไม่ใช่โค้ด,
+> Python ไม่คอมไพล์) และฉบับที่รันได้จริง (ใน `docs/`) มี **ผลลัพธ์ไม่คงที่**
+> เพราะบั๊ก regex stateful พร้อมกฎที่ match เป้าหมายของตัวเองไม่ได้
+
+---
+
+## 1. สถานะจริงของไฟล์ v1
+
+ก่อนอื่นต้องแยกให้ชัดว่าไฟล์ไหนคืออะไร — เพราะ v1 ที่อยู่ในรีโปมีอยู่ **3 ไฟล์
+ใน 2 สถานะที่ต่างกันมาก**
+
+| ไฟล์ | เป็นอะไร | รันได้ไหม |
+|---|---|---|
+| `redos-rules.js` (root) | **ไฟล์เอกสาร** — prose + โค้ดฝังใน code fence | ✗ `node --check` → SyntaxError |
+| `docs/redos-rules.js` | โค้ดจริง ฉบับ JS — string matching 4 กฎ | ✓ รันได้ |
+| `docs/redos-rules.py` | โค้ดจริง ฉบับ Python — string matching 4 กฎ | ✗ `py_compile` → SyntaxError |
+
+`redos-rules.js` ที่ root **ไม่ใช่โค้ดที่รันได้** — บรรทัดแรกคือ
+`✅ ESLint Rule + regexpp Deep Regex Parsing` ตามด้วยคำอธิบายและ code fence
+(`npm install`, `js`, `bash`) มันคือไฟล์ markdown ที่ถูกบันทึกด้วยนามสกุล `.js`
+ถ้าใครเคย `require()` ไฟล์นี้ จะได้ SyntaxError ทันที
+
+**ผลที่ตามมา:** โค้ด AST-walker ที่ดูเหมือนเป็น "v1 ฝั่ง JS" (ซึ่งมีบั๊ก visitor key)
+**ไม่มีทางถูกเรียกใช้ได้จริงในสภาพนี้** — มันเป็นเพียงตัวอย่างในเอกสาร
+
+---
+
+## 2. สาเหตุที่ต้องย้าย — หลักฐานจากการรันจริง
+
+### 2.1 `docs/redos-rules.py` — ไม่คอมไพล์
+
+มี **backtick แปลกปลอมต่อท้ายบรรทัดสุดท้าย**:
+
+```python
+    return findings`
+                   ^
+SyntaxError: invalid syntax
+```
+
+`python3 -m py_compile docs/redos-rules.py` ล้มเหลวที่บรรทัด 66 — หมายความว่า
+`detect_redos()` **ไม่มีทางถูกเรียกใช้ได้เลยในสภาพนี้** ถ้าคุณเคย import ไฟล์นี้
+แล้วรู้สึกว่า "ทำไมไม่เคยเจอ finding" นี่คือคำตอบ ไม่ใช่เพราะ regex ปลอดภัย
+
+### 2.2 `docs/redos-rules.js` — ผลลัพธ์ไม่คงที่ (บั๊ก stateful regex)
+
+นี่คือบั๊กที่ร้ายที่สุด และเป็นบั๊กที่วัดได้ชัดที่สุด กฎทั้ง 4 ข้อใน v1 ฝั่ง JS
+ใช้ regex ที่มี **flag `/g`** แล้วเรียก `.test()` กับมัน:
+
+| กฎ | flags | stateful |
+|---|---|---|
+| RD-001 | `g` | **ใช่** |
+| RD-002 | `g` | **ใช่** |
+| RD-003 | `gi` | **ใช่** |
+| RD-004 | `g` | **ใช่** |
+
+regex ที่มี `/g` จะจำ `lastIndex` ไว้ระหว่างการเรียก `.test()` ทำให้
+**ผลลัพธ์สลับไปมาเมื่อส่งอินพุตเดิมซ้ำ**:
+
+```
+detectReDoS("(a+)+")      x4 -> RD-001 | NONE | RD-001 | NONE
+detectReDoS("(a|ab|abc)*") x4 -> RD-002 | NONE | RD-002 | NONE
+```
+
+คือ **ครึ่งหนึ่งของการเรียกจะไม่เจออะไรเลย** ทั้งที่เป็นอินพุตเดียวกันเป๊ะ
+นี่คือเหตุผลว่าทำไม "บางทีก็จับได้ บางทีก็ไม่จับ" ถึงเป็นอาการที่หลอกคนได้มากกว่า
+การไม่ทำงานเลย — คนส่วนใหญ่จะคิดว่าตัวเองเขียน regex ดีขึ้นแล้ว
+
+### 2.3 `docs/redos-rules.js` — กฎที่ match เป้าหมายของตัวเองไม่ได้
+
+RD-004 ฝั่ง JS ใช้ pattern `/ [+*]\{(\d{2,}),\}/g` — **บังคับให้มี `+` หรือ `*`
+นำหน้าปีกกา** แต่เป้าหมายของกฎคือ `\d{150,}` ซึ่งไม่มี → ไม่มีทาง match
+
+RD-002 ใช้ `\([^)|]+\|[^)|]+\|[^)|]+\)\s*[+*]` ซึ่ง **บังคับ 3 ทางเลือกขึ้นไป**:
+
+| Pattern | ผลลัพธ์ v1 | ที่ควรเป็น |
+|---|---|---|
+| `(a\|ab\|abc)*` | CAUGHT | CAUGHT ✓ |
+| `(a\|ab)*` | **MISSED** | ควรจับ (2 ทางเลือกทับกันก็เป็น ReDoS) |
+| `(abc\|def\|ghi)*` | **CAUGHT** | **ไม่ควรจับ** (ไม่มี prefix ร่วม = false positive) |
+
+ผลคือ v1 ทั้ง **พลาดของจริง** และ **เตือนของปลอม** ในกฎเดียวกัน
+
+### 2.4 ตารางเทียบผลการตรวจจริง v1 vs v2
+
+ผลลัพธ์ของ v1 ในตารางนี้มาจากการเรียก **12 รอบต่อ pattern** เพื่อแยกให้ออกระหว่าง
+"ไม่ทำงานเลย" กับ "ทำงานไม่คงที่" — ซึ่งเป็นความต่างที่สำคัญมาก
+
+| Pattern | JS v1 (`docs/`) | Python v1 (`docs/`) | v2 (ทั้งคู่) |
+|---|---|---|---|
+| `(a+)+` | ⚠ FLAKY 6/12 (RD-001) | RD-001 | RD-001, RD-006, RD-007 |
+| `((a+)+)` | ⚠ FLAKY 6/12 (RD-001) | RD-001 | RD-001, RD-006, RD-007 |
+| `(?:a+)+` (non-capturing) | ⚠ FLAKY 6/12 (RD-001) | RD-001 | RD-001, RD-006, RD-007 |
+| `(\w+\s?)*` | ⚠ FLAKY 6/12 (RD-001) | RD-001 | RD-001, RD-006, RD-007 |
+| `(a+){2,}` | **✗ NEVER 0/12** | **✗ NEVER** | RD-001, RD-006, RD-007 |
+| `\d{150,}` | **✗ NEVER 0/12** (pattern ผิด) | **✗ NEVER** (pattern ผิด) | RD-004 |
+| `.*` | ไม่มีกฎนี้ | ไม่มีกฎนี้ | RD-005 |
+| `.+` | ไม่มีกฎนี้ | ไม่มีกฎนี้ | RD-005 |
+| `(a\|ab\|abc)*` | ⚠ FLAKY 6/12 (RD-002) | RD-002 | RD-002 |
+| `(a\|ab)*` | **✗ NEVER 0/12** | **✗ NEVER** | RD-002 |
+| `(abc\|def\|ghi)*` | ⚠ FLAKY 6/12 (**false positive**) | **⚠ false positive** | ไม่รายงาน ✓ |
+| `(a\|b)*` | ✗ NEVER 0/12 ✓ | ✗ NEVER ✓ | ไม่รายงาน ✓ |
+| `^[a-z]+@[a-z]+\.[a-z]{2,}$` | ✗ NEVER 0/12 ✓ | ✗ NEVER ✓ | เงียบ ✓ |
+
+v2 ให้ผล **เหมือนกันทั้งสอง runtime** ทุกแถว และ **เท่าเดิมทุกครั้งที่เรียก**
+ยืนยันแล้วด้วยการรันจริง
+
+> **อ่านตารางนี้ให้ถูก:** ช่อง `NEVER` ที่เครื่องหมาย ✓ คือผลที่ถูกต้อง (ไม่ควรจับ)
+> ส่วน `NEVER` ที่มี ⚠ หรือคำอธิบาย คือ **กฎที่เสีย** — มันไม่เคยจับสิ่งที่ควรจับ
+> และ `FLAKY` คือกฎที่ **ทำงานครึ่งเดียว** ซึ่งอันตรายกว่าการไม่ทำงานเลย
+> เพราะดูเหมือนทำงานได้เมื่อทดสอบครั้งแรก
+
+### 2.5 RD-003 ของ v1 ตรวจ "สตริง pattern" ไม่ใช่ "source code"
+
+นี่คือความต่างเชิงความหมายที่สำคัญข้อหนึ่ง และเป็นเหตุผลที่ v2 แยก
+`check_source()` ออกมาเป็น API ต่างหาก
+
+v1 ฝั่ง Python มี RD-003 แต่ pattern ของมันคือ:
+
+```
+(re\.|regex|search|match|fullmatch).*(request|input|form|query)
+```
+
+และมันถูก `search()` กับ**อาร์กิวเมนต์ที่ส่งเข้า `detect_redos()`** — ซึ่ง v1
+ออกแบบมาให้เป็น "สตริง regex" ไม่ใช่ "โค้ด Python" ผลที่วัดได้:
+
+| อินพุต | v1 `detect_redos()` | ความหมาย |
+|---|---|---|
+| `'re.match(request.body)'` | RD-003 | บังเอิญตรง เพราะสตริงมีทั้ง `re.` และ `request` |
+| `'re.compile(x)'` | เงียบ | ไม่มีคำในกลุ่ม user-input |
+| `'request'` | เงียบ | ต้องมี `re.`/`match`/`search` นำหน้าด้วย |
+| `'^a+$'` (regex ธรรมดา) | เงียบ ✓ | — |
+
+เทียบกับ v2 ซึ่งรับ **source code** จริงและเดิน AST:
+
+```python
+check_source('import re\nre.compile(request.args["p"])\n')  # -> 1 finding (RD-003)
+check_source('import re\nre.compile(r"^a+$")\n')            # -> 0 findings
+```
+
+ความต่างคือ v1 ไม่เคยเห็นโค้ดของคุณเลย มันเห็นแค่สตริงที่คุณส่งเข้าไป
+
+### 2.6 ความครอบคลุมของกฎ v1 vs v2
+
+| กฎ | ความหมาย | JS v1 | Python v1 | v2 |
+|---|---|---|---|---|
+| RD-001 | Nested Quantifiers | มี (**FLAKY 6/12** + หลุด `{n,}`) | มี (คงที่ แต่หลุด `{n,}`) | มี |
+| RD-002 | Overlapping Alternation | มี (**FLAKY 6/12**, ผิดทั้งสองทาง) | มี (**ผิดทั้งสองทาง**) | มี |
+| RD-003 | RegEx จากข้อมูลผู้ใช้ | มี (บนสตริง) | มี (บนสตริง) | มี (`check_source` บน AST) |
+| RD-004 | Large min + unbounded max | มี (**NEVER 0/12** — match ไม่ได้) | มี (**NEVER** — match ไม่ได้) | มี |
+| RD-005 | Unbounded dot | **ไม่มี** | **ไม่มี** | มี |
+| RD-006 | Atomic-group candidate | **ไม่มี** | **ไม่มี** | มี (ใหม่) |
+| RD-007 | Exponential depth | **ไม่มี** | **ไม่มี** | มี (ใหม่) |
+| `analyze()` แบบ pure function | **ไม่มี** | **ไม่มี** | มี |
+
+---
+
+## 3. ข้อควรระวัง: Python v1 ยังทำงานได้บางส่วน (ต่างจาก JS v1)
+
+เพื่อความแม่นยำ — **ต้องไม่เหมารวมว่า v1 เสียทั้งคู่** ฝั่ง Python v1 ไม่มีกลไก
+stateful (ไม่มีแนวคิด `/g` flag) จึงให้ผล **คงที่ทุกครั้ง** และ RD-001 ยังจับ
+nested quantifier ได้ในหลายรูป:
+
+| กรณี | Python v1 | JS v1 |
+|---|---|---|
+| `(a+)+` | ALWAYS 12/12 | ⚠ FLAKY 6/12 |
+| `((a+)+)` | **ALWAYS 12/12** | ⚠ FLAKY 6/12 |
+| `(?:a+)+` | **ALWAYS 12/12** | ⚠ FLAKY 6/12 |
+| `(\w+\s?)*` | ALWAYS 12/12 | ⚠ FLAKY 6/12 |
+| `(a+)*` | CAUGHT | — |
+| `(a+){2,}` | **✗ NEVER 0/12** | **✗ NEVER 0/12** |
+
+จุดที่ **ทั้งคู่หลุดเหมือนกัน** คือ `(a+){2,}` — nested quantifier ที่ชั้นนอกเป็น
+`{n,}` ส่วน JS หลุดหนักกว่าเพราะเพิ่มปัญหาผลไม่คงที่เข้าไปอีกชั้น
+
+> **บทเรียน:** "กฎหนึ่งข้อทำงาน" ไม่ได้แปลว่า "ชุดกฎทำงาน" — ทั้งสองฉบับผ่าน
+> เคส `(a+)+` ได้ จึงดูเหมือนใช้ได้ จนกว่าจะลองเคสอื่น และ **การทดสอบครั้งเดียว
+> ไม่พอ** — ฝั่ง JS ต้องเรียกซ้ำหลายครั้งจึงจะเห็นความไม่คงที่
+
+---
+
+## 4. ตารางเทียบ API
+
+### 4.1 Python
+
+| v1 (`docs/redos-rules.py`) | v2 (`python/redos_detector.py`) | หมายเหตุ |
+|---|---|---|
+| `detect_redos(pattern) -> List[Dict]` | `analyze(pattern, flags=0) -> List[Dict]` | เปลี่ยนชื่อ + รับ `flags` ได้ |
+| — | `analyze_multiplier(pattern, flags=0) -> Dict` | **ใหม่** — วัดความลึก quantifier |
+| — | `check_source(source) -> List[Dict]` | **ใหม่** — RD-003 ระดับ AST |
+| — | `report(findings) -> str` | **ใหม่** — สำหรับ CLI / log |
+| `REDOS_RULES` (list ของ dataclass) | `REDOS_DEFS` (dict keyed by id) | เปลี่ยนโครงสร้าง |
+| คีย์ `fix_example` | คีย์ `fix` | **เปลี่ยนชื่อคีย์** ⚠ |
+| `severity` ตัวพิมพ์ใหญ่ (`"CRITICAL"`) | ตัวพิมพ์เล็ก (`"critical"`) | **เปลี่ยน case** ⚠ |
+| dataclass `ReDoSRule` | dict ธรรมดา | ไม่ต้อง import dataclass |
+| **ไม่คอมไพล์** | คอมไพล์ผ่าน | — |
+
+### 4.2 JavaScript
+
+| v1 (`docs/redos-rules.js`) | v2 (`js/`) | หมายเหตุ |
+|---|---|---|
+| `module.exports = { detectReDoS, REDOS_RULES }` | `export default { meta, create }` | **เปลี่ยนเป็น ESM** ⚠ |
+| `detectReDoS(pattern)` | `analyze(pattern, flags)` | **เปลี่ยนชื่อ** |
+| — | `analyzeMultiplier(pattern, flags)` | **ใหม่** |
+| ส่วนขยายของ spread `{ ...rule }` | วัตถุจาก `REDOS_DEFS` | — |
+| กฎมี regex `/g` (stateful) | เดิน AST (stateless) | **แก้บั๊ก** ⚠ |
+| — | `parserOptions` → `languageOptions` | **ESLint 9+** ⚠ |
+| — | `hasLargeMinUnbounded` | RD-004 ที่ทำงานได้ |
+| — | `hasUnboundedDot` | RD-005 ที่ทำงานได้ |
+| — | `hasAtomicGroupCandidate` | **ใหม่** (RD-006) |
+| — | `hasExponentialDepth` | **ใหม่** (RD-007) |
+
+> **หมายเหตุ:** ชื่อกฎและ id (`RD-001`…) **คงเดิม** ทุกข้อ — ห้ามเปลี่ยน
+> เพราะเป็นตัวอ้างอิงในรายงานความปลอดภัยและ CI baseline
+
+---
+
+## 5. ตัวอย่างก่อน / หลัง
+
+### 5.1 Python — ก่อน (v1)
+
+```python
+# docs/redos-rules.py  (v1)
+from redos_rules import detect_redos
+
+findings = detect_redos(r"(a+)+")
+for f in findings:
+    print(f["id"], f["severity"], f["message"])
+    print("fix:", f["fix_example"])     # <- คีย์นี้หายไปใน v2
+```
+
+### 5.2 Python — หลัง (v2)
+
+```python
+import sys
+sys.path.insert(0, "security/cwe1333/python")
+from redos_detector import analyze, analyze_multiplier, report
+
+findings = analyze(r"(a+)+")
+for f in findings:
+    print(f["id"], f["severity"], f["message"])
+    print("fix:", f["fix"])             # <- เปลี่ยนชื่อคีย์
+
+print(report(findings))                  # ทางลัดสำหรับ CLI / log
+
+print(analyze_multiplier(r"(a+)+"))
+# {'depth': 2, 'label': 'exponential (O(k^n))', 'severity': 'critical'}
+```
+
+### 5.3 Python — RD-003 ที่ v1 ทำไม่ได้
+
+```python
+from redos_detector import check_source
+
+results = check_source('import re\nre.compile(request.args["p"])\n')
+# -> 1 finding (RD-003)
+```
+
+### 5.4 JavaScript — ก่อน (v1)
+
+```js
+// v1: string matching + /g regex = ผลลัพธ์ไม่คงที่
+const { detectReDoS } = require("./docs/redos-rules.js");
+
+detectReDoS("(a+)+");   // RD-001
+detectReDoS("(a+)+");   // NONE  <- อินพุตเดิม ผลไม่เหมือนเดิม
+detectReDoS("(a+)+");   // RD-001
+```
+
+```js
+// .eslintrc  (v1 — ESLint 8 style)
+{
+  "plugins": ["redos-detector"],
+  "rules": { "redos-detector/detect-redos": "error" }
+}
+```
+
+### 5.5 JavaScript — หลัง (v2, flat config)
+
+```js
+// eslint.config.js  (v2 — ESLint 9+)
+import redos from "./security/cwe1333/js/index.js";
+
+export default [
+  {
+    plugins: { "redos-detector": redos },
+    rules: { "redos-detector/detect-redos": "error" },
+  },
+];
+```
+
+```js
+// test setup ของ v2
+import { RuleTester } from "eslint";
+const t = new RuleTester({ languageOptions: { ecmaVersion: 2022 } });
+```
+
+### 5.6 JavaScript — เรียกใช้แบบตรง (v1 ทำไม่ได้)
+
+```js
+import { analyze, analyzeMultiplier } from "./security/cwe1333/js/lib/rules/detect-redos.js";
+
+analyze("(a+)+");            // => [RD-001, RD-006, RD-007]  (คงที่ทุกครั้ง)
+analyze("^[a-z]+@[a-z]+$");  // => []  (ไม่ false positive)
+analyzeMultiplier("(a+)+");  // => { depth: 2, label: "exponential (O(k^n))", severity: "critical" }
+```
+
+---
+
+## 6. ขั้นตอนการย้าย
+
+### ขั้นที่ 1 — ยืนยันว่า v1 ถูกใช้ที่ไหน
+
+```bash
+grep -rn "redos-rules\|detect_redos\|detectReDoS\|REDOS_RULES" \
+  --include="*.py" --include="*.js" --include="*.mjs" .
+```
+
+### ขั้นที่ 2 — Python: เปลี่ยน import และคีย์
+
+```diff
+- from redos_rules import detect_redos
++ import sys; sys.path.insert(0, "security/cwe1333/python")
++ from redos_detector import analyze, analyze_multiplier, check_source, report
+
+- findings = detect_redos(pattern)
++ findings = analyze(pattern)
+```
+
+```diff
+- f["fix_example"]
++ f["fix"]
+```
+
+```diff
+- if f["severity"] == "CRITICAL":
++ if f["severity"] == "critical":
+```
+
+### ขั้นที่ 3 — JavaScript: เปลี่ยนชื่อฟังก์ชันและเป็น ESM
+
+```diff
+- const { detectReDoS } = require("./docs/redos-rules.js");
+- detectReDoS(pattern)
++ import { analyze } from "./security/cwe1333/js/lib/rules/detect-redos.js";
++ analyze(pattern)
+```
+
+```diff
+- const rule = require("./lib/rules/detect-redos");
+- module.exports = { ... }
++ import rule from "./lib/rules/detect-redos.js";
++ export default { ... }
+```
+
+```diff
+- new RuleTester({ parserOptions: { ecmaVersion: 2020 } })
++ new RuleTester({ languageOptions: { ecmaVersion: 2022 } })
+```
+
+```diff
+- { "plugins": ["redos-detector"], "rules": { ... } }   // .eslintrc
++ export default [{ plugins: { "redos-detector": redos }, rules: { ... } }]  // eslint.config.js
+```
+
+### ขั้นที่ 4 — ลบไฟล์ v1
+
+เมื่อย้ายครบแล้ว ลบทั้งสามไฟล์ — โดยเฉพาะ `redos-rules.js` ที่ root ซึ่งเป็น
+ไฟล์เอกสารที่ดูเหมือนโค้ด และมีโอกาสถูก `require()` ผิดสูง
+
+```bash
+git rm redos-rules.js docs/redos-rules.js docs/redos-rules.py
+```
+
+### ขั้นที่ 5 — รันชุดทดสอบยืนยัน
+
+```bash
+# JavaScript
+cd security/cwe1333/js && npm install && node test/detect-redos.test.js
+# คาดหวัง: PASSED 18   FAILED 0
+
+# Python
+python3 security/cwe1333/tests/test_redos_detector.py
+# คาดหวัง: PASSED 27   FAILED 0
+```
+
+---
+
+## 7. Checklist ตรวจรับ
+
+- [ ] ค้นเจอทุกจุดที่อ้าง v1 แล้ว (`grep` ตามขั้นที่ 1)
+- [ ] เปลี่ยน `detect_redos` / `detectReDoS` → `analyze` ครบ
+- [ ] เปลี่ยนคีย์ `fix_example` → `fix` ครบ
+- [ ] ปรับ `severity` เป็นตัวพิมพ์เล็ก
+- [ ] แปลง require/module.exports เป็น import/export
+- [ ] อัปเดต ESLint config เป็น flat config (ถ้าใช้ ESLint 9+)
+- [ ] อัปเดต RuleTester เป็น `languageOptions`
+- [ ] ลบไฟล์ v1 ทั้งสามไฟล์ (`git rm`)
+- [ ] `PASSED 18` ฝั่ง JS และ `PASSED 27` ฝั่ง Python
+- [ ] ยืนยันผลคงที่ — เรียก `analyze()` อินพุตเดิมซ้ำ 3 ครั้ง ได้ผลเท่ากัน
+- [ ] CI lint ผ่าน (v2 เป็น ESM ตาม `type: module` ของ repo)
+
+---
+
+## 8. สิ่งที่ยังไม่ได้แก้ (ข้อจำกัดของ v2)
+
+- **JavaScript ไม่รองรับ atomic group `(?>...)` และ possessive quantifier `*+` / `++`**
+  → RD-006 ฝั่ง JS เป็นเพียง **คำแนะนำ** ให้ rewrite ด้วย Lookahead + backreference
+  ไม่ใช่ fix อัตโนมัติ
+- **Python 3.11+ รองรับทั้งคู่** (`ATOMIC_GROUP`, `POSSESSIVE_REPEAT`) → RD-006
+  ฝั่ง Python เป็น fix ที่ทำได้จริง
+- **RD-003 ยังเป็น heuristic** ทั้งสองฝั่ง — อาศัยรูปแบบการเรียก regex บวกชื่อที่มี
+  `request` / `form` / `query` / `input` / `body` / `payload` / `params`
+  โค้ดที่ใช้ชื่ออื่นจะไม่ถูกจับ
+- **ยังเป็น static analysis เท่านั้น** — ไม่ได้รันกับ input ที่ทำให้เกิด backtracking จริง
+- **ตัววิเคราะห์ฝั่ง Python ต้อง Python ≥ 3.11** สำหรับ `re._parser`
+  เวอร์ชันเก่ากว่าจะ fallback ไปใช้ `sre_parse` ที่ deprecated แล้ว
+
+---
+
+## 9. ข้อควรระวังในการอ้างอิง
+
+ไฟล์ v1 ทั้งสามยังอยู่ในรีโปที่ root และใน `docs/` จนกว่าจะลบตามขั้นที่ 4
+คู่มือนี้ยังไม่ได้แก้ไฟล์เหล่านั้น — ถ้าต้องการให้ลบและเปิด PR แยก ให้แจ้งในเธรด
+
+**ข้อควรระวังเป็นพิเศษ:** `redos-rules.js` ที่ root มีส่วนขยาย `.js` แต่เนื้อในเป็น
+เอกสาร markdown — เครื่องมือที่ไล่ lint หรือ bundler อาจพยายาม parse แล้วล้ม
+ควรลบเป็นลำดับแรก
+
+---
+
+## Sources
+
+- `security/cwe1333/python/redos_detector.py` — v2 Python detector (ทดสอบ 27/27)
+- `security/cwe1333/js/lib/rules/detect-redos.js` — v2 JS rule + `analyze()` core (ทดสอบ 18/18)
+- `security/cwe1333/README.md`, `SKILL.md`, `TEST-REPORT.md` — เอกสารประกอบ v2
+- `docs/redos-rules.js`, `docs/redos-rules.py`, `redos-rules.js` (root) — ไฟล์ v1 ที่ถูกตรวจสอบ
+- `@eslint-community/regexpp@4.12.2` — RegExp AST parser ที่ใช้ยืนยันคีย์ visitor
+- CPython `re._parser` — regex parser มาตรฐานที่ใช้ยืนยันฝั่ง Python
+- CWE-1333 — Inefficient Regular Expression Complexity
+- OWASP — Regular expression Denial of Service (ReDoS)
+
+> ตัวเลขและตารางทั้งหมดในเอกสารนี้มาจากการรันโค้ด v1 ตัวจริงในวันที่ 2026-09-13
+> ไม่ใช่การอ่านโค้ดด้วยตา — คำสั่งที่ใช้ตรวจอยู่ใน `scripts/probe_v1_js.js`,
+> `scripts/probe_v1_python.py` และสคริปต์ stateful replay

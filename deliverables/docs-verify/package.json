@@ -1,0 +1,11 @@
+{
+  "name": "zyntroai-docs-verify",
+  "version": "0.1.0-origin",
+  "private": true,
+  "type": "module",
+  "description": "Documentation drift verifier — checks the README and PROBLEMS.md against the live tree.",
+  "scripts": {
+    "check": "python scripts/verify_docs.py",
+    "test": "python -m pytest tests/ -q"
+  }
+}

@@ -1,0 +1,92 @@
+# knowledge/manifest.yml — machine-readable index of knowledge/ notes
+# Generated 2026-09-13. sha256 is over the BODY ONLY (excludes YAML front matter).
+
+version: 1
+generated: "2026-09-13"
+note_count: 6
+conventions:
+  filename: "lowercase-kebab-case.md"
+  front_matter_required: [title, description, tags, doc_kind, status, owner, last_reviewed]
+  tag_prefix: "knowledge/"
+  citations: "numbered [n] block titled 'การอ้างอิง:' at end of body"
+  no_secrets: true
+
+notes:
+- file: supabase-audit-log-drains-guidelines.md
+  title: "Supabase Audit Log Drains Guidelines"
+  description: "Organization-level audit log drains: destinations, eligibility, and end-to-end routing."
+  area: "Platform / Logging"
+  doc_kind: guideline
+  status: active
+  owner: "Platform Engineering"
+  last_reviewed: "2026-09-13"
+  review_frequency: "Annual"
+  sources: 12
+  words: 1557
+  sha256: "b030c5a00f346a5f610684619ff645b53ad39bd3981b9a7ba0af427dc01214f9"
+  tags: ["knowledge/supabase", "knowledge/security", "knowledge/observability"]
+- file: supabase-audit-logs-guideline.md
+  title: "Supabase Audit Logs Guideline"
+  description: "The three Supabase audit-log areas — Auth, Platform, and database/PGAudit — documented as separate controls."
+  area: "Auth / Platform / Database"
+  doc_kind: guideline
+  status: active
+  owner: "Platform Engineering"
+  last_reviewed: "2026-09-13"
+  review_frequency: "Annual"
+  sources: 15
+  words: 1630
+  sha256: "c41da4af881e2f448ed1df0c8caa51a116284baff66f4b931ab520642f4a31fb"
+  tags: ["knowledge/supabase", "knowledge/security", "knowledge/compliance"]
+- file: supabase-feature-preview-guidelines.md
+  title: "Supabase Feature Preview Guidelines"
+  description: "Feature-state record, safe-adoption policy, and production approval for Supabase previews."
+  area: "Platform / Change Control"
+  doc_kind: guideline
+  status: active
+  owner: "Platform Engineering"
+  last_reviewed: "2026-09-13"
+  review_frequency: "Annual"
+  sources: 14
+  words: 1258
+  sha256: "4abc1104ddf4fb64609cd3a7374a4ca0e4392bebd23743c73435d99e102f039d"
+  tags: ["knowledge/supabase", "knowledge/platform", "knowledge/change-control"]
+- file: supabase-legal-documents-guidelines.md
+  title: "Supabase Legal Documents Guidelines"
+  description: "Legal register for ToS, DPA, subprocessors, privacy, and security evidence."
+  area: "Legal / Compliance"
+  doc_kind: guideline
+  status: active
+  owner: "Platform Engineering"
+  last_reviewed: "2026-09-13"
+  review_frequency: "Annual"
+  sources: 14
+  words: 1585
+  sha256: "38f7f505b863f552562841ac70ba8a40ba08d4dc6f2ef4144b075700dc20562c"
+  tags: ["knowledge/supabase", "knowledge/legal", "knowledge/compliance"]
+- file: supabase-oauth-apps-guidelines.md
+  title: "Supabase OAuth Apps Guidelines"
+  description: "OAuth app records, redirect-URI rules, client types, scopes, and the OAuth 2.1 server."
+  area: "Auth / OAuth"
+  doc_kind: guideline
+  status: active
+  owner: "Platform Engineering"
+  last_reviewed: "2026-09-13"
+  review_frequency: "Annual"
+  sources: 15
+  words: 1354
+  sha256: "184121cf4377a8e64403c4f4061fc00206ed3625ec5f8682bb58f34c5ed6ffa5"
+  tags: ["knowledge/supabase", "knowledge/security", "knowledge/authentication"]
+- file: supabase-sso-signing-guidelines.md
+  title: "Supabase SSO Signing Guidelines"
+  description: "SAML 2.0 SSO with Supabase: core values, signing certificates, attribute mapping, and renewal."
+  area: "Auth / SSO"
+  doc_kind: guideline
+  status: active
+  owner: "Platform Engineering"
+  last_reviewed: "2026-09-13"
+  review_frequency: "Annual"
+  sources: 15
+  words: 1294
+  sha256: "d026629057e191f4ee256d454d7162ef2d889c7d7c3c6d80884b896705fd6380"
+  tags: ["knowledge/supabase", "knowledge/security", "knowledge/authentication"]

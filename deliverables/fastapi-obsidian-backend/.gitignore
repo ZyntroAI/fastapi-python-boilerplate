@@ -1,3 +1,5 @@
 data/*.json
 data/secret.key
 data/jwt_secret.txt
+data/users.db
+*.db

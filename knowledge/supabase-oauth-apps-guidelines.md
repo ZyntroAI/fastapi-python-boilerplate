@@ -1,0 +1,301 @@
+---
+title: "Supabase OAuth Apps Guidelines"
+description: "OAuth app records, redirect-URI rules, client types, scopes, and the OAuth 2.1 server."
+tags:
+  - knowledge/supabase
+  - knowledge/security
+  - knowledge/authentication
+supabase_area: "Auth / OAuth"
+doc_kind: "guideline"
+status: "active"
+owner: "Platform Engineering"
+last_reviewed: "2026-09-13"
+review_frequency: "Annual"
+source: "Supabase official documentation"
+---
+
+Supabase Oauth Apps Documents Guidelines
+
+## Supabase OAuth app guidelines
+
+This guide covers documentation for **Supabase OAuth applications**, including OAuth provider login and Supabase’s OAuth 2.1 server. These are related but different:
+
+- **Social login:** Your Supabase project acts as the OAuth client and lets users sign in with Google, GitHub, Azure, or another provider.
+- **OAuth 2.1 server:** Your Supabase project acts as the authorization server, and external applications register as OAuth clients.[1][2]
+
+## Document the OAuth app
+
+Use one record per OAuth application:
+
+```yaml
+oauth_app:
+  name: "Example Web Application"
+  environment: production
+  owner: "Platform Engineering"
+  purpose: "User authentication"
+  provider: "Google"
+  client_type: confidential
+  client_id_location: "Secrets manager: prod/oauth/example/client-id"
+  client_secret_location: "Secrets manager: prod/oauth/example/client-secret"
+  redirect_uris:
+    - "https://app.example.com/auth/callback"
+  supabase_callback_uri:
+    - "https://project-ref.supabase.co/auth/v1/callback"
+  scopes:
+    - "openid"
+    - "email"
+    - "profile"
+  consent_behavior: "User consent required"
+  status: active
+  created_at: "YYYY-MM-DD"
+  secret_expires_at: "YYYY-MM-DD"
+  review_date: "YYYY-MM-DD"
+```
+
+Do not put client secrets, refresh tokens, private keys, or access tokens directly into the document. Store them in a secrets manager and record only the secret reference.
+
+## Redirect URI rules
+
+Redirect URIs are security-critical. The URI registered with the OAuth provider must match the configured application flow exactly. Supabase’s allow list controls where users can be redirected after authentication, and the `redirectTo` value used by the client must match that allow list. The Site URL is used when no specific redirect is supplied.[3]
+
+Recommended rules:
+
+- Use HTTPS in staging and production.
+- Register exact production callback URLs.
+- Keep localhost URLs limited to development.
+- Do not use broad wildcards in production.
+- Keep preview wildcards restricted to a controlled subdomain.
+- Maintain separate redirect URIs for development, staging, and production.
+- Review every redirect URI during security audits.
+- Remove old callback URLs after migrations.
+
+For a standard Supabase social-login provider, the provider callback generally follows:
+
+```text
+https://<project-ref>.supabase.co/auth/v1/callback
+```
+
+The exact callback should be copied from the provider configuration in the Supabase Dashboard rather than typed manually.[4][5]
+
+## Client type
+
+For Supabase OAuth 2.1 applications, document the client type:
+
+| Client type | Use case | Secret |
+|---|---|---|
+| Public | Mobile apps, browser-only apps, single-page applications | No client secret |
+| Confidential | Server-side web applications and backend services | Client secret required |
+
+Supabase documents these two choices when registering an OAuth client under **Authentication → OAuth Apps**.[2]
+
+Never embed a confidential client secret in frontend JavaScript, a mobile binary, a public repository, or a downloadable desktop application.
+
+## Scopes and consent
+
+Document the smallest scope set required:
+
+```yaml
+scopes:
+  - openid
+  - email
+  - profile
+```
+
+Avoid requesting additional provider permissions unless the feature needs them. For calendar, file, email, or administrative access, document:
+
+- Why the scope is needed.
+- Which feature uses it.
+- Whether it is read-only or write-enabled.
+- Whether consent is shown to the user.
+- How tokens are stored and revoked.
+- How access is removed when the user disconnects.
+
+OAuth allows users to grant an application access without sharing their password, but the scope still determines what the application can do.[1]
+
+## Provider configuration
+
+For each external provider, document:
+
+- Provider name.
+- Developer-console application name.
+- Client ID location.
+- Client-secret location.
+- Authorized JavaScript origins, if applicable.
+- Authorized redirect URIs.
+- Requested scopes.
+- Consent-screen status.
+- Test users or assigned users.
+- Production approval status.
+- Secret expiration date.
+- Provider owner.
+
+For Google, Supabase’s setup requires an OAuth client ID for a web application, the application URL under authorized JavaScript origins, and the Supabase callback URL under authorized redirect URIs.[4]
+
+For Azure, record the client-secret expiry date and create a renewal reminder well in advance. Microsoft’s provider configuration requires the **secret value**, not the secret ID, in the Supabase configuration.[6]
+
+## OAuth 2.1 server records
+
+If Supabase is acting as the authorization server, use this additional structure:
+
+```yaml
+oauth_client:
+  client_name: "Partner Integration"
+  client_type: confidential
+  client_id: "stored-in-secrets-manager"
+  redirect_uris:
+    - "https://partner.example.com/oauth/callback"
+  allowed_scopes:
+    - "openid"
+    - "email"
+  owner: "Partner Engineering"
+  approval_ticket: "SEC-0000"
+  created_at: "YYYY-MM-DD"
+  last_reviewed: "YYYY-MM-DD"
+  status: active
+```
+
+Supabase’s OAuth 2.1 setup requires enabling the server, configuring the authorization path, building the authorization UI, and registering client applications. The authorization request uses parameters such as `client_id`, `redirect_uri`, `response_type=code`, and `state`.[2][7]
+
+Use the authorization-code flow with PKCE where supported. Validate:
+
+- `state` to prevent request forgery.
+- `redirect_uri` against the registered value.
+- `code_verifier` and `code_challenge` for PKCE.
+- Token issuer and audience.
+- Token expiration.
+- Required scopes.
+- User consent status.
+
+The `state` value should not contain sensitive information, and Supabase documents a combined size limit of 4 kB for `redirect_uri` and `state`.[7]
+
+## Security checklist
+
+- [ ] Each environment has a separate OAuth application or clearly isolated configuration.
+- [ ] Production uses HTTPS.
+- [ ] Redirect URIs are exact and reviewed.
+- [ ] No client secret is exposed in frontend code.
+- [ ] Secrets are stored in a managed secret store.
+- [ ] The minimum required scopes are requested.
+- [ ] OAuth state is validated.
+- [ ] PKCE is used for public clients.
+- [ ] Callback errors do not reveal secrets or authorization codes.
+- [ ] Tokens are not written to logs.
+- [ ] Provider secrets have expiration reminders.
+- [ ] Revocation and account-disconnection procedures are documented.
+- [ ] A break-glass or recovery process exists for provider outages.
+- [ ] Old redirect URIs and unused applications are removed.
+
+## Ready-to-use document
+
+```markdown
+# Supabase OAuth Application Record
+
+## Document control
+
+- Application name:
+- Environment:
+- Document owner:
+- Technical owner:
+- Security reviewer:
+- Version:
+- Last reviewed:
+- Next review:
+
+## Purpose
+
+Describe why this OAuth application exists and which product feature uses it.
+
+## OAuth model
+
+- [ ] Supabase is the OAuth client for social login.
+- [ ] Supabase is the OAuth authorization server.
+- Provider:
+- OAuth/OIDC version:
+- Flow:
+- Client type: Public / Confidential
+
+## Application registration
+
+- Provider console:
+- Application name:
+- Client ID reference:
+- Client secret reference:
+- Secret expiration:
+- Assigned users or groups:
+- Consent-screen status:
+
+## Redirect configuration
+
+- Development redirect URI:
+- Staging redirect URI:
+- Production redirect URI:
+- Supabase provider callback URI:
+- Supabase Site URL:
+- Supabase redirect allow-list entries:
+- Wildcards used:
+- Wildcard justification:
+
+## Scopes
+
+| Scope | Purpose | Required |
+|---|---|---|
+| `openid` | Identify the user | Yes |
+| `email` | Retrieve the user email | As needed |
+| `profile` | Retrieve basic profile data | As needed |
+
+## Data handling
+
+- Tokens stored in:
+- Token encryption:
+- Token retention:
+- Logging restrictions:
+- Revocation process:
+- User disconnect process:
+
+## Testing
+
+- Login success:
+- Consent flow:
+- Invalid redirect rejected:
+- Invalid state rejected:
+- PKCE verified:
+- Expired token handled:
+- Revoked access handled:
+- Provider outage handled:
+- New-user provisioning tested:
+- Existing-user login tested:
+
+## Operations
+
+- Secret-renewal owner:
+- Renewal reminder date:
+- Incident contact:
+- Rollback procedure:
+- Decommission procedure:
+
+## Approval
+
+- Product owner:
+- Engineering owner:
+- Security approval:
+- Date approved:
+```
+
+The most important rule is to treat redirect URIs, scopes, client type, and secret storage as security controls—not merely setup details. Supabase’s current documentation specifically emphasizes redirect allow lists, provider callback URLs, confidential-versus-public clients, and secret expiration management.[2][3][6]
+
+การอ้างอิง:
+[1] Social login | Supabase Docs https://supabase.com/docs/guides/auth/social-login
+[2] Getting Started with OAuth 2.1 Server | Supabase Docs https://supabase.com/docs/guides/auth/oauth-server/getting-started
+[3] Redirect URLs | Supabase Docs https://supabase.com/docs/guides/auth/redirect-urls
+[4] Sign in with Google | Supabase Docs https://supabase.com/docs/guides/auth/social-login/auth-google
+[5] Sign in with GitHub | Supabase Docs https://supabase.com/docs/guides/auth/social-login/auth-github
+[6] Sign in with Azure (Microsoft) | Supabase Docs https://supabase.com/docs/guides/auth/social-login/auth-azure
+[7] Build a Supabase Integration https://supabase.com/docs/guides/integrations/build-a-supabase-oauth-integration
+[8] Configure social login (OAuth) providers - Self-Hosting - Supabase https://supabase.com/docs/guides/self-hosting/self-hosted-oauth
+[9] Managing config and secrets | Supabase Docs https://supabase.com/docs/guides/local-development/managing-config
+[10] Sign in with Facebook | Supabase Docs https://supabase.com/docs/guides/auth/social-login/auth-facebook
+[11] Step 5. Add Login Code To... https://supabase.com/docs/guides/auth/social-login/auth-workos
+[12] Auth Self-hosting Config | Supabase Docs https://supabase.com/docs/guides/self-hosting/auth/config
+[13] Sign in with X / Twitter | Supabase Docs https://supabase.com/docs/guides/auth/social-login/auth-twitter
+[14] Sign in with Keycloak | Supabase Docs https://supabase.com/docs/guides/auth/social-login/auth-keycloak
+[15] OAuth 2.1 Server | Supabase Docs https://supabase.com/docs/guides/auth/oauth-server

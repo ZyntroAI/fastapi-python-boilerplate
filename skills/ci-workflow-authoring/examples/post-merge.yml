@@ -1,0 +1,78 @@
+# post-merge.yml — corrected.
+#
+# Differences from the draft this was based on:
+#
+#  1. `helm upgrade --install myapp ./charts` -> `./charts` does not exist. The
+#     chart that ships in this repo is at `k8s/` (name: payments-platform). A
+#     release name of `myapp` would also be wrong.
+#  2. `make smoke-test` -> no such Make target. Targets are setup, install, test,
+#     lint, format, check, run, clean.
+#  3. `if: failure()` on the rollback step could never fire: with `needs: merge-queue`
+#     the job only starts when merge-queue SUCCEEDED. The rollback is therefore
+#     moved to an always-running step inside the deploy job, gated on the deploy
+#     outcome — which is the only place it can actually catch a bad rollout.
+#  4. `$SLACK_WEBHOOK` was used unset, so the notify step would fail with an empty
+#     URL. Guarded on the secret being present.
+#  5. `actions/checkout@v4` -> SHA-pinned.
+
+name: Post-Merge Validation
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+
+      - name: Install Helm
+        uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4  # v4
+
+      - name: Deploy the chart that exists
+        id: deploy
+        run: |
+          # k8s/ is the umbrella chart in this repo (payments-platform).
+          helm upgrade --install payments-platform ./k8s \
+            --namespace staging --create-namespace --wait --timeout 5m
+
+      - name: Smoke test
+        id: smoke
+        run: |
+          # `make smoke-test` does not exist — run the real check target.
+          make check
+
+      - name: Roll back a bad rollout
+        id: rollback
+        if: failure() && steps.deploy.outcome == 'success'
+        run: |
+          rev=$(helm history payments-platform -n staging --max 2 -o json \
+                | python3 -c 'import json,sys; h=json.load(sys.stdin); print(h[-2]["revision"] if len(h)>1 else "")')
+          if [ -n "$rev" ]; then
+            helm rollback payments-platform "$rev" -n staging --wait
+          else
+            echo "no previous revision to roll back to"
+          fi
+          echo "rolled_back=true" >> "$GITHUB_OUTPUT"
+
+      - name: Notify the team
+        if: failure()
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          # The secret is usually absent — fail loudly rather than POST to "".
+          if [ -z "$SLACK_WEBHOOK" ]; then
+            echo "::warning::SLACK_WEBHOOK is not set — skipping notification"
+            exit 0
+          fi
+          status="post-merge validation failed"
+          if [ "${{ steps.rollback.outputs.rolled_back }}" = "true" ]; then
+            status="$status (rolled back)"
+          fi
+          curl -fsS -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"$status\"}" "$SLACK_WEBHOOK"

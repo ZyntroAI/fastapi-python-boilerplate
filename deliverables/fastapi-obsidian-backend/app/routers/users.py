@@ -1,16 +1,17 @@
-"""Users - register + login returning JWT tokens."""
+"""Users - register + login returning JWT tokens, backed by the user database."""
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from ..db import db
 from ..security import create_access_token, hash_password, verify_password
+from ..user_store import user_store
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 class RegisterIn(BaseModel):
-    username: str
-    password: str
+    username: str = Field(min_length=3, max_length=64)
+    password: str = Field(min_length=8, max_length=128)
+    allowed_skills: list[str] | None = None
 
 
 class LoginIn(BaseModel):
@@ -25,20 +26,20 @@ class TokenOut(BaseModel):
 
 @router.post("/register", response_model=TokenOut)
 def register(body: RegisterIn):
-    users = db.get("users", {})
-    if body.username in users:
+    username = body.username.strip()
+    if user_store.exists(username):
         raise HTTPException(status_code=409, detail="username already exists")
-    if len(body.password) < 6:
-        raise HTTPException(status_code=400, detail="password must be at least 6 chars")
-    users[body.username] = {"hashed_password": hash_password(body.password)}
-    db.set("users", users)
-    return TokenOut(access_token=create_access_token(body.username))
+    user_store.create(
+        username,
+        hash_password(body.password),
+        allowed_skills=body.allowed_skills,
+    )
+    return TokenOut(access_token=create_access_token(username))
 
 
 @router.post("/login", response_model=TokenOut)
 def login(body: LoginIn):
-    users = db.get("users", {})
-    record = users.get(body.username)
+    record = user_store.get(body.username.strip())
     if not record or not verify_password(body.password, record["hashed_password"]):
         raise HTTPException(status_code=401, detail="invalid username or password")
-    return TokenOut(access_token=create_access_token(body.username))
+    return TokenOut(access_token=create_access_token(record["username"]))

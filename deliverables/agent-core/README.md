@@ -71,6 +71,60 @@ uvicorn agent_core.api:app --host 0.0.0.0 --port 8000
 Then `/docs`, `/health`, `POST /api/agent/submit`,
 `GET /api/agent/status/{task_id}`, `GET /api/agent/result/{task_id}`.
 
+## Container
+
+The `Dockerfile` builds a slim, non-root runtime. The base image is pinned by
+digest so builds are reproducible, and only `agent_core/` and
+`requirements.txt` enter the context — tests, charts and docs stay out.
+
+```bash
+docker build -t zyntroai/agent-core:1.0.0 .
+docker run --rm -p 8000:8000 \
+  -e AGENT_API_KEY=... \
+  zyntroai/agent-core:1.0.0
+```
+
+The image runs as uid `10001`, and its `HEALTHCHECK` probes `/health` with the
+interpreter already in the image (no `curl` added). Verified locally: `/health`
+returns `{"ok":true,"provider":"agent","version":"1.0.0"}` and `/docs` returns 200.
+
+## Kubernetes (Helm)
+
+`charts/agent-core/` deploys the same image with production defaults:
+
+```bash
+helm upgrade --install agent-core charts/agent-core \
+  --namespace agent-core --create-namespace \
+  --set secrets.existingSecret=agent-core-secrets
+```
+
+What the chart gives you by default:
+
+- **Non-root and locked down** — `runAsNonRoot`, uid `10001`, `seccompProfile:
+  RuntimeDefault`, `allowPrivilegeEscalation: false`, all capabilities dropped,
+  and `readOnlyRootFilesystem: true` with an `emptyDir` mounted at `/tmp`.
+- **Credentials out of values** — pass `secrets.existingSecret` (or sync from a
+  secrets manager). Only if you leave it empty *and* set values does the chart
+  create a Secret; otherwise it renders none and the NOTES tell you what the
+  Deployment expects.
+- **Probes** on `/health` for both liveness and readiness, plus a config
+  checksum annotation so a config change rolls the pods.
+- **Image pinning** — `image.digest` wins over `image.tag`; both default away
+  from `latest`.
+
+| Value | Default | Notes |
+| --- | --- | --- |
+| `replicaCount` | `2` | Ignored when `autoscaling.enabled` |
+| `image.tag` | chart `appVersion` | Pin a version or set `image.digest` |
+| `secrets.existingSecret` | `""` | Preferred over inline values |
+| `service.port` | `8000` | ClusterIP |
+| `ingress.enabled` | `false` | |
+| `autoscaling.enabled` | `false` | CPU target 75% |
+| `resources.requests` | `100m` / `128Mi` | limits `1` / `512Mi` |
+
+Validated with `helm lint` (clean) and `helm template` across the secret,
+digest, ingress and HPA paths — all seven objects render as intended.
+
 ## Configuration
 
 | Variable | Default | Notes |

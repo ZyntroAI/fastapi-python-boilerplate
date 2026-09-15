@@ -1,0 +1,5 @@
+ * Mirroring (Automated Sync): Go to your GitLab project, select Settings > Repository > Mirroring repositories, enter your GitHub clone URL, choose Push or Pull, and provide a GitHub Personal Access Token with repo scope.
+ * Import Repository: Create a new project in GitLab, click Import project, select GitHub, authenticate with your credentials, and choose the repository you wish to copy over.
+ * Command Line Migration: Clone your GitHub repository as bare (git clone --bare [https://github.com/username/repo.git](https://github.com/username/repo.git)), then push it to your new GitLab repository (git push --mirror [https://gitlab.com/username/repo.git](https://gitlab.com/username/repo.git)).
+ * CI/CD Migration: Translate your .github/workflows/*.yml files into a single .gitlab-ci.yml configuration file at the root of your repository to recreate your pipelines in GitLab.
+ * Issue & PR Migration: Use third-party migration tools like github-to-gitlab or GitLab’s built-in importers to transfer issues, merge requests, and labels alongside your code history.

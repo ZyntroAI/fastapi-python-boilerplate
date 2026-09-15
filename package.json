@@ -1,6 +1,7 @@
 {
   "name": "fastapi-python-boilerplate",
   "version": "1.0.0",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "dev": "vercel dev",

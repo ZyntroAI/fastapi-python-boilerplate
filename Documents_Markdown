@@ -1,0 +1,107 @@
+📂 รวมไฟล์เอกสาร Markdown (ทั้งหมด)
+ 
+มาตรฐาน: ZyntroAI •  Origin  Branch • Secure • Multilingual (TH/EN)
+อัปเดต: 14 กันยายน 2026
+ 
+ 
+ 
+📄 ไฟล์หลักรีโป
+ 
+🔹 README.md
+ 
+ภาพรวมโปรเจกต์ • เริ่มต้นใช้งานเร็ว • คุณสมบัติ • ตัวอย่างโค้ด • ลิงก์สำคัญ • เวอร์ชัน/สาขา
+ 
+🔹 SECURITY.md
+ 
+นโยบายความปลอดภัย • วิธีรายงานช่องโหว่ • สถานะรองรับ • มาตรฐาน SHA-Pin/GPG/SLSA
+ 
+🔹 CONTRIBUTING.md
+ 
+กฎการมีส่วนร่วม • รูปแบบสาขา • คอมมิต • PR • การตรวจสอบ • หลักการเขียนโค้ด
+ 
+🔹 ARCHITECTURE.md
+ 
+ภาพรวมระบบ • โครงสร้างโฟลเดอร์ • เลเยอร์การทำงาน • โฟลว์ข้อมูล • สถาปัตยกรรมความปลอดภัย
+ 
+🔹 CHANGELOG.md
+ 
+ประวัติเวอร์ชัน • การเปลี่ยนแปลง • แก้ไข • เพิ่ม • ลบ • อ้างอิง PR/Issue
+ 
+🔹 PROBLEMS.md
+ 
+ปัญหาที่ทราบ • ข้อจำกัด • วิธีแก้ชั่วคราว • แผนการแก้ไขในอนาคต
+ 
+ 
+ 
+📁 เอกสารในโฟลเดอร์  docs/ 
+ 
+🛠️ คู่มือการติดตั้ง & ใช้งาน
+ 
+- setup.md: เตรียมสภาพแวดล้อม • ติดตั้ง • คอนฟิก • ตรวจสอบ
+- api.md: รายการ Endpoint • Schema • ตัวอย่างคำขอ/ตอบ • Auth
+- workflows.md: CI/CD • GitHub Actions • SHA-Pin • ตัวอย่างไฟล์
+- live-editing.md: การแก้ไขแบบเรียลไทม์ • ความปลอดภัย
+- troubleshooting.md: ปัญหาที่พบบ่อย • วิธีแก้ • การกู้คืน
+ 
+📋 เทมเพลต & แบบฟอร์ม
+ 
+- PULL_REQUEST_TEMPLATE.md: แบบฟอร์ม PR • รายการตรวจสอบ • SHA/GPG/CI
+- ISSUE_TEMPLATE.md: แบบฟอร์มปัญหา/ฟีเจอร์ • ประเภท • สภาพแวดล้อม
+- COMPANY_TEMPLATE.md: ข้อมูลองค์กร • เวอร์ชัน • ติดต่อ • ป้ายความปลอดภัย
+ 
+🧩 คู่มือภาษา & โค้ด
+ 
+- JSX_GUIDE.md: มาตรฐาน JSX • โครงสร้าง • PropTypes • ความปลอดภัย
+- TSX_GUIDE.md: มาตรฐาน TSX • Type • Interface • Clean Code
+- MOBILE_GITHUB_SKILLS.md: การใช้งาน GitHub บนมือถือ • SSH • Push • CI
+ 
+🧹 บำรุงรักษา & เครื่องมือ
+ 
+- CHORES.md: งานประจำ • รายสัปดาห์/เดือน • ความสะอาดรีโป
+- COPILOT_CLI.md: คู่มือ Copilot CLI • คำสั่ง • ขั้นสูง • การผสานงาน
+- BEST_PRACTICES.md: หลักการทั่วไป • Git • ความปลอดภัย • ทีมงาน
+ 
+ 
+ 
+📝 บันทึกชั่วคราว (เพิ่มเติม)
+ 
+📄 TMP_CONTACT_NATTAPONG.md
+ 
+- ชื่อ: Nattapong P
+- อีเมล: nobizzmaru_new_computer@outlook.com
+- ไฟล์อ้างอิง:
+- Unified FastAPI_26...28.jpg (355KB)
+- Unified FastAPI_26...29.jpg (288KB)
+- Unified FastAPI_26...30.jpg (133KB)
+ 
+ 
+ 
+📋 โครงสร้างรวมทั้งหมด
+ 
+plaintext
+  
+ZyntroAI/fastapi-python-boilerplate/
+├─ README.md
+├─ SECURITY.md
+├─ CONTRIBUTING.md
+├─ ARCHITECTURE.md
+├─ CHANGELOG.md
+├─ PROBLEMS.md
+├─ docs/
+│  ├─ setup.md
+│  ├─ api.md
+│  ├─ workflows.md
+│  ├─ live-editing.md
+│  ├─ troubleshooting.md
+│  ├─ JSX_GUIDE.md
+│  ├─ TSX_GUIDE.md
+│  ├─ MOBILE_GITHUB_SKILLS.md
+│  ├─ CHORES.md
+│  ├─ COPILOT_CLI.md
+│  └─ BEST_PRACTICES.md
+└─ .github/
+   ├─ PULL_REQUEST_TEMPLATE.md
+   └─ ISSUE_TEMPLATE.md
+ 
+ 
+✅ ทุกไฟล์สอดคล้องกัน • รูปแบบเดียวกัน • พร้อมใช้งานครับ

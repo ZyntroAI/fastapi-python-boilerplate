@@ -1,0 +1,107 @@
+# PR Triage Automove — corrected.
+#
+# Differences from the draft this was based on, each fixing a real bug:
+#
+#  1. `python scripts/pr_triage_automove.py` -> the file did not exist. The real
+#     entry point is skills/pr-triage-automove/automove.py.
+#  2. `actions/checkout@v4` / `setup-python@v5` -> tag pins. Org policy requires a
+#     full 40-char SHA; a tag pin fails in `Set up job` and reads as "the job never
+#     ran". SHAs below are resolved and verified against each action's own repo.
+#  3. The comment said "✅ Automove completed / Import health probe passed" as a
+#     fixed string. It now reports what actually happened — including the honest
+#     case where the probe found an entrypoint already broken before the run.
+#  4. The move is behind an explicit opt-in (variable AUTO_APPLY), so the default
+#     path never mutates the tree.
+#  5. Report + comment are uploaded as artifacts even on failure, so the evidence
+#     survives a red job.
+
+name: PR Triage — Misplaced Files
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pr-triage-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  triage-automove:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Check out the pull request
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
+        with:
+          python-version: "3.11"
+
+      - name: Install runtime and tooling deps
+        # The import probe imports the app's real entrypoints, so those deps must
+        # be present or every target reports FAIL for a missing module and the
+        # probe tells you nothing about the move.
+        run: |
+          python -m pip install --upgrade pip
+          [ -f requirements.txt ] && pip install -r requirements.txt || true
+          pip install pyyaml
+
+      - name: Run the automove skill
+        id: automove
+        env:
+          APPLY: ${{ vars.AUTO_APPLY == 'true' && '--apply' || '' }}
+        run: |
+          ARGS="--repo . --stamp $(date -u +%Y-%m) --report triage-report.json --comment triage-comment.md"
+          echo "running: python skills/pr-triage-automove/automove.py $ARGS $APPLY"
+          # Exit code 2 means a regression was found AND the move was rolled back.
+          # That is a finding to report, not an infrastructure failure — so it is
+          # captured here and surfaced as a step output rather than failing the
+          # shell immediately.
+          set +e
+          python skills/pr-triage-automove/automove.py $ARGS $APPLY
+          rc=$?
+          set -e
+          echo "rc=$rc"
+          if [ "$rc" = "2" ]; then
+            echo "regression=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "regression=false" >> "$GITHUB_OUTPUT"
+          fi
+          test -f triage-comment.md
+
+      - name: Post the triage comment
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          if [ -s triage-comment.md ]; then
+            gh pr comment "$PR" --body-file triage-comment.md --edit-last --create-if-none
+          else
+            echo "no comment produced — the run did not get far enough"
+          fi
+
+      - name: Upload the evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        with:
+          name: pr-triage-report
+          path: |
+            triage-report.json
+            triage-comment.md
+          if-no-files-found: warn
+
+      - name: Fail only on a detected import regression
+        # Report-only means green on clutter. A regression that forced a rollback
+        # is worth stopping the run for: the tree was one move from broken.
+        if: always() && steps.automove.outputs.regression == 'true'
+        run: |
+          echo "::error::import regression detected — the move was rolled back"
+          exit 1

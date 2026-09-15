@@ -1,0 +1,120 @@
+{
+  "$comment": "Centralised design tokens for FIG-based projects. Every colour here is contrast-checked against the declared floor by figbp/tokens.py.",
+  "version": "1.0.0",
+  "contrastFloor": 4.5,
+
+  "color": {
+    "brand": {
+      "primary": "#2563eb",
+      "primaryHover": "#1d4ed8",
+      "primarySubtle": "#eff6ff",
+      "accent": "#0f172a"
+    },
+    "surface": {
+      "base": "#ffffff",
+      "raised": "#f8fafc",
+      "sunken": "#f1f5f9",
+      "inverse": "#0f172a"
+    },
+    "border": {
+      "default": "#e2e8f0",
+      "strong": "#cbd5e1",
+      "focus": "#2563eb"
+    },
+    "text": {
+      "primary": "#0f172a",
+      "secondary": "#475569",
+      "muted": "#64748b",
+      "inverse": "#f8fafc",
+      "link": "#1e40af"
+    },
+    "state": {
+      "success": "#166534",
+      "successSurface": "#f0fdf4",
+      "warning": "#92400e",
+      "warningSurface": "#fffbeb",
+      "danger": "#991b1b",
+      "dangerSurface": "#fef2f2"
+    }
+  },
+
+  "$contrastPairs": [
+    { "text": "text.primary", "background": "surface.base", "min": 4.5 },
+    { "text": "text.secondary", "background": "surface.base", "min": 4.5 },
+    { "text": "text.muted", "background": "surface.base", "min": 4.5 },
+    { "text": "text.link", "background": "surface.base", "min": 4.5 },
+    { "text": "text.inverse", "background": "surface.inverse", "min": 4.5 },
+    { "text": "brand.primary", "background": "surface.base", "min": 4.5 },
+    { "text": "state.success", "background": "state.successSurface", "min": 4.5 },
+    { "text": "state.warning", "background": "state.warningSurface", "min": 4.5 },
+    { "text": "state.danger", "background": "state.dangerSurface", "min": 4.5 }
+  ],
+
+  "space": {
+    "0": "0",
+    "1": "0.25rem",
+    "2": "0.5rem",
+    "3": "0.75rem",
+    "4": "1rem",
+    "6": "1.5rem",
+    "8": "2rem",
+    "12": "3rem"
+  },
+
+  "radius": {
+    "sm": "0.25rem",
+    "md": "0.5rem",
+    "lg": "0.75rem",
+    "full": "9999px"
+  },
+
+  "font": {
+    "family": {
+      "sans": "system-ui, -apple-system, \"Segoe UI\", sans-serif",
+      "mono": "ui-monospace, SFMono-Regular, Menlo, monospace"
+    },
+    "size": {
+      "xs": "0.75rem",
+      "sm": "0.875rem",
+      "base": "1rem",
+      "lg": "1.125rem",
+      "xl": "1.5rem",
+      "2xl": "2rem"
+    },
+    "weight": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600
+    },
+    "leading": {
+      "tight": 1.25,
+      "normal": 1.5,
+      "relaxed": 1.75
+    }
+  },
+
+  "motion": {
+    "duration": {
+      "fast": "120ms",
+      "base": "200ms",
+      "slow": "320ms"
+    },
+    "easing": {
+      "standard": "cubic-bezier(0.2, 0, 0, 1)",
+      "enter": "cubic-bezier(0, 0, 0.2, 1)",
+      "exit": "cubic-bezier(0.4, 0, 1, 1)"
+    }
+  },
+
+  "breakpoint": {
+    "sm": "640px",
+    "md": "768px",
+    "lg": "1024px",
+    "xl": "1280px"
+  },
+
+  "touchTarget": {
+    "minPx": 44,
+    "$comment": "WCAG 2.1 AA target size for pointer inputs."
+  }
+}

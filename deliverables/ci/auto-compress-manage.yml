@@ -1,0 +1,129 @@
+name: 📦 Auto File Compress & Manage
+
+# ─────────────────────────────────────────────────────────────
+# Skip Conditions
+#   1. on.paths            → ข้ามทั้ง workflow ตั้งแต่ระดับ trigger ถ้า commit ไม่แตะไฟล์ที่เกี่ยวข้อง
+#   2. job scan (if)       → ข้ามเมื่อเป็น branch/commit ที่ bot สร้างเอง (กัน loop)
+#   3. compress-images/web → เคารพ inputs.target จาก workflow_dispatch
+#   4. summary             → ข้ามเมื่อทั้ง 2 job ถูก skip
+# ─────────────────────────────────────────────────────────────
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**/*.jpg'
+      - '**/*.png'
+      - '**/*.webp'
+      - '**/*.js'
+      - '**/*.css'
+      - '**/*.html'
+      - '**/*.json'
+  pull_request:
+    paths:
+      - '**/*.jpg'
+      - '**/*.png'
+      - '**/*.webp'
+      - '**/*.js'
+      - '**/*.css'
+      - '**/*.html'
+      - '**/*.json'
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Compression target'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - images
+          - web-assets
+          - artifacts
+
+jobs:
+  # ─── สแกนหาไฟล์ที่ต้องบีบอัด ───
+  # Skip เมื่อ: เป็น branch auto/* ที่ bot push เอง หรือ commit message มี [skip ci]
+  # หมายเหตุ: pull_request event ให้ github.ref = refs/pull/N/merge ดังนั้นต้องเช็ค github.head_ref ด้วย
+  scan:
+    runs-on: ubuntu-latest
+    if: |
+      !startsWith(github.ref, 'refs/heads/auto/') &&
+      !startsWith(github.head_ref || '', 'auto/') &&
+      !contains(github.event.head_commit.message || '', '[skip ci]')
+    outputs:
+      has-images: ${{ steps.check.outputs.has-images }}
+      has-web: ${{ steps.check.outputs.has-web }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - id: check
+        run: |
+          echo "has-images=$(find . -type f \( -name '*.jpg' -o -name '*.png' -o -name '*.webp' \) | head -1 | wc -l)" >> $GITHUB_OUTPUT
+          echo "has-web=$(find . -type f \( -name '*.js' -o -name '*.css' -o -name '*.html' \) | head -1 | wc -l)" >> $GITHUB_OUTPUT
+
+  # ─── บีบอัดรูปภาพ ───
+  # Skip เมื่อ: ไม่มีรูป หรือผู้ใช้เลือก target ที่ไม่ใช่ images/all
+  compress-images:
+    needs: scan
+    if: |
+      needs.scan.outputs.has-images == '1' &&
+      (github.event_name != 'workflow_dispatch' || inputs.target == 'all' || inputs.target == 'images')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: calibreapp/image-actions@26d5b54006db4da7a1b29903f33404a6f77b58cf # main
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          compressOnly: true
+
+      - uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
+        if: success()
+        with:
+          title: '📸 Auto-compress Images'
+          commit-message: 'chore: auto-compress images [skip ci]'
+          branch: auto/compress-images
+
+  # ─── บีบอัดไฟล์เว็บ ───
+  # Skip เมื่อ: ไม่มีไฟล์เว็บ หรือผู้ใช้เลือก target ที่ไม่ใช่ web-assets/all
+  compress-web:
+    needs: scan
+    if: |
+      needs.scan.outputs.has-web == '1' &&
+      (github.event_name != 'workflow_dispatch' || inputs.target == 'all' || inputs.target == 'web-assets')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: stefh/ghaction-CompressFiles@7abba5ba5b3cc55bb068b3b095b522e9ab0aea7e # v1
+        with:
+          path: .
+          extensions: '.js,.css,.html,.json'
+          tools: 'brotli,gzip'
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: compressed-web-assets
+          path: '**/*.{br,gz}'
+          compression-level: 0
+
+  # ─── สรุปผล ───
+  # Skip เมื่อ: ทั้ง compress-images และ compress-web ถูก skip
+  summary:
+    needs: [compress-images, compress-web]
+    runs-on: ubuntu-latest
+    if: |
+      always() &&
+      !cancelled() &&
+      (needs.compress-images.result != 'skipped' || needs.compress-web.result != 'skipped')
+    steps:
+      - name: Job Summary
+        run: |
+          echo "## 📦 Auto Compress & Manage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Images | ${{ needs.compress-images.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Web Assets | ${{ needs.compress-web.result }} |" >> $GITHUB_STEP_SUMMARY

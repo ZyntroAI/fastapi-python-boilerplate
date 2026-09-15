@@ -1,73 +1,74 @@
 #!/usr/bin/env python3
 """
-Extract metadata from docs/ folder → JSON index output.
+Extract metadata & content from docs/ folder → JSON index
 Usage: python scripts/extract_metadata.py docs/ > repo_index.json
 """
 
-import json
 import sys
-from datetime import datetime, timezone
+import os
+import json
+import re
 from pathlib import Path
 
-def extract_frontmatter(content: str):
-    """Extract YAML-like frontmatter from markdown files."""
-    meta = {}
-    if content.startswith("---"):
-        lines = content.splitlines()
-        for line in lines[1:]:
-            if line.strip() == "---":
-                break
-            if ":" in line:
-                k, v = line.split(":", 1)
-                meta[k.strip()] = v.strip()
-    return meta
+def extract_markdown_content(file_path):
+    """Extract title, headings, and plain text from .md file"""
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+    except Exception as e:
+        print(f"Error reading {file_path}: {e}", file=sys.stderr)
+        return None
 
+    # Extract first H1 as title
+    title = "Untitled"
+    h1_match = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
+    if h1_match:
+        title = h1_match.group(1).strip()
 
-def split_tags(value):
-    """Parse a tags value that may be space-, comma-, or flow-list-delimited."""
-    if not value:
-        return []
-    cleaned = value.strip().strip("[]").strip()
-    if "," in cleaned:
-        return [t.strip() for t in cleaned.split(",") if t.strip()]
-    return cleaned.split()
+    # Extract headings
+    headings = re.findall(r"^#{2,6}\s+(.+)$", content, re.MULTILINE)
+
+    # Clean plain text (strip markdown syntax)
+    text = re.sub(r"```[\s\S]*?```", " ", content)  # code blocks
+    text = re.sub(r"`[^`]+`", " ", text)             # inline code
+    text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)  # links
+    text = re.sub(r"[*_~]{1,3}([^*_~]+)[*_~]{1,3}", r"\1", text)  # bold/italic
+    text = re.sub(r"\s+", " ", text).strip()
+
+    return {
+        "title": title,
+        "headings": headings,
+        "content": text[:5000],  # limit length
+        "word_count": len(text.split())
+    }
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: extract_metadata.py <docs_directory>", file=sys.stderr)
+        print("Usage: extract_metadata.py <docs_root>", file=sys.stderr)
         sys.exit(1)
 
-    docs_dir = Path(sys.argv[1])
-    if not docs_dir.exists():
-        print(f"⚠️ Directory not found: {docs_dir}", file=sys.stderr)
-        print("[]")
-        return
+    docs_root = Path(sys.argv[1])
+    if not docs_root.exists():
+        print(f"Error: {docs_root} not found", file=sys.stderr)
+        sys.exit(1)
 
-    index = []
-    for path in sorted(docs_dir.rglob("*.md")):
-        try:
-            content = path.read_text(encoding="utf-8")
-            stat = path.stat()
-            meta = extract_frontmatter(content)
-
-            index.append({
-                "title": meta.get("title", path.stem.replace("-", " ").title()),
-                "path": str(path.relative_to(docs_dir)),
-                "relative_path": str(path.relative_to(docs_dir.parent)),
-                "last_modified": datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat(),
-                "size_bytes": stat.st_size,
-                "summary": content[:200].replace("\n", " ").strip() + "..." if len(content) > 200 else content.strip(),
-                "tags": split_tags(meta.get("tags", "")),
-            })
-        except Exception as e:
-            print(f"⚠️ Skipping {path}: {e}", file=sys.stderr)
-
-    print(json.dumps({
+    index = {
         "source": "repo-docs",
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "count": len(index),
-        "items": index,
-    }, ensure_ascii=False, indent=2))
+        "generated_at": None,
+        "files": []
+    }
+
+    for md_file in sorted(docs_root.rglob("*.md")):
+        rel_path = str(md_file.relative_to(docs_root))
+        data = extract_markdown_content(md_file)
+        if data:
+            index["files"].append({
+                "path": rel_path,
+                **data
+            })
+
+    index["file_count"] = len(index["files"])
+    print(json.dumps(index, ensure_ascii=False, indent=2))
 
 if __name__ == "__main__":
     main()
