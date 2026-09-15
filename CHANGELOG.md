@@ -45,7 +45,7 @@ Open problems and known blockers are tracked separately in
   well-formed but name nothing, which is why PRs failed at `Set up job` in two
   seconds while `lint.py` stayed green.
 
-- **Four fabricated SHAs confirmed live on `main` — the cause of its red CI** —
+- **Three fabricated SHAs confirmed live on `main` — the cause of its red CI** —
   closes the open question from the PR #301 resolver work above, which proved
   `actions/checkout@f548e57c…` was a fabrication but could not say how much of
   the tree was affected. `main` has been failing since at least
@@ -56,12 +56,20 @@ Open problems and known blockers are tracked separately in
   ##[error]Unable to resolve action `actions/checkout@f548e57c…`, unable to find version `f548e57c…`
   ```
 
-  Four refs are well-formed 40-hex strings that name no real commit:
-  `actions/checkout@f548e57c3d3c…` (×4 in `ci.yml`),
-  `actions/setup-python@5fda3b9c7092…`, and
-  `github/codeql-action/{init,autobuild,analyze}@977e6ce40888…`. The repaired set
-  under `deliverables/ci/workflows-repaired/` replaces all of them with commits
-  that resolve.
+  Three distinct SHAs are well-formed 40-hex strings that name no real commit,
+  used across 10 refs — all of them in `ci.yml`:
+
+  | Ref | Refs |
+  | --- | --- |
+  | `actions/checkout@f548e57c3d3c…` | 4 |
+  | `actions/setup-python@5fda3b9c7092…` | 3 |
+  | `github/codeql-action/{init,autobuild,analyze}@977e6ce40888…` | 3 |
+
+  So `ci.yml` is the one file that cannot start. The other nine workflows are
+  unaffected by this, which is why the damage looked narrower than it is — every
+  PR check routes through `ci.yml`. The repaired set under
+  `deliverables/ci/workflows-repaired/` replaces all three with commits that
+  resolve.
 
   This is a **different defect from P-002** despite looking identical in a diff.
   P-002 is unpinned *tags* (`@v4`), which the org's SHA-pinning policy rejects.

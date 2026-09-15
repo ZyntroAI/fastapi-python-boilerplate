@@ -82,14 +82,16 @@ missing deliverable.
 
 **Why `main` is red, confirmed while working this.** The four repaired workflow
 files are only half the story. `ci.yml` — the file that runs on every PR — pins
-five refs to well-formed 40-hex strings that name **no real commit**:
-`actions/checkout@f548e57c…`, `actions/setup-python@5fda3b9c…`, and
-`github/codeql-action/{init,autobuild,analyze}@977e6ce…`. Every job listing one
-dies in *Set up job* after two seconds. That is why PR #303 is red on `lint`
+three distinct SHAs that are well-formed 40-hex strings naming **no real commit**,
+used across 10 refs: `actions/checkout@f548e57c…` (×4),
+`actions/setup-python@5fda3b9c…` (×3), and
+`github/codeql-action/{init,autobuild,analyze}@977e6ce…` (×3). Every job listing
+one dies in *Set up job* after two seconds. That is why PR #303 is red on `lint`
 while `npm run lint` passes locally on the same tree — the failure is before the
-checkout, so the job never runs the code at all. Recorded as **P-013**;
-`deliverables/ci/workflows-repaired/ci.yml` replaces all five with commits that
-resolve.
+checkout, so the job never runs the code at all. All ten sit in `ci.yml`; the
+other nine workflows are unaffected, which is why the damage looked narrower than
+it is. Recorded as **P-013**; `deliverables/ci/workflows-repaired/ci.yml`
+replaces all three with commits that resolve.
 
 It is worth keeping separate from P-002 (unpinned tags) because the checks
 disagree: a policy check for a 40-hex SHA passes these, while GitHub, which

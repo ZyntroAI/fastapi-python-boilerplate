@@ -381,20 +381,20 @@ codeql SHAs) are **pre-existing on `main`** — see P-007 and P-002. Only 2 of t
 
 ---
 
-### P-013 — Four action refs are pinned to commits that do not exist, and `main` is red because of it — OPEN
+### P-013 — Three action SHAs are pinned to commits that do not exist, and `main` is red because of it — OPEN
 
 **Owner:** `TASK-20260916-001`
 
-Four `uses:` refs are well-formed 40-hex strings that name no real commit in
-their action's repository:
+**Three distinct SHAs** are well-formed 40-hex strings that name no real commit
+in their action's repository. They are used across **10 refs**, all in `ci.yml`:
 
-| Ref | Where |
+| Ref | Refs |
 | --- | --- |
-| `actions/checkout@f548e57c3d3c42e288026812cd22362661c4e8d4` | `ci.yml` ×4 |
-| `actions/setup-python@5fda3b9c709277f8cf4290f3a0094ab7e95c1338` | `ci.yml` ×3 |
-| `github/codeql-action/init@977e6ce40888f41234c9b3252437dcf2331daaa2` | `ci.yml` |
-| `github/codeql-action/autobuild@977e6ce40888f41234c9b3252437dcf2331daaa2` | `ci.yml` |
-| `github/codeql-action/analyze@977e6ce40888f41234c9b3252437dcf2331daaa2` | `ci.yml` |
+| `actions/checkout@f548e57c3d3c42e288026812cd22362661c4e8d4` | 4 |
+| `actions/setup-python@5fda3b9c709277f8cf4290f3a0094ab7e95c1338` | 3 |
+| `github/codeql-action/init@977e6ce40888f41234c9b3252437dcf2331daaa2` | 1 |
+| `github/codeql-action/autobuild@977e6ce40888f41234c9b3252437dcf2331daaa2` | 1 |
+| `github/codeql-action/analyze@977e6ce40888f41234c9b3252437dcf2331daaa2` | 1 |
 
 Every job listing one of these dies in *Set up job* after about two seconds:
 
