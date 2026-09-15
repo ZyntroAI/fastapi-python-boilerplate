@@ -22,7 +22,7 @@ self-contained deliverable suites, and a reference docs library.
 | `app/core/main.py` | A second, fuller FastAPI app (items/users routers, DB session, origin middleware) |
 | `graphql_api/` | Standalone GraphQL service — Strawberry + async SQLAlchemy + JWT + Alembic, own `requirements.txt`, `docker-compose.yml`, tests |
 | `frontend/` | React 18 + Vite + TypeScript frontend (own `package.json`, `Dockerfile`, `tsconfig.json`) |
-| `skills/` | 12 reusable AI-agent skill definitions — `fetching`, `research`, `patch`, `credential-management`, `changelog-auto-update`, `pr-triage-automove`, `ci-workflow-authoring`, … |
+| `skills/` | 13 reusable AI-agent skill definitions — `fetching`, `research`, `patch`, `credential-management`, `changelog-auto-update`, `pr-triage-automove`, `ci-workflow-authoring`, `auto-label`, … |
 | `deliverables/` | 27 self-contained feature suites, each with its own README and tests — see [`deliverables/README.md`](./deliverables/README.md) |
 | `docs/` | Reference library (54 files): GraphQL, FireCrawl, Google Chat, GitHub Actions, MCP, environment configuration, incident drills, release notes, FIG architecture |
 | `tests/` | Test suite — `unit/`, `e2e/`, plus repo-level tests (`tests/conftest.py`, `pytest.ini` at root) |

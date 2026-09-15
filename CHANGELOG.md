@@ -8,6 +8,25 @@ Open problems and known blockers are tracked separately in
 ## [2026-09-15]
 
 ### Added
+- **PR #295 (pending)** — `skills/auto-label/` — labels a PR from two signals it
+  already carries: the conventional-commit type in its title, and the paths the
+  diff touches. The cost of triage is not reading each PR, it is routing it —
+  deciding which of the repo's 40 labels applies so a reviewer can filter to
+  `skills 🧠` or `security` and ignore the rest. That decision is mechanical for
+  the majority of PRs that already follow the repo's commit convention, so it is
+  the part worth automating. The skill is additive by construction: `apply.py`
+  only calls the add endpoint and never removes a label a human set, a PR that
+  matches no rule is left unlabelled rather than guessed at, and the CLI is
+  dry-run unless `--apply` is passed. The rule table is data (`labels.json`), so
+  behaviour changes without touching `classify.py`. Two deliberate design calls
+  are worth naming: the commit *scope* is not a signal (`feat(docs)` with no
+  `docs/` path is a feature, not a docs change — the path carries that), and
+  precedence is flat, so a PR that is both a skill and documentation gets both
+  labels. `deliverables/ci/auto-label.yml` ships the workflow uninstalled because
+  the GitHub App lacks the `workflows` scope; its three action pins were
+  resolved from the public API and verified to exist, unlike the fabricated SHAs
+  already sitting on `main`. TASK-20260915-002 records the work.
+
 - **PR #293** — `docs/fig/` — FIG v4.1 Organization Edition converted from
   jsx-style pseudocode (`FIG.ORG = { ... }` in `.fix/FIG_V4/`) into
   machine-readable JSON config. The specification was readable by people but
