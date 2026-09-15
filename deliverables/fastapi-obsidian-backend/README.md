@@ -23,9 +23,35 @@ uvicorn app.main:app --reload    # from this directory
 
 ### JWT auth & per-user skill access
 
-- `POST /auth/register {username,password}` and `POST /auth/login` return a JWT token.
+- `POST /auth/register {username,password,allowed_skills?}` and `POST /auth/login` return a JWT token.
 - Send `Authorization: Bearer <token>` on `/skills*` (401 without).
 - Add an `allowed_skills` list to a user record to restrict which skills they see (unrestricted if absent; out-of-list -> 403).
+
+#### JWT secret
+
+`JWT_SECRET` is validated on use: it must be **at least 32 characters** and must
+not be a known placeholder (`change-me`, `secret`, …). A misconfigured deployment
+fails loudly instead of signing tokens with a guessable key. In local development,
+if `JWT_SECRET` is unset a full-strength key is generated into `data/jwt_secret.txt`.
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(48))"
+export JWT_SECRET=<the generated value>
+```
+
+#### User store
+
+Users live in a real database table (SQLAlchemy) instead of a JSON file —
+surviving restarts and safe under concurrent writers.
+
+- Default: SQLite at `data/users.db`.
+- Override with `DATABASE_URL`, e.g.
+  `postgresql+psycopg://user:pass@host:5432/dbname`.
+- On first init, any users in the legacy JSON store are **imported automatically**
+  (usernames already present are skipped), so no existing accounts are lost.
+
+The store keeps the same record shape the routers already used, so the API
+surface and per-user gating are unchanged. Passwords remain bcrypt-hashed.
 
 ### Opt-in encryption at rest
 

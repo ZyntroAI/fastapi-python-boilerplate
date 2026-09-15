@@ -6,3 +6,6 @@ PyYAML
 python-jose[cryptography]
 passlib
 bcrypt==4.0.1
+SQLAlchemy>=2.0
+pytest
+httpx
