@@ -381,6 +381,55 @@ codeql SHAs) are **pre-existing on `main`** — see P-007 and P-002. Only 2 of t
 
 ---
 
+### P-013 — Four action refs are pinned to commits that do not exist, and `main` is red because of it — OPEN
+
+**Owner:** `TASK-20260916-001`
+
+Four `uses:` refs are well-formed 40-hex strings that name no real commit in
+their action's repository:
+
+| Ref | Where |
+| --- | --- |
+| `actions/checkout@f548e57c3d3c42e288026812cd22362661c4e8d4` | `ci.yml` ×4 |
+| `actions/setup-python@5fda3b9c709277f8cf4290f3a0094ab7e95c1338` | `ci.yml` ×3 |
+| `github/codeql-action/init@977e6ce40888f41234c9b3252437dcf2331daaa2` | `ci.yml` |
+| `github/codeql-action/autobuild@977e6ce40888f41234c9b3252437dcf2331daaa2` | `ci.yml` |
+| `github/codeql-action/analyze@977e6ce40888f41234c9b3252437dcf2331daaa2` | `ci.yml` |
+
+Every job listing one of these dies in *Set up job* after about two seconds:
+
+```
+##[error]Unable to resolve action `actions/checkout@f548e57c…`, unable to find
+version `f548e57c…`. Unable to resolve action `actions/setup-python@5fda3b9c…`,
+unable to find version `5fda3b9c…`
+```
+
+**Evidence:** job `104558260264` (`lint`, PR #303) and job `104558259607`
+(`Python 3.11`). Located by running `gh run view --job <id> --log-failed` and
+reading the *Set up job* step — the message is the first error in the log, not a
+downstream consequence. Presence of the refs on `main` confirmed with
+`git show main:.github/workflows/ci.yml`. `main` has been red since at least
+2026-09-15T20:31Z (`gh run list --branch main`). Independently reported by
+`python3 deliverables/ci/verify_workflows.py --check-shas` as *"well-formed but
+does not exist"*.
+
+**This is NOT P-002, despite looking identical in a diff.** P-002 is unpinned
+*tags* (`@v4`), rejected by the org's SHA-pinning policy. These are pinned to
+nothing at all. The two are worth keeping separate because the relevant checks
+disagree: a policy check that greps for a 40-hex SHA *passes* these, while
+GitHub, which actually executes the pin, *fails* them. An unpinned tag fails
+honestly and loudly; a fabricated SHA fails silently. That gap is why this went
+unnoticed while PRs were written off as "blocked on CI".
+
+**Fix:** already prepared and verified. `deliverables/ci/workflows-repaired/`
+replaces all four with commits that resolve (`actions/checkout@11d5960a…`,
+`actions/setup-python@a26af69b…`, `github/codeql-action@faaca9a8…`), and
+`verify_workflows.py` confirms every replacement is real. Install with
+`bash deliverables/ci/workflows-repaired/install.sh --apply`. Not yet applied —
+it touches `.github/workflows/`, which the App cannot push (P-003).
+
+---
+
 ## How to add an entry
 
 1. Put it under the date section matching its changelog counterpart.
