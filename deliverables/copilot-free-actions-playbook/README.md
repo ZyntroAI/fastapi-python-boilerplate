@@ -66,6 +66,22 @@ python3 scripts/test_audit_workflows.py
 Exit code is `1` when any ERROR-level finding is present, so it drops straight into CI
 as a gate. It is pure stdlib — no `pip install`, runs anywhere Python 3.9+ does.
 
+### Known limitation — a well-formed SHA can still be wrong
+
+The auditor checks SHA **shape**, not SHA **existence**. A fabricated 40-hex string
+(e.g. `actions/checkout@f548e57c3d3c42e288026812cd22362661c4e8d4`) passes `unpinned-action`
+and then fails at runtime with:
+
+```
+##[error]Unable to resolve action `actions/checkout@<sha>`, unable to find version `<sha>`
+```
+
+This is not hypothetical — it is why every workflow on `main` currently fails at
+"Set up job" before running a single step. To close the gap, resolve each SHA against
+the API once (as `deliverables/ci-workflow-sha-pin/resolve_shas_api.py` does) and keep
+the resolved set under test. Pinning to a SHA that does not exist is worse than pinning
+to a tag: a tag still resolves.
+
 ### Verified result on this repo
 
 Run against `.github/workflows/` as of this branch:
