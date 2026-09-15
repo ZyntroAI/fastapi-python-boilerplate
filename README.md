@@ -23,8 +23,8 @@ self-contained deliverable suites, and a reference docs library.
 | `graphql_api/` | Standalone GraphQL service — Strawberry + async SQLAlchemy + JWT + Alembic, own `requirements.txt`, `docker-compose.yml`, tests |
 | `frontend/` | React 18 + Vite + TypeScript frontend (own `package.json`, `Dockerfile`, `tsconfig.json`) |
 | `skills/` | 12 reusable AI-agent skill definitions — `fetching`, `research`, `patch`, `credential-management`, `changelog-auto-update`, `pr-triage-automove`, `ci-workflow-authoring`, … |
-| `deliverables/` | 26 self-contained feature suites, each with its own README and tests — see [`deliverables/README.md`](./deliverables/README.md) |
-| `docs/` | Reference library (38 files): GraphQL, FireCrawl, Google Chat, GitHub Actions, MCP, environment configuration, incident drills, release notes |
+| `deliverables/` | 27 self-contained feature suites, each with its own README and tests — see [`deliverables/README.md`](./deliverables/README.md) |
+| `docs/` | Reference library (54 files): GraphQL, FireCrawl, Google Chat, GitHub Actions, MCP, environment configuration, incident drills, release notes, FIG architecture |
 | `tests/` | Test suite — `unit/`, `e2e/`, plus repo-level tests (`tests/conftest.py`, `pytest.ini` at root) |
 | `helm/`, `k8s/` | Deployment — Helm chart (`oauth-app`) and Kubernetes manifests (deployment, HPA, ingress, monitoring) |
 | `.github/workflows/` | 11 workflow files — only 6 of which parse, so the rest never run; see [CI/CD](#cicd--supply-chain-integrity) |
@@ -146,11 +146,12 @@ deliverable suites. Run a suite's own tests from its directory.
 
 ## Deliverables
 
-`deliverables/` holds 26 self-contained suites. Each is a complete piece of work —
+`deliverables/` holds 27 self-contained suites. Each is a complete piece of work —
 code, tests, and its own README — rather than a fragment of the main app:
 
 `agent-core` · `agent-security-suite` · `agent-skill-template` · `ai-agent-skills` ·
 `ai-agents-decision-pack` · `ai-gateway-architecture-review` · `azure-cli-2026` · `ci` ·
+`copilot-free-actions-playbook` ·
 `ci-workflow-sha-pin` · `cwe1321-protection-suite` · `docs-verify` · `fastapi-obsidian-backend` ·
 `fig-best-practices` · `firecrawl-fastapi` · `full-cicd-pipeline` · `gemini-cli-skills` ·
 `gh-devops-toolkit` · `manus-client` · `notebooklm-access-suite` · `notebooklm-link-share` ·
@@ -170,6 +171,7 @@ links into each suite.
 - **Security** — [`docs/knowledge-ai-agent-security-devsecops-2026.md`](./docs/knowledge-ai-agent-security-devsecops-2026.md): sandbox design, trust tiers, state isolation
 - **GitHub / DevOps** — [`docs/github-cli-gh-reference.md`](./docs/github-cli-gh-reference.md), [`docs/research-tools-free-guide.md`](./docs/research-tools-free-guide.md), `docs/github-actions/`
 - **Integrations** — `docs/GraphQL/`, `docs/FireCrawl_REST_API/`, `docs/GoogleChat_REST_API/`, `docs/supabase.md`
+- **FIG** — `docs/fig/`: FIG v4.1 Organization Edition — architecture, governance, MasterFiles policy and security layer, with the spec as machine-readable JSON config under `docs/fig/config/` and a validator (`docs/fig/validate_config.py`)
 
 Also at the root: [`ROADMAP.md`](./ROADMAP.md) (8-phase plan and milestone M4),
 [`TASKS.md`](./TASKS.md), [`CHANGELOG.md`](./CHANGELOG.md),
