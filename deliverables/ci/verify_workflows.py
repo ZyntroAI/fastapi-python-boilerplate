@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import argparse
 import glob
-import json
 import re
 import subprocess
 import sys
@@ -42,6 +41,9 @@ LS_ENV = {
     "HOME": "/tmp",
 }
 
+# repo -> full ref listing (cached: one network call per distinct action repo)
+_REF_CACHE: dict[str, str] = {}
+
 
 def repo_of(action: str) -> str:
     """github/codeql-action/init -> github/codeql-action"""
@@ -49,18 +51,35 @@ def repo_of(action: str) -> str:
 
 
 def real_sha(action: str, sha: str) -> bool:
-    r = subprocess.run(
-        ["git", "ls-remote", f"https://github.com/{repo_of(action)}", sha],
-        capture_output=True, text=True, env=LS_ENV,
-    )
-    return sha in r.stdout
+    """True if `sha` names a commit/branch/tag in the action's repository.
+
+    Two pitfalls, both of which silently produce false "does not exist":
+
+    1. `git ls-remote <url> <sha>` is NOT a membership test -- ls-remote takes
+       ref *patterns*, so a raw SHA matches nothing and every pin looks fake.
+       List the remote's refs once and test membership instead.
+    2. Do NOT pass `--refs`. It suppresses the peeled `<tag>^{}` lines, and for
+       an annotated tag the peeled line is the only place the *commit* hash
+       appears -- so an annotated-tag pin would be reported as fake. Without
+       `--refs` both lightweight (commit straight) and annotated (peeled) tags
+       resolve, while a fabricated SHA still matches nothing.
+    """
+    repo = repo_of(action)
+    if repo not in _REF_CACHE:
+        r = subprocess.run(
+            ["git", "ls-remote", "--tags", "--heads",
+             f"https://github.com/{repo}"],
+            capture_output=True, text=True, env=LS_ENV,
+        )
+        _REF_CACHE[repo] = r.stdout
+    return sha in _REF_CACHE[repo]
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--workflows", default=".github/workflows")
     ap.add_argument("--check-shas", action="store_true",
-                    help="confirm each SHA exists (network round-trip per action)")
+                    help="confirm each SHA exists (one network call per action repo)")
     args = ap.parse_args()
 
     files = sorted(f for f in glob.glob(f"{args.workflows}/*") if Path(f).is_file())
@@ -100,7 +119,8 @@ def main() -> int:
             all_refs.setdefault((action, ref_sha), []).append(name)
 
     if args.check_shas:
-        print(f"resolving {len(all_refs)} unique action refs ...")
+        print(f"resolving {len(all_refs)} unique action refs "
+              f"({len({repo_of(a) for a, _ in all_refs})} repositories) ...")
         for (action, sha) in sorted(all_refs):
             if not real_sha(action, sha):
                 failures.append(
