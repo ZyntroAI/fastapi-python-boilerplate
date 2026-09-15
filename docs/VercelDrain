@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vercel Drains: Interactive Architecture & Engineering Guide</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            900: '#14532d',
+                        },
+                        slate: {
+                            850: '#131e32'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Chosen Palette: Warm Minimalist Slate & Emerald -->
+    <!-- Application Structure Plan: Designed as a multi-tab interactive dashboard (Overview, Config & Payload Inspector, Cost Estimator, Integrations & Architecture, Operational Guidelines & Troubleshooting). This structure allows engineers to easily digest conceptual knowledge, test configurations, project costs, and reference operational guidelines without scrolling through a dense linear document. -->
+    <!-- Visualization & Content Choices:
+    1. Payload Distribution Chart -> Goal: Compare log volume sources -> Donut Chart (Chart.js) -> Interactive hover -> Highlight static asset dominance -> Chart.js Canvas.
+    2. Cost & Egress Estimator -> Goal: Show impact of sampling & static filtering -> Interactive Sliders + Dynamic Bar Chart (Chart.js Canvas) -> Dynamic calculation -> Helps teams optimize $10/5GB transfer costs.
+    3. Architecture Pipeline -> Goal: Organize data flow & security boundary -> Dynamic HTML/Tailwind grid flow layout with Unicode indicators -> Clickable nodes -> Explains receiver async buffering & HMAC verification.
+    4. Payload Inspector -> Goal: Formats & JSON Schema -> Tabbed Code Box with formatted JSON highlight -> Toggle NDJSON/JSON Array -> Easy syntax reference.
+    Confirming NO SVG graphics and NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 380px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 340px;
+            }
+        }
+        .code-scroll {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col selection:bg-brand-500 selection:text-white">
+
+    <!-- Header Navigation Bar -->
+    <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <span class="text-2xl">⚡</span>
+                    <div>
+                        <h1 class="font-bold text-lg leading-none text-slate-100">Vercel Drains Explorer</h1>
+                        <p class="text-xs text-slate-400 mt-1">Real-time Telemetry & Observability Pipeline</p>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center space-x-2 text-xs">
+                    <span class="bg-slate-800 text-emerald-400 px-3 py-1 rounded-full font-mono border border-emerald-500/20">Pro & Enterprise</span>
+                    <span class="bg-slate-800 text-blue-400 px-3 py-1 rounded-full font-mono border border-blue-500/20">$10 / 5 GB Transfer</span>
+                    <span class="bg-slate-800 text-purple-400 px-3 py-1 rounded-full font-mono border border-purple-500/20">OTLP & NDJSON</span>
+                </div>
+            </div>
+            <!-- Tab Navigation Buttons -->
+            <nav class="flex space-x-1 sm:space-x-4 border-t border-slate-800 text-xs sm:text-sm font-medium overflow-x-auto py-2" id="nav-tabs">
+                <button onclick="switchTab('overview')" id="tab-btn-overview" class="tab-btn px-3 py-1.5 rounded-md bg-emerald-600 text-white font-semibold transition">
+                    📌 Overview & Concepts
+                </button>
+                <button onclick="switchTab('payload')" id="tab-btn-payload" class="tab-btn px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                    🧪 Payload & Config Inspector
+                </button>
+                <button onclick="switchTab('cost')" id="tab-btn-cost" class="tab-btn px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                    💰 Cost & Volume Estimator
+                </button>
+                <button onclick="switchTab('destinations')" id="tab-btn-destinations" class="tab-btn px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                    🔗 Destinations & Architecture
+                </button>
+                <button onclick="switchTab('guidelines')" id="tab-btn-guidelines" class="tab-btn px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                    🛡️ Guidelines & Troubleshooting
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Body -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- SECTION 1: OVERVIEW & CORE CONCEPTS -->
+        <section id="tab-overview" class="tab-content space-y-8">
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold text-slate-900 mb-2">Vercel Telemetry Stream Architecture</h2>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    Vercel Drains stream execution logs and distributed performance traces directly from Vercel's Edge Network and Serverless infrastructure to external observability platforms or custom receivers in real time. This interactive section provides an overview of the two stream types and breaks down typical log volume distribution by source context.
+                </p>
+            </div>
+
+            <!-- Grid Layout for Telemetry Types -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Log Drains Card -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 flex flex-col justify-between hover:border-emerald-500/50 transition">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-2xl">📜</span>
+                            <span class="text-xs font-mono font-semibold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded">Log Drains</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900 mb-2">Event & Runtime Logs</h3>
+                        <p class="text-xs text-slate-600 mb-4 leading-relaxed">
+                            Forward application execution context, stdout/stderr streams, execution errors, and HTTP access logs.
+                        </p>
+                        <ul class="space-y-2 text-xs text-slate-700">
+                            <li class="flex items-start"><span class="text-emerald-500 mr-2">✓</span> <strong>Function Logs:</strong> Serverless Node.js runtime outputs & exceptions.</li>
+                            <li class="flex items-start"><span class="text-emerald-500 mr-2">✓</span> <strong>Edge Logs:</strong> Edge Functions & Middleware execution events.</li>
+                            <li class="flex items-start"><span class="text-emerald-500 mr-2">✓</span> <strong>Static Access Logs:</strong> Edge CDN asset hit/miss HTTP records.</li>
+                            <li class="flex items-start"><span class="text-emerald-500 mr-2">✓</span> <strong>Build Logs:</strong> Deployment & compilation error outputs.</li>
+                        </ul>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-100 text-xs text-slate-500">
+                        Format: <span class="font-mono text-slate-700">NDJSON</span> or <span class="font-mono text-slate-700">JSON Array</span>
+                    </div>
+                </div>
+
+                <!-- Trace Drains Card -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 flex flex-col justify-between hover:border-purple-500/50 transition">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-2xl">🕸️</span>
+                            <span class="text-xs font-mono font-semibold bg-purple-100 text-purple-800 px-2.5 py-1 rounded">Trace Drains</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900 mb-2">Distributed Tracing (OTLP)</h3>
+                        <p class="text-xs text-slate-600 mb-4 leading-relaxed">
+                            Forward OpenTelemetry (OTLP) compatible span telemetry measuring microservice latency, cold starts, and request propagation.
+                        </p>
+                        <ul class="space-y-2 text-xs text-slate-700">
+                            <li class="flex items-start"><span class="text-purple-500 mr-2">✓</span> <strong>Performance Spans:</strong> Database queries, API fetches, SSR delays.</li>
+                            <li class="flex items-start"><span class="text-purple-500 mr-2">✓</span> <strong>Cold Start Analysis:</strong> Lambda initialization vs execution latency.</li>
+                            <li class="flex items-start"><span class="text-purple-500 mr-2">✓</span> <strong>Distributed Propagation:</strong> End-to-end request ID trace matching.</li>
+                            <li class="flex items-start"><span class="text-purple-500 mr-2">✓</span> <strong>OTLP Native:</strong> Standard payload formatting for Jaeger, Datadog, etc.</li>
+                        </ul>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-100 text-xs text-slate-500">
+                        Standard: <span class="font-mono text-slate-700">OpenTelemetry OTLP HTTP/JSON</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Volume Distribution Chart Section -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                <div class="lg:col-span-5 space-y-3">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-emerald-600">Volume Analysis</span>
+                    <h3 class="text-lg font-bold text-slate-900">Typical High-Traffic Log Volume Breakdown</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        In typical production deployments, <strong>Static Access Logs account for 80-90%</strong> of overall transmitted volume. Disabling Static Access Logs or dialing down sampling for static assets is the single most effective way to optimize data transfer costs.
+                    </p>
+                    <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+                        💡 <strong>Engineering Tip:</strong> If your team only uses log drains for application debugging, uncheck <em>Static Access Logs</em> during drain configuration to save up to 85% on log egress billing!
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7 flex justify-center">
+                    <div class="chart-container">
+                        <canvas id="volumeBreakdownChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: PAYLOAD & CONFIGURATION INSPECTOR -->
+        <section id="tab-payload" class="tab-content space-y-8 hidden">
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold text-slate-900 mb-2">Interactive Configuration & Payload Simulator</h2>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    Test how configuration choices (sources, environments, sampling rates) affect the JSON telemetry payloads sent to your custom receiver endpoints. Select sources on the left to simulate payload generation on the right.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Interactive Controls -->
+                <div class="lg:col-span-5 bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
+                    <h3 class="font-bold text-sm text-slate-900 uppercase tracking-wide border-b pb-2">1. Configure Drain Settings</h3>
+                    
+                    <!-- Telemetry Type -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Drain Type</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" onclick="setInspectorType('log')" id="type-btn-log" class="py-2 px-3 text-xs font-medium rounded-lg border border-emerald-600 bg-emerald-50 text-emerald-700 font-semibold">Log Drain</button>
+                            <button type="button" onclick="setInspectorType('trace')" id="type-btn-trace" class="py-2 px-3 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Trace Drain (OTLP)</button>
+                        </div>
+                    </div>
+
+                    <!-- Log Sources Checkboxes -->
+                    <div id="sources-group">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Active Log Sources</label>
+                        <div class="space-y-2 text-xs">
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="src-function" checked onchange="updatePayloadSimulator()" class="rounded text-emerald-600 focus:ring-emerald-500">
+                                <span>Function Logs (<span class="font-mono text-slate-500">lambda</span>)</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="src-edge" checked onchange="updatePayloadSimulator()" class="rounded text-emerald-600 focus:ring-emerald-500">
+                                <span>Edge Middleware (<span class="font-mono text-slate-500">edge</span>)</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="src-static" checked onchange="updatePayloadSimulator()" class="rounded text-emerald-600 focus:ring-emerald-500">
+                                <span>Static Access Logs (<span class="font-mono text-slate-500">static</span>)</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="src-build" onchange="updatePayloadSimulator()" class="rounded text-emerald-600 focus:ring-emerald-500">
+                                <span>Build Logs (<span class="font-mono text-slate-500">build</span>)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Environment & Delivery Format -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Target Environment</label>
+                            <select id="env-select" onchange="updatePayloadSimulator()" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500">
+                                <option value="production">Production</option>
+                                <option value="preview">Preview</option>
+                                <option value="development">Development</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Delivery Format</label>
+                            <select id="format-select" onchange="updatePayloadSimulator()" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500">
+                                <option value="ndjson">NDJSON (Line-Delimited)</option>
+                                <option value="json">JSON Array</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Custom Header Toggle -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Custom Authentication Header</label>
+                        <div class="p-2.5 bg-slate-100 rounded-lg font-mono text-xs text-slate-700 border border-slate-200">
+                            Authorization: Bearer vercel_secret_token_99x
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulated Payload Code View -->
+                <div class="lg:col-span-7 bg-slate-900 rounded-xl p-6 text-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+                            <span class="text-xs font-mono text-emerald-400 font-semibold">Incoming HTTP POST Payload Preview</span>
+                            <button onclick="copyPayload()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded font-mono transition">📋 Copy JSON</button>
+                        </div>
+                        <pre id="payload-output" class="code-scroll text-xs leading-relaxed text-emerald-300 overflow-x-auto p-2 bg-slate-950 rounded-lg border border-slate-800 max-h-96">
+                        </pre>
+                    </div>
+
+                    <!-- Key Field Schema Inspector -->
+                    <div class="mt-4 pt-4 border-t border-slate-800 text-xs grid grid-cols-2 sm:grid-cols-3 gap-2 text-slate-400">
+                        <div><strong class="text-slate-200 font-mono">requestId:</strong> Unique trace ID</div>
+                        <div><strong class="text-slate-200 font-mono">statusCode:</strong> HTTP status response</div>
+                        <div><strong class="text-slate-200 font-mono">executionRegion:</strong> Vercel edge region (e.g. iad1)</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: COST & VOLUME ESTIMATOR -->
+        <section id="tab-cost" class="tab-content space-y-8 hidden">
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold text-slate-900 mb-2">Interactive Egress Cost & Bandwidth Estimator</h2>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    Vercel Drains billing is based on outbound data transfer (standard pricing: <strong>$10 per 5 GB</strong>). Adjust your monthly traffic volume, log sizes, and sampling settings below to simulate monthly egress data and compute projected cost savings.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Slider Controls -->
+                <div class="lg:col-span-5 bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
+                    <h3 class="font-bold text-sm text-slate-900 uppercase tracking-wide border-b pb-2">Traffic & Log Parameters</h3>
+
+                    <!-- Monthly Requests -->
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                            <span>Monthly Requests</span>
+                            <span id="label-requests" class="text-emerald-600 font-mono font-bold">10 Million</span>
+                        </div>
+                        <input type="range" id="input-requests" min="1" max="100" value="10" oninput="calculateCost()" class="w-full accent-emerald-600">
+                    </div>
+
+                    <!-- Average Payload Size per Request -->
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                            <span>Avg Log Size per Request</span>
+                            <span id="label-size" class="text-emerald-600 font-mono font-bold">1.5 KB</span>
+                        </div>
+                        <input type="range" id="input-size" min="0.5" max="5.0" step="0.1" value="1.5" oninput="calculateCost()" class="w-full accent-emerald-600">
+                    </div>
+
+                    <!-- Sampling Rate -->
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                            <span>Sampling Rate</span>
+                            <span id="label-sampling" class="text-emerald-600 font-mono font-bold">100% (No Sampling)</span>
+                        </div>
+                        <input type="range" id="input-sampling" min="1" max="100" value="100" oninput="calculateCost()" class="w-full accent-emerald-600">
+                    </div>
+
+                    <!-- Exclude Static Toggle -->
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
+                        <div>
+                            <div class="text-xs font-bold text-slate-800">Deselect Static Access Logs</div>
+                            <div class="text-[11px] text-slate-500">Excludes ~80% static CDN hits from drain</div>
+                        </div>
+                        <input type="checkbox" id="toggle-static" onchange="calculateCost()" class="h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500">
+                    </div>
+
+                    <!-- Calculated Metrics Summary Card -->
+                    <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl space-y-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-emerald-800 font-medium">Estimated Monthly Transfer:</span>
+                            <span id="calc-volume" class="font-mono font-bold text-emerald-900 text-sm">15.00 GB</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs border-t border-emerald-200/60 pt-2">
+                            <span class="text-emerald-800 font-medium">Projected Monthly Cost:</span>
+                            <span id="calc-cost" class="font-mono font-bold text-emerald-900 text-base">$30.00 / mo</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cost Comparison Visualizer Chart -->
+                <div class="lg:col-span-7 bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-900 mb-1">Egress Cost Optimization Impact</h3>
+                        <p class="text-xs text-slate-500 mb-4">Comparing raw unsampled data transfer against your current configured optimization strategy.</p>
+                        <div class="chart-container">
+                            <canvas id="costComparisonChart"></canvas>
+                        </div>
+                    </div>
+                    <div id="cost-savings-callout" class="mt-4 p-3 bg-slate-100 rounded-lg text-xs text-slate-700 flex justify-between items-center">
+                        <span>💰 Optimization Savings:</span>
+                        <span id="savings-amount" class="font-mono font-bold text-emerald-600">$0.00 / month (0%)</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: DESTINATIONS & ARCHITECTURE -->
+        <section id="tab-destinations" class="tab-content space-y-8 hidden">
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold text-slate-900 mb-2">Destinations, Integrations & Receiver Architecture</h2>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    Vercel provides native Marketplace integrations for popular observability providers alongside custom HTTP endpoint support. Explore available integrations below and review recommended architecture for custom receivers.
+                </p>
+            </div>
+
+            <!-- Pipeline Architecture Flow Diagram (Pure HTML/Tailwind) -->
+            <div class="bg-slate-900 rounded-xl p-6 text-white shadow-sm space-y-4">
+                <h3 class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Recommended Custom Receiver Architecture</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center text-xs">
+                    <!-- Step 1 -->
+                    <div class="p-4 bg-slate-800 rounded-lg border border-slate-700 flex flex-col items-center justify-center space-y-2">
+                        <span class="text-2xl">⚡</span>
+                        <span class="font-bold text-slate-200">Vercel Deployment</span>
+                        <span class="text-[11px] text-slate-400">Generates logs & traces across regions</span>
+                    </div>
+                    <!-- Arrow -->
+                    <div class="hidden md:flex items-center justify-center text-emerald-400 font-bold text-xl">
+                        ➔
+                    </div>
+                    <!-- Step 2 -->
+                    <div class="p-4 bg-slate-800 rounded-lg border border-emerald-500/40 flex flex-col items-center justify-center space-y-2">
+                        <span class="text-2xl">🛡️</span>
+                        <span class="font-bold text-emerald-300">Async Ingestion Receiver</span>
+                        <span class="text-[11px] text-slate-400">Verifies HMAC & responds 200 OK &lt; 100ms</span>
+                    </div>
+                    <!-- Arrow -->
+                    <div class="hidden md:flex items-center justify-center text-emerald-400 font-bold text-xl">
+                        ➔
+                    </div>
+                    <!-- Step 3 -->
+                    <div class="p-4 bg-slate-800 rounded-lg border border-slate-700 flex flex-col items-center justify-center space-y-2">
+                        <span class="text-2xl">📦</span>
+                        <span class="font-bold text-slate-200">Message Queue / Buffer</span>
+                        <span class="text-[11px] text-slate-400">AWS SQS, Redis BullMQ, Kafka</span>
+                    </div>
+                </div>
+                <div class="p-3 bg-amber-950/60 border border-amber-500/30 rounded-lg text-xs text-amber-200 flex items-start space-x-2">
+                    <span class="text-base">⚠️</span>
+                    <span><strong>CRITICAL RULE:</strong> Always process incoming payloads asynchronously! Custom endpoints must return <code class="bg-amber-900/60 px-1 rounded">200 OK</code> within 5 seconds. If requests time out, Vercel marks the drain endpoint as degraded and auto-disables the drain.</span>
+                </div>
+            </div>
+
+            <!-- Destinations Filter Gallery -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-4">
+                    <h3 class="font-bold text-base text-slate-900">Supported Observability Destinations</h3>
+                    <div class="flex space-x-2 text-xs" id="dest-filters">
+                        <button onclick="filterDestinations('all')" class="dest-btn px-3 py-1 rounded-full bg-slate-800 text-white font-medium">All</button>
+                        <button onclick="filterDestinations('native')" class="dest-btn px-3 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200">Native Integrations</button>
+                        <button onclick="filterDestinations('trace')" class="dest-btn px-3 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200">Trace Providers</button>
+                        <button onclick="filterDestinations('custom')" class="dest-btn px-3 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200">Custom HTTP</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="destinations-grid">
+                    <!-- Cards populated via JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: GUIDELINES & TROUBLESHOOTING -->
+        <section id="tab-guidelines" class="tab-content space-y-8 hidden">
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold text-slate-900 mb-2">Operational Guidelines & Troubleshooting Matrix</h2>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    Review critical architectural safeguards—including infinite recursion loop prevention—and consult the interactive troubleshooting matrix to resolve verification or stream delivery issues.
+                </p>
+            </div>
+
+            <!-- Infinite Recursion Hazard Highlight Banner -->
+            <div class="bg-red-50 border-2 border-red-300 rounded-xl p-6 shadow-sm space-y-3">
+                <div class="flex items-center space-x-3 text-red-900 font-bold text-base">
+                    <span class="text-2xl">🚨</span>
+                    <span>ARCHITECTURAL RISK: Infinite Log Recursion Loops</span>
+                </div>
+                <p class="text-xs text-red-800 leading-relaxed">
+                    <strong>Never point a Vercel Log Drain to a custom receiver endpoint hosted on the same Vercel project without explicit scope filtering!</strong>
+                </p>
+                <div class="bg-white/80 p-4 rounded-lg border border-red-200 text-xs text-slate-700 space-y-2 font-mono">
+                    <div>1. Custom Receiver endpoint on Vercel receives log payload.</div>
+                    <div>2. Receiver writes console.log("Received batch").</div>
+                    <div>3. Vercel streams this new console log back into the same Drain endpoint.</div>
+                    <div>4. Result: Exponential, infinite logging loop that consumes bandwidth and crashes servers!</div>
+                </div>
+                <div class="text-xs font-semibold text-red-900">
+                    ✅ <strong>Prevention:</strong> Host receivers on external infrastructure (AWS, GCP, Railway) or explicitly uncheck the receiver project in your Vercel Drain settings.
+                </div>
+            </div>
+
+            <!-- Interactive Troubleshooting Table -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 space-y-4">
+                <div class="flex justify-between items-center border-b pb-3">
+                    <h3 class="font-bold text-slate-900 text-base">Troubleshooting Knowledge Base</h3>
+                    <div class="text-xs text-slate-500">Filter by category or common symptom</div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 bg-slate-50 text-slate-700 font-semibold">
+                                <th class="p-3">Symptom / Issue</th>
+                                <th class="p-3">Possible Root Cause</th>
+                                <th class="p-3">Recommended Resolution</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-slate-700">
+                            <tr class="hover:bg-slate-50/80">
+                                <td class="p-3 font-semibold text-red-700">Drain Auto-Disabled by Vercel</td>
+                                <td class="p-3">Receiver endpoint returned repeated <code class="bg-slate-100 px-1 py-0.5 rounded">5xx</code> errors or timed out (>5 seconds).</td>
+                                <td class="p-3">Ensure receiver returns <code class="bg-slate-100 px-1 py-0.5 rounded text-emerald-700">200 OK</code> immediately (&lt;100ms) before processing work asynchronously. Re-enable in Vercel Dashboard.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/80">
+                                <td class="p-3 font-semibold text-amber-700">Verification Failed Error</td>
+                                <td class="p-3">Receiver failed to reflect the <code class="bg-slate-100 px-1 py-0.5 rounded">x-vercel-verify</code> handshake header during configuration setup.</td>
+                                <td class="p-3">Update endpoint code to inspect incoming headers and return the exact value of <code class="bg-slate-100 px-1 py-0.5 rounded">x-vercel-verify</code> in the HTTP response body/header.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/80">
+                                <td class="p-3 font-semibold text-blue-700">Missing Expected Log Fields</td>
+                                <td class="p-3">Scope or source filter mismatch in Drain configuration settings.</td>
+                                <td class="p-3">Check Drain configuration filters to ensure Function, Edge, or Static checkboxes match the missing event context.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/80">
+                                <td class="p-3 font-semibold text-purple-700">Unexpected Egress Cost Spike</td>
+                                <td class="p-3">Infinite logging loop active or un-sampled high-frequency static asset hits.</td>
+                                <td class="p-3">Uncheck Static Access Logs in Drain settings or set static asset sampling rate to 5–10%. Ensure receiver does not log incoming requests back to Vercel.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 text-xs py-6 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-2">
+            <p>Vercel Drains Interactive Explorer — Designed for Cloud & DevOps Engineers</p>
+            <p class="text-slate-500">Based on official Vercel Telemetry & Observability Documentation</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Data Storage
+        const destinations = [
+            { name: "Axiom", type: "native", category: "Logging", icon: "📊", desc: "Zero-config high-throughput log analytics." },
+            { name: "Datadog", type: "native", category: "Logging & Traces", icon: "🐶", desc: "Unified APM, infrastructure metrics & logs." },
+            { name: "Better Stack", type: "native", category: "Logging", icon: "⚡", desc: "Beautiful SQL log management & uptime." },
+            { name: "Sentry", type: "native", category: "Error Tracking", icon: "🏹", desc: "Application error monitoring & performance." },
+            { name: "New Relic", type: "native", category: "Observability", icon: "📈", desc: "Full-stack observability & trace analysis." },
+            { name: "Dash0", type: "trace", category: "Tracing", icon: "🕸️", desc: "OpenTelemetry-native distributed tracing." },
+            { name: "Braintrust", type: "trace", category: "AI Tracing", icon: "🧠", desc: "Evaluations & trace logging for AI/LLM apps." },
+            { name: "Custom HTTP Endpoint", type: "custom", category: "Webhook / Pipeline", icon: "🌐", desc: "AWS API Gateway, Vector, FluentBit, or custom web servers." }
+        ];
+
+        const sampleLogData = {
+            id: "log_8a3f2b1d9e",
+            message: "GET /api/users 200 in 42ms",
+            timestamp: 1725436800000,
+            type: "lambda",
+            source: "lambda",
+            projectId: "prj_123456789",
+            deploymentId: "dpl_abc123xyz",
+            environment: "production",
+            host: "my-app.vercel.app",
+            method: "GET",
+            path: "/api/users",
+            statusCode: 200,
+            clientIp: "203.0.113.195",
+            userAgent: "Mozilla/5.0 ...",
+            requestId: "iad1::q9k4d-1725436800000-a1b2c3d4",
+            executionRegion: "iad1"
+        };
+
+        const sampleTraceData = {
+            resourceSpans: [{
+                resource: {
+                    attributes: [
+                        { key: "service.name", value: { stringValue: "my-vercel-app" } },
+                        { key: "vercel.environment", value: { stringValue: "production" } }
+                    ]
+                },
+                scopeSpans: [{
+                    spans: [{
+                        traceId: "4bf92f3577b34da6a3ce929d0e0e4736",
+                        spanId: "00f067aa0ba902b7",
+                        name: "SELECT * FROM users WHERE status = 'active'",
+                        kind: "SPAN_KIND_CLIENT",
+                        startTimeUnixNano: "1725436800000000000",
+                        endTimeUnixNano: "1725436800015000000",
+                        attributes: [
+                            { key: "db.system", value: { stringValue: "postgresql" } },
+                            { key: "http.status_code", value: { intValue: 200 } }
+                        ]
+                    }]
+                }]
+            }]
+        };
+
+        let currentInspectorType = 'log';
+        let volumeChartInstance = null;
+        let costChartInstance = null;
+
+        // Tab Navigation
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-emerald-600', 'text-white', 'font-semibold');
+                btn.classList.add('text-slate-300', 'hover:text-white', 'hover:bg-slate-800');
+            });
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+            activeBtn.classList.add('bg-emerald-600', 'text-white', 'font-semibold');
+            activeBtn.classList.remove('text-slate-300', 'hover:text-white', 'hover:bg-slate-800');
+
+            if (tabId === 'overview' && volumeChartInstance) {
+                volumeChartInstance.resize();
+            } else if (tabId === 'cost' && costChartInstance) {
+                costChartInstance.resize();
+            }
+        }
+
+        // Section 2 Logic: Payload Inspector
+        function setInspectorType(type) {
+            currentInspectorType = type;
+            const logBtn = document.getElementById('type-btn-log');
+            const traceBtn = document.getElementById('type-btn-trace');
+            const sourcesGroup = document.getElementById('sources-group');
+
+            if (type === 'log') {
+                logBtn.className = "py-2 px-3 text-xs font-medium rounded-lg border border-emerald-600 bg-emerald-50 text-emerald-700 font-semibold";
+                traceBtn.className = "py-2 px-3 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50";
+                sourcesGroup.style.opacity = '1';
+                sourcesGroup.style.pointerEvents = 'auto';
+            } else {
+                traceBtn.className = "py-2 px-3 text-xs font-medium rounded-lg border border-purple-600 bg-purple-50 text-purple-700 font-semibold";
+                logBtn.className = "py-2 px-3 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50";
+                sourcesGroup.style.opacity = '0.4';
+                sourcesGroup.style.pointerEvents = 'none';
+            }
+            updatePayloadSimulator();
+        }
+
+        function updatePayloadSimulator() {
+            const env = document.getElementById('env-select').value;
+            const format = document.getElementById('format-select').value;
+            const output = document.getElementById('payload-output');
+
+            if (currentInspectorType === 'log') {
+                let simulatedLog = { ...sampleLogData, environment: env };
+                if (format === 'ndjson') {
+                    output.textContent = JSON.stringify(simulatedLog) + "\n" + JSON.stringify({ ...simulatedLog, id: "log_9b4e1c2a" });
+                } else {
+                    output.textContent = JSON.stringify([simulatedLog, { ...simulatedLog, id: "log_9b4e1c2a" }], null, 2);
+                }
+            } else {
+                output.textContent = JSON.stringify(sampleTraceData, null, 2);
+            }
+        }
+
+        function copyPayload() {
+            const text = document.getElementById('payload-output').textContent;
+            navigator.clipboard.writeText(text);
+            alert("Payload JSON copied to clipboard!");
+        }
+
+        // Section 3 Logic: Cost Estimator
+        function calculateCost() {
+            const requests = parseFloat(document.getElementById('input-requests').value); // in Millions
+            const size = parseFloat(document.getElementById('input-size').value); // in KB
+            const sampling = parseFloat(document.getElementById('input-sampling').value); // percentage
+            const excludeStatic = document.getElementById('toggle-static').checked;
+
+            document.getElementById('label-requests').textContent = `${requests} Million`;
+            document.getElementById('label-size').textContent = `${size} KB`;
+            document.getElementById('label-sampling').textContent = `${sampling}%`;
+
+            // Calculations
+            // Base volume in GB = (Requests * 1,000,000 * Size KB) / (1024 * 1024)
+            let rawVolumeGB = (requests * 1000000 * size) / (1024 * 1024);
+            let effectiveVolumeGB = rawVolumeGB * (sampling / 100);
+
+            if (excludeStatic) {
+                effectiveVolumeGB = effectiveVolumeGB * 0.20; // Assume static is 80%
+            }
+
+            // Pricing: $10 per 5 GB block (or $2/GB)
+            const rawCost = Math.ceil(rawVolumeGB / 5) * 10;
+            const optimizedCost = Math.ceil(effectiveVolumeGB / 5) * 10;
+
+            document.getElementById('calc-volume').textContent = `${effectiveVolumeGB.toFixed(2)} GB / mo`;
+            document.getElementById('calc-cost').textContent = `$${optimizedCost.toFixed(2)} / mo`;
+
+            const savings = Math.max(0, rawCost - optimizedCost);
+            const savingsPercent = rawCost > 0 ? Math.round((savings / rawCost) * 100) : 0;
+            document.getElementById('savings-amount').textContent = `$${savings.toFixed(2)} / month (${savingsPercent}% saved)`;
+
+            // Update Chart
+            if (costChartInstance) {
+                costChartInstance.data.datasets[0].data = [rawCost, optimizedCost];
+                costChartInstance.update();
+            }
+        }
+
+        // Section 4 Logic: Destinations Grid Filter
+        function renderDestinations(filter = 'all') {
+            const grid = document.getElementById('destinations-grid');
+            grid.innerHTML = '';
+
+            const filtered = destinations.filter(d => {
+                if (filter === 'all') return true;
+                return d.type === filter;
+            });
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-col justify-between hover:shadow-md transition";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xl">${item.icon}</span>
+                            <span class="text-[10px] font-mono px-2 py-0.5 bg-slate-200 text-slate-700 rounded">${item.category}</span>
+                        </div>
+                        <h4 class="font-bold text-sm text-slate-900">${item.name}</h4>
+                        <p class="text-xs text-slate-600 mt-1">${item.desc}</p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterDestinations(type) {
+            document.querySelectorAll('#dest-filters button').forEach(btn => {
+                btn.className = "dest-btn px-3 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200";
+            });
+            event.target.className = "dest-btn px-3 py-1 rounded-full bg-slate-800 text-white font-medium";
+            renderDestinations(type);
+        }
+
+        // Chart Initialization
+        function initCharts() {
+            // Chart 1: Volume Breakdown (Donut)
+            const volumeCtx = document.getElementById('volumeBreakdownChart').getContext('2d');
+            volumeChartInstance = new Chart(volumeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Static Access Logs (CDN)', 'Function Logs (Lambda)', 'Edge Middleware Logs', 'Build Logs'],
+                    datasets: [{
+                        data: [82, 12, 5, 1],
+                        backgroundColor: ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 11 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.label}: ${context.raw}% of total payload volume`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Chart 2: Cost Comparison (Bar Chart)
+            const costCtx = document.getElementById('costComparisonChart').getContext('2d');
+            costChartInstance = new Chart(costCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Unoptimized (100% Unsampled)', 'Current Configured Strategy'],
+                    datasets: [{
+                        label: 'Projected Monthly Egress Cost ($)',
+                        data: [30, 30],
+                        backgroundColor: ['#ef4444', '#10b981'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Cost ($ / month)' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // Initialize Application
+        window.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            updatePayloadSimulator();
+            calculateCost();
+            renderDestinations();
+        });
+    </script>
+</body>
+</html>
