@@ -1,0 +1,96 @@
+{
+  "_notes": "Rule table for skills/auto-label. Each entry is {match, labels}. 'type' matches the conventional-commit type parsed from the PR title; 'paths' matches changed file paths by glob. Every matching rule contributes (flat precedence, no first-match-wins). Label strings must exist on the repo or GitHub will create them silently -- verify with `gh label list`. Emoji-bearing labels ('skills \\ud83e\\uddf9', 'docs \\ud83d\\udcdd') exist alongside plain ones; this table deliberately targets the plain 'docs' and the emoji 'skills \\ud83e\\uddf9' to match how the repo actually filters.",
+  "rules": [
+    {
+      "match": { "type": ["feat", "feature"] },
+      "labels": ["feature", "enhancement"]
+    },
+    {
+      "match": { "type": ["fix", "bugfix"] },
+      "labels": ["bugfix", "bug"]
+    },
+    {
+      "match": { "type": ["docs"] },
+      "labels": ["docs", "documentation"]
+    },
+    {
+      "match": { "type": ["refactor"] },
+      "labels": ["refactor"]
+    },
+    {
+      "match": { "type": ["test", "tests"] },
+      "labels": ["testing"]
+    },
+    {
+      "match": { "type": ["chore"] },
+      "labels": ["chore"]
+    },
+    {
+      "match": { "type": ["ci", "build"] },
+      "labels": ["build"]
+    },
+    {
+      "match": { "type": ["perf", "performance"] },
+      "labels": ["performance"]
+    },
+    {
+      "match": { "type": ["security"] },
+      "labels": ["security"]
+    },
+    {
+      "match": { "type": ["deps", "dependabot"] },
+      "labels": ["dependencies", "deps"]
+    },
+    {
+      "match": { "type": ["release"] },
+      "labels": ["release"]
+    },
+    {
+      "match": { "paths": ["skills/**"] },
+      "labels": ["skills 🧠"]
+    },
+    {
+      "match": { "paths": ["security/**"] },
+      "labels": ["security"]
+    },
+    {
+      "match": { "paths": ["docs/**", "*.md", "*.mdx"] },
+      "labels": ["docs", "documentation"]
+    },
+    {
+      "match": { "paths": ["**/test_*.py", "**/*_test.py", "tests/**", "**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts"] },
+      "labels": ["testing"]
+    },
+    {
+      "match": { "paths": [".github/workflows/**"] },
+      "labels": ["build"]
+    },
+    {
+      "match": {
+        "paths": [
+          "requirements*.txt",
+          "pyproject.toml",
+          "poetry.lock",
+          "uv.lock",
+          "package.json",
+          "package-lock.json",
+          "pnpm-lock.yaml",
+          "yarn.lock"
+        ]
+      },
+      "labels": ["dependencies", "deps"]
+    },
+    {
+      "match": { "paths": ["**/*.jsx", "**/*.tsx", "**/*.css", "**/*.scss"] },
+      "labels": ["ux/ui"]
+    },
+    {
+      "match": { "paths": ["**/*.py"] },
+      "labels": ["python:uv"]
+    },
+    {
+      "match": { "paths": ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"] },
+      "labels": ["javascript"]
+    }
+  ]
+}
