@@ -7,6 +7,26 @@ Open problems and known blockers are tracked separately in
 
 ## [2026-09-15]
 
+### Added
+- **PR #293** — `docs/fig/` — FIG v4.1 Organization Edition converted from
+  jsx-style pseudocode (`FIG.ORG = { ... }` in `.fix/FIG_V4/`) into
+  machine-readable JSON config. The specification was readable by people but
+  unusable by tooling, so the eight settings it described were transcribed
+  verbatim into `docs/fig/config/` — organization identity, MasterFiles policy
+  with its four protected paths, the five-layer security flags, the four-role
+  permission matrix, the GitHub org rules, the 13 enterprise components, and a
+  JSON Schema for audit events with a worked example. Six prose documents sit
+  beside them, and `docs/fig/validate_config.py` re-checks the whole
+  arrangement — 34 assertions covering parse, fidelity to the source document,
+  schema conformance, and the absence of leftover pseudocode. Two gaps are
+  recorded rather than papered over: the source does not say whether FIG is a
+  code framework or a specification (so no `.jsx` was written), and the GitHub
+  rules the document mandates disagree with the repository's current branch
+  protection in two places (`require_signed_commits` is off, and
+  `require_review_count: 2` is not enforced). TASK-20260915-001 records the
+  work. The `.fix/FIG_V4/` original is deliberately left in place as the
+  provenance record.
+
 ### Changed
 - **PR #231** — environment configuration rewritten around per-component
   templates. `.env` was tracked at the root while the codebase reads 148
