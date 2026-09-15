@@ -1,0 +1,67 @@
+name: Token Health Check
+
+# Layer 3 — health check. Runs every 6 hours, probes each token against a
+# known endpoint, and alerts Slack when one starts failing. This finds a dead
+# token BEFORE a real workflow trips over it.
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Probe tokens
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
+          API_KEY: ${{ secrets.API_KEY_V2 || secrets.API_KEY }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          set -uo pipefail
+
+          # name|url  pairs
+          TOKENS="gitlab|https://gitlab.com/api/v4/user
+          api|https://api.example.com/health"
+
+          FAILED=""
+
+          while IFS='|' read -r NAME URL; do
+            [ -z "$NAME" ] && continue
+
+            case "$NAME" in
+              gitlab) VALUE="$GITLAB_TOKEN" ;;
+              api)    VALUE="$API_KEY" ;;
+              *)      VALUE="" ;;
+            esac
+
+            CODE=$(curl -s -o /dev/null -w '%{http_code}' \
+              -H "Authorization: Bearer ${VALUE}" \
+              --max-time 15 "$URL" || echo "000")
+
+            if [ "$CODE" != "200" ]; then
+              echo "FAIL: ${NAME} -> HTTP ${CODE}"
+              FAILED="${FAILED}${NAME} (HTTP ${CODE}); "
+            else
+              echo "OK:   ${NAME}"
+            fi
+          done <<< "$TOKENS"
+
+          if [ -n "$FAILED" ]; then
+            echo "::error::Unhealthy tokens: ${FAILED}"
+            if [ -n "${SLACK_WEBHOOK:-}" ]; then
+              curl -s -X POST "$SLACK_WEBHOOK" \
+                -H 'Content-Type: application/json' \
+                -d "{\"text\":\"Token alert: ${FAILED}\"}" || true
+            fi
+            exit 1
+          fi
+
+          echo "All tokens healthy."

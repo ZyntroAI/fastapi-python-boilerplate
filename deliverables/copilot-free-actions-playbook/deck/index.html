@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maximize GitHub Copilot Free Plan + Actions Hardening (2026) — ZyntroAI</title>
+<style>
+  :root{
+    --bg:#0B0F14; --surface:#111820; --line:#1E2A36; --line2:#2A3A4A;
+    --ink:#E6EDF3; --mut:#8B98A5; --dim:#5A6875;
+    --blue:#4C8DFF; --amber:#F0A500; --teal:#2DD4A7; --violet:#A78BFA;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:#05080B;color:var(--ink);font-family:var(--sans);
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+  }
+  .deck{width:100vw;height:100vh;position:relative}
+  .slide{
+    position:absolute;inset:0;display:none;
+    padding:clamp(28px,4.2vw,64px) clamp(32px,5vw,88px) clamp(48px,6vh,72px);
+    background:var(--bg);
+    flex-direction:column;
+  }
+  .slide.on{display:flex}
+  .accent{position:absolute;top:0;left:0;right:0;height:4px;background:var(--a,var(--blue))}
+  .eyebrow{
+    font-family:var(--mono);font-size:clamp(11px,1.05vw,14px);
+    letter-spacing:.18em;text-transform:uppercase;color:var(--a,var(--blue));
+    font-weight:600;margin-bottom:clamp(10px,1.6vh,20px)
+  }
+  h1{
+    font-size:clamp(38px,5.6vw,84px);line-height:1.02;letter-spacing:-.025em;
+    font-weight:800;max-width:20ch
+  }
+  h1.sm{font-size:clamp(30px,4.1vw,60px)}
+  h2{
+    font-size:clamp(26px,3.3vw,50px);line-height:1.06;letter-spacing:-.02em;
+    font-weight:750;max-width:24ch
+  }
+  .sub{
+    font-size:clamp(15px,1.75vw,26px);line-height:1.4;color:var(--mut);
+    margin-top:clamp(12px,2vh,24px);max-width:52ch;font-weight:400
+  }
+  .rule{height:1px;background:var(--line);margin:clamp(18px,3vh,34px) 0;width:100%}
+  .body{flex:1;display:flex;flex-direction:column;justify-content:center;gap:clamp(14px,2.4vh,28px);min-height:0}
+  ul{list-style:none;display:flex;flex-direction:column;gap:clamp(9px,1.5vh,17px)}
+  li{
+    font-size:clamp(15px,1.62vw,24px);line-height:1.38;padding-left:1.55em;
+    position:relative;color:#D3DDE6;max-width:74ch
+  }
+  li:before{
+    content:"";position:absolute;left:.28em;top:.52em;
+    width:.5em;height:.5em;border-radius:2px;background:var(--a,var(--blue));opacity:.85
+  }
+  li.y:before{background:var(--teal)}
+  li.n:before{background:#E5534B}
+  li.n{color:#A9B4BF}
+  b,strong{color:#fff;font-weight:700}
+  code,.mono{
+    font-family:var(--mono);font-size:.88em;background:#0A1119;
+    border:1px solid var(--line);border-radius:5px;padding:.08em .42em;color:#9FD2FF
+  }
+  .hero-badges{display:flex;flex-wrap:wrap;gap:clamp(8px,1vw,14px);margin-top:clamp(18px,3vh,34px)}
+  .badge{
+    font-family:var(--mono);font-size:clamp(11px,1.15vw,16px);
+    border:1px solid var(--line2);border-radius:999px;
+    padding:.42em 1em;color:var(--mut);background:#0C131A
+  }
+  .badge.hot{border-color:var(--a);color:var(--a);background:rgba(76,141,255,.08)}
+  table{width:100%;border-collapse:collapse;font-size:clamp(13px,1.42vw,21px)}
+  th{
+    text-align:left;font-family:var(--mono);font-size:.76em;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--dim);font-weight:600;
+    padding:.62em .8em;border-bottom:1px solid var(--line2)
+  }
+  td{padding:.62em .8em;border-bottom:1px solid var(--line);color:#CBD6E0;vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td.k{color:#fff;font-weight:600}
+  .pill{
+    font-family:var(--mono);font-size:.8em;padding:.16em .55em;border-radius:5px;
+    border:1px solid var(--line2);color:var(--mut);white-space:nowrap
+  }
+  .pill.ok{color:var(--teal);border-color:rgba(45,212,167,.4);background:rgba(45,212,167,.07)}
+  .pill.no{color:#E5534B;border-color:rgba(229,83,75,.4);background:rgba(229,83,75,.07)}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:clamp(18px,2.6vw,40px)}
+  .cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,1.9vw,30px)}
+  .card{
+    border:1px solid var(--line);border-left:3px solid var(--a,var(--blue));
+    border-radius:8px;padding:clamp(14px,1.7vw,24px);background:var(--surface)
+  }
+  .card .ct{
+    font-family:var(--mono);font-size:clamp(10px,1.05vw,14px);letter-spacing:.12em;
+    text-transform:uppercase;color:var(--a,var(--blue));margin-bottom:.6em;font-weight:600
+  }
+  .card p{font-size:clamp(13px,1.32vw,19px);line-height:1.42;color:#C3CFDA}
+  .metric{
+    font-family:var(--mono);font-weight:700;color:#fff;
+    font-size:clamp(26px,3.4vw,54px);letter-spacing:-.02em;line-height:1
+  }
+  .metric small{display:block;font-size:clamp(10px,1.05vw,15px);color:var(--mut);
+    font-weight:500;letter-spacing:.08em;margin-top:.55em;text-transform:uppercase}
+  .flow{display:flex;align-items:stretch;gap:clamp(6px,.9vw,14px);flex-wrap:wrap}
+  .step{
+    flex:1;min-width:110px;border:1px solid var(--line);border-radius:7px;
+    padding:clamp(10px,1.3vw,18px);background:var(--surface);position:relative
+  }
+  .step .n{font-family:var(--mono);font-size:clamp(10px,1vw,13px);color:var(--a,var(--blue));
+    letter-spacing:.1em;font-weight:700}
+  .step .t{font-size:clamp(12px,1.24vw,18px);color:#D3DDE6;margin-top:.4em;line-height:1.32}
+  .foot{
+    position:absolute;bottom:clamp(12px,2vh,22px);left:clamp(32px,5vw,88px);right:clamp(32px,5vw,88px);
+    display:flex;justify-content:space-between;align-items:center;gap:16px;
+    font-family:var(--mono);font-size:clamp(9px,.92vw,12.5px);color:var(--dim);
+    border-top:1px solid var(--line);padding-top:clamp(8px,1.2vh,14px)
+  }
+  .nav{
+    position:fixed;bottom:14px;right:18px;display:flex;gap:8px;z-index:50;opacity:.35;
+    transition:opacity .2s
+  }
+  .nav:hover{opacity:1}
+  .nav button{
+    font-family:var(--mono);font-size:12px;background:#131B24;color:#9AA7B4;
+    border:1px solid var(--line2);border-radius:6px;padding:7px 12px;cursor:pointer
+  }
+  .nav button:hover{color:#fff;border-color:var(--blue)}
+  .prog{
+    position:fixed;top:0;left:0;height:3px;background:var(--blue);
+    transition:width .25s ease;z-index:60
+  }
+  @media (max-width:760px){
+    .cols,.cols3{grid-template-columns:1fr}
+    .slide{padding:24px 20px 64px}
+    .foot{left:20px;right:20px}
+  }
+</style>
+</head>
+<body>
+<div class="prog" id="prog"></div>
+<div class="deck" id="deck">
+
+<!-- 1 -->
+<section class="slide" style="--a:var(--blue)">
+  <div class="accent"></div>
+  <div class="body">
+    <div class="eyebrow">ZyntroAI · Developer Productivity Guide · 2026</div>
+    <h1>Maximize GitHub Copilot Free Plan</h1>
+    <div class="sub">ใช้ Free tier ให้คุ้มระดับ Pro — พร้อม GitHub Actions hardening สำหรับ FIG Framework (FastAPI · React · PostgreSQL)</div>
+    <div class="hero-badges">
+      <span class="badge hot">2,000 code completions / เดือน</span>
+      <span class="badge hot">50 chat messages / เดือน</span>
+      <span class="badge">Token Self-Healing</span>
+      <span class="badge">Actions Best Practices</span>
+      <span class="badge">Advanced Skills</span>
+    </div>
+  </div>
+  <div class="foot"><span>ZyntroAI · Copilot Free + Actions Hardening</span><span>01 / 12</span></div>
+</section>
+
+<!-- 2 -->
+<section class="slide" style="--a:var(--blue)">
+  <div class="accent"></div>
+  <div class="eyebrow">01 · Understand the limits</div>
+  <div class="body">
+    <h2>เข้าใจ Limits ก่อน — Free vs Pro</h2>
+    <table>
+      <tr><th>Feature</th><th>Free Plan</th><th>Pro ($10/mo)</th></tr>
+      <tr><td class="k">Code Completions</td><td>2,000/เดือน</td><td>Unlimited</td></tr>
+      <tr><td class="k">Chat Messages</td><td>50/เดือน</td><td>Unlimited (มี AI Credits)</td></tr>
+      <tr><td class="k">Model Selection</td><td>Auto only (GPT-5 mini, Haiku 4.5)</td><td>เลือกได้ (Opus, Sonnet, GPT-5 Pro)</td></tr>
+      <tr><td class="k">Copilot Workspace</td><td><span class="pill no">ไม่มี</span></td><td><span class="pill ok">มี</span></td></tr>
+      <tr><td class="k">Cloud Agents</td><td><span class="pill no">ไม่มี</span></td><td><span class="pill ok">มี</span></td></tr>
+      <tr><td class="k">Private Codebase Context</td><td><span class="pill ok">มี</span></td><td><span class="pill ok">มี</span></td></tr>
+    </table>
+  </div>
+  <div class="foot"><span>Sources [2][4][6] — GitHub Copilot Free vs Pro, 2026</span><span>02 / 12</span></div>
+</section>
+
+<!-- 3 -->
+<section class="slide" style="--a:var(--blue)">
+  <div class="accent"></div>
+  <div class="eyebrow">02 · Save completions</div>
+  <div class="body">
+    <h2>เปิด Copilot เฉพาะไฟล์ที่สำคัญ</h2>
+    <div class="cols">
+      <div class="card" style="--a:var(--teal)">
+        <div class="ct">เปิด ✅</div>
+        <p>business logic · algorithms · API integration — ไฟล์ที่ completion ประหยัดเวลาจริง</p>
+      </div>
+      <div class="card" style="--a:#E5534B">
+        <div class="ct">ปิด ❌</div>
+        <p>config files · JSON · generated code · boilerplate imports</p>
+      </div>
+    </div>
+    <ul>
+      <li><code>Ctrl+Shift+P</code> → <b>Copilot: Enable/Disable Globally</b></li>
+      <li><code>Ctrl+Shift+P</code> → <b>Copilot: Disable for Current File</b></li>
+      <li>ใช้ <code>Ctrl+Enter</code> เพื่อ accept ทั้ง block แทนการกด <code>Tab</code> ทีละบรรทัด</li>
+    </ul>
+  </div>
+  <div class="foot"><span>Sources [1][7] — Copilot Free limits &amp; shortcuts</span><span>03 / 12</span></div>
+</section>
+
+<!-- 4 -->
+<section class="slide" style="--a:var(--blue)">
+  <div class="accent"></div>
+  <div class="eyebrow">02 · Shortcuts</div>
+  <div class="body">
+    <h2>Keyboard Shortcuts ให้คุ้มที่สุด</h2>
+    <table>
+      <tr><th>Shortcut</th><th>Action</th><th>ประหยัด</th></tr>
+      <tr><td><code>Tab</code></td><td>Accept suggestion</td><td>ปกติ</td></tr>
+      <tr><td><code>Ctrl+Enter</code> / <code>Cmd+Enter</code></td><td>Accept + next suggestion</td><td>⭐⭐⭐</td></tr>
+      <tr><td><code>Alt+]</code> / <code>Alt+[</code></td><td>Cycle through alternatives</td><td>⭐⭐</td></tr>
+      <tr><td><code>Esc</code></td><td>Dismiss suggestion</td><td>⭐</td></tr>
+    </table>
+    <ul><li><b>เทคนิค:</b> กด <code>Ctrl+Enter</code> เพื่อ accept ทั้ง block — ลดจำนวน request ต่อการทำงานหนึ่งครั้ง</li></ul>
+  </div>
+  <div class="foot"><span>Sources [1][7] — Copilot keyboard shortcuts</span><span>04 / 12</span></div>
+</section>
+
+<!-- 5 -->
+<section class="slide" style="--a:var(--blue)">
+  <div class="accent"></div>
+  <div class="eyebrow">03 · Save chat messages</div>
+  <div class="body">
+    <h2>Batch Questions — 50 messages ต้องถามให้คุ้ม</h2>
+    <div class="cols">
+      <div class="card" style="--a:#E5534B">
+        <div class="ct">❌ 3 messages</div>
+        <p>1. Review this React component<br>2. How to optimize performance?<br>3. Add accessibility features</p>
+      </div>
+      <div class="card" style="--a:var(--teal)">
+        <div class="ct">✅ 1 message</div>
+        <p>รวบทั้ง 4 คำถามในข้อความเดียว: หา bottleneck · เสนอ a11y (WCAG 2.1) · rewrite state ด้วย Redux Toolkit · เพิ่ม unit test</p>
+      </div>
+    </div>
+    <ul><li>ประหยัด message ได้ถึง <b>3 เท่า</b> ในตัวอย่างนี้</li></ul>
+  </div>
+  <div class="foot"><span>Sources [3][7] — batching chat requests</span><span>05 / 12</span></div>
+</section>
+
+<!-- 6 -->
+<section class="slide" style="--a:var(--blue)">
+  <div class="accent"></div>
+  <div class="eyebrow">03 · Strategic use</div>
+  <div class="body">
+    <h2>ใช้ Chat เฉพาะ Strategic Questions</h2>
+    <div class="cols">
+      <div class="card" style="--a:var(--teal)">
+        <div class="ct">ใช้ Chat ✅</div>
+        <p>Architecture design · Debug complex state · Multi-file refactoring strategy · API integration patterns · Performance optimization</p>
+      </div>
+      <div class="card" style="--a:#E5534B">
+        <div class="ct">ไม่ต้องใช้ ❌</div>
+        <p>Syntax lookup (Google เร็วกว่า) · Simple refactoring · Boilerplate code · Import statements · Variable naming</p>
+      </div>
+    </div>
+    <ul><li><b>Inline Chat (<code>Ctrl+I</code>)</b> นับ 1 premium request เท่ากัน แต่ได้ context จากโค้ดที่เลือก และลด copy-paste</li></ul>
+  </div>
+  <div class="foot"><span>Sources [3][7] — when to use chat vs inline chat</span><span>06 / 12</span></div>
+</section>
+
+<!-- 7 -->
+<section class="slide" style="--a:var(--blue)">
+  <div class="accent"></div>
+  <div class="eyebrow">04 · Alternatives &amp; monitoring</div>
+  <div class="body">
+    <h2>ทางเลือกเสริม + Monitor Usage</h2>
+    <table>
+      <tr><th>Task</th><th>Tool</th><th>ราคา</th></tr>
+      <tr><td>Basic autocomplete</td><td class="k">Codeium</td><td>Free unlimited</td></tr>
+      <tr><td>Simple snippets</td><td class="k">Tabnine Free</td><td>Free (limited)</td></tr>
+      <tr><td>Full IDE with AI</td><td class="k">Cursor (free tier)</td><td>Free (500 premium/mo)</td></tr>
+      <tr><td>Local LLM</td><td class="k">Continue.dev + Ollama</td><td>Free 100%</td></tr>
+    </table>
+    <ul>
+      <li><b>Monitor:</b> <code>github.com/settings/copilot</code> → Usage this month → ตั้ง alert ที่ 80%</li>
+      <li>ใช้ Cursor เป็น backup เมื่อใกล้ครบ quota Copilot</li>
+    </ul>
+  </div>
+  <div class="foot"><span>Sources [1][5][7] — alternatives &amp; usage dashboard</span><span>07 / 12</span></div>
+</section>
+
+<!-- 8 -->
+<section class="slide" style="--a:var(--amber)">
+  <div class="accent"></div>
+  <div class="eyebrow">05 · Token Layer 1</div>
+  <div class="body">
+    <h2>OIDC Zero-Touch — ไม่เก็บ long-lived credentials</h2>
+    <ul>
+      <li><code>permissions: id-token: write</code> — GitHub ออก short-lived JWT ให้เองต่อ job</li>
+      <li><code>aws-actions/configure-aws-credentials@v4</code> + <code>role-to-assume</code></li>
+      <li>Token อายุ <b>1 ชั่วโมง</b> — auto-rotate ทุก job, ไม่มี secret ให้ leak</li>
+      <li>Audit log ชัดเจนว่า workflow ไหนใช้ token</li>
+      <li>ถ้า token หลุด → expire เองภายใน 1 ชม.</li>
+    </ul>
+  </div>
+  <div class="foot"><span>Sources [3][5] — GitHub Actions OIDC / keyless deployment</span><span>08 / 12</span></div>
+</section>
+
+<!-- 9 -->
+<section class="slide" style="--a:var(--amber)">
+  <div class="accent"></div>
+  <div class="eyebrow">06 · Token Layer 2</div>
+  <div class="body">
+    <h2>Auto-Refresh + Dual-Key Rotation</h2>
+    <div class="flow">
+      <div class="step"><div class="n">STEP 1</div><div class="t">cron <code>0 0 1 * *</code> + workflow_dispatch</div></div>
+      <div class="step"><div class="n">STEP 2</div><div class="t">เรียก OAuth refresh endpoint</div></div>
+      <div class="step"><div class="n">STEP 3</div><div class="t">Verify token ใหม่ก่อนใช้</div></div>
+      <div class="step"><div class="n">STEP 4</div><div class="t">อัปเดต secret (environment: production)</div></div>
+    </div>
+    <ul>
+      <li><b>Mirror workflow:</b> retry loop 3 ครั้ง + <code>sleep 5</code> ก่อนยอมแพ้</li>
+      <li><b>Dual-key:</b> <code>API_KEY_V2 || API_KEY</code> — deploy ใช้ key ใหม่ก่อน fallback ตัวเก่าได้</li>
+      <li>หลัง verify ว่า key ใหม่ทำงาน → ลบ secret เก่า แล้วรอรอบถัดไป rotate เป็น V3</li>
+    </ul>
+  </div>
+  <div class="foot"><span>Sources [1][6][9] — OAuth refresh &amp; credential rotation</span><span>09 / 12</span></div>
+</section>
+
+<!-- 10 -->
+<section class="slide" style="--a:var(--amber)">
+  <div class="accent"></div>
+  <div class="eyebrow">07 · Token Layer 3</div>
+  <div class="body">
+    <h2>Self-Healing Patterns</h2>
+    <div class="cols3">
+      <div class="card" style="--a:var(--amber)">
+        <div class="ct">Retry + Backoff</div>
+        <p>3 ครั้ง, รอ <code>2^n</code> วินาที — จัดการความล้มเหลวชั่วคราวโดยไม่ต้องมีคน intervene</p>
+      </div>
+      <div class="card" style="--a:var(--amber)">
+        <div class="ct">Auto-Refresh on 401/403</div>
+        <p>เจอ token หมดอายุ → refresh → <code>gh secret set</code> → retry อัตโนมัติ</p>
+      </div>
+      <div class="card" style="--a:var(--amber)">
+        <div class="ct">Health Check</div>
+        <p>ทุก 6 ชม. ตรวจ token ทั้งหมด → แจ้ง Slack ถ้าล้ม ก่อน workflow จริงจะพัง</p>
+      </div>
+    </div>
+    <ul>
+      <li><b>Rotation cadence:</b> Cloud = ทุก job (OIDC) · GitLab = 30–90 วัน · OAuth = 90 วัน · API Key = 30 วัน · PAT = 90 วัน</li>
+    </ul>
+  </div>
+  <div class="foot"><span>Sources [1][9][10] — self-healing CI patterns</span><span>10 / 12</span></div>
+</section>
+
+<!-- 11 -->
+<section class="slide" style="--a:var(--teal)">
+  <div class="accent"></div>
+  <div class="eyebrow">08 · Actions hardening</div>
+  <div class="body">
+    <h2>Security First — 5 ข้อก่อน merge workflow</h2>
+    <ul>
+      <li class="y"><b>Pin actions to full SHA</b> — กัน tag hijacking supply chain attack (<code>actions/checkout@11bd719…</code>)</li>
+      <li class="y"><b>Least privilege</b> — ตั้ง org default เป็น read-only, <code>permissions: {}</code> แล้ว grant เฉพาะที่จำเป็น</li>
+      <li class="y"><b>กัน script injection</b> — ห้ามใช้ <code>${{ github.* }}</code> ใน <code>run:</code> โดยตรง ให้ส่งผ่าน <code>env:</code></li>
+      <li class="y"><b>OIDC + Environment protection rules</b> — required reviewers, deployment branches</li>
+      <li class="y"><b>Secret scanning + Push protection</b> — เปิดใน Organization Settings</li>
+    </ul>
+  </div>
+  <div class="foot"><span>Sources [1][2][4][6][7] — GitHub Actions security checklist 2026</span><span>11 / 12</span></div>
+</section>
+
+<!-- 12 -->
+<section class="slide" style="--a:var(--teal)">
+  <div class="accent"></div>
+  <div class="eyebrow">09 · Performance &amp; cost</div>
+  <div class="body">
+    <h2>ลดเวลาและค่าใช้จ่ายโดยไม่ลดคุณภาพ</h2>
+    <div class="cols3">
+      <div class="card" style="--a:var(--teal)"><div class="ct">Caching</div><p>cache hit rate target <b>&gt; 85%</b></p></div>
+      <div class="card" style="--a:var(--teal)"><div class="ct">Concurrency</div><p><code>cancel-in-progress: true</code> — ยกเลิก run ซ้ำซ้อน</p></div>
+      <div class="card" style="--a:var(--teal)"><div class="ct">Path filters</div><p>monorepo <code>paths:</code> — ประหยัด <b>60–80%</b> ของ runs</p></div>
+    </div>
+    <ul>
+      <li><code>timeout-minutes</code> ทุก job · <code>retention-days: 7</code> (จาก default 90 → ลด storage cost ~90%)</li>
+      <li>Right-size runners — อย่าใช้ 16-core กับงาน lint</li>
+    </ul>
+  </div>
+  <div class="foot"><span>Sources [9][10][11] — Actions cost optimization &amp; best practices</span><span>12 / 12</span></div>
+</section>
+
+<!-- 13 -->
+<section class="slide" style="--a:var(--violet)">
+  <div class="accent"></div>
+  <div class="eyebrow">10 · Advanced skills</div>
+  <div class="body">
+    <h2>ทำให้ Free plan ทำงานใกล้เคียง Pro</h2>
+    <div class="cols">
+      <div class="card" style="--a:var(--violet)">
+        <div class="ct">3S + R Prompt</div>
+        <p><b>S</b>pecific · <b>S</b>imple · <b>S</b>hort · <b>R</b>esults — ระบุ output format ทุกครั้ง</p>
+      </div>
+      <div class="card" style="--a:var(--violet)">
+        <div class="ct">Custom Instructions</div>
+        <p><code>.github/copilot-instructions.md</code> — ใช้ได้ใน Free plan ใส่ FIG standards ลงไป</p>
+      </div>
+      <div class="card" style="--a:var(--violet)">
+        <div class="ct">Slash commands</div>
+        <p><code>/fix /tests /doc /explain /security /refactor</code></p>
+      </div>
+      <div class="card" style="--a:var(--violet)">
+        <div class="ct">Chain prompts</div>
+        <p>Plan → Review → Implement → Test → Refactor · error rate <b>30% → 5%</b></p>
+      </div>
+    </div>
+    <ul><li><b>Type-driven + test-first</b> — full type hints ยกระดับ accuracy จาก 60% → 90%+</li></ul>
+  </div>
+  <div class="foot"><span>Sources [2][4][8] — Copilot advanced practices 2026</span><span>13 / 13</span></div>
+</section>
+
+<!-- 14 -->
+<section class="slide" style="--a:var(--violet)">
+  <div class="accent"></div>
+  <div class="eyebrow">11 · Rollout plan</div>
+  <div class="body">
+    <h2>เริ่มจากอะไรก่อน: ZyntroAI Rollout</h2>
+    <div class="flow">
+      <div class="step" style="--a:#E5534B"><div class="n">WEEK 1–2 · CRITICAL</div><div class="t">pin actions to SHA · org permissions read-only · secret scanning · timeout-minutes · concurrency</div></div>
+      <div class="step" style="--a:var(--amber)"><div class="n">WEEK 3–4 · HIGH</div><div class="t">migrate to OIDC · environment protection · CODEOWNERS · Dependabot · actionlint</div></div>
+      <div class="step" style="--a:var(--teal)"><div class="n">MONTH 2</div><div class="t">reusable workflows · path filters · retention 7 วัน · usage dashboard</div></div>
+      <div class="step" style="--a:var(--violet)"><div class="n">MONTH 3+</div><div class="t">right-size runners · SLSA provenance · DORA metrics · quarterly audit</div></div>
+    </div>
+    <ul>
+      <li><b>Copilot:</b> ใช้กับ complex logic เท่านั้น · batch questions · monitor usage ทุกสัปดาห์</li>
+      <li><b>Key takeaway:</b> security hardening ก่อน → แล้วค่อย optimize cost/performance</li>
+    </ul>
+  </div>
+  <div class="foot"><span>Sources [2][7][8][9][10][11] — priority implementation for ZyntroAI</span><span>14 / 14</span></div>
+</section>
+
+</div>
+
+<div class="nav">
+  <button onclick="go(-1)">← Prev</button>
+  <button onclick="go(1)">Next →</button>
+  <button onclick="fs()">⛶ Fullscreen</button>
+</div>
+
+<script>
+  var slides=document.querySelectorAll('.slide'),i=0;
+  function show(n){
+    slides[i].classList.remove('on');
+    i=(n+slides.length)%slides.length;
+    slides[i].classList.add('on');
+    document.getElementById('prog').style.width=((i+1)/slides.length*100)+'%';
+    location.hash=i+1;
+  }
+  function go(d){show(i+d)}
+  function fs(){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}
+  document.addEventListener('keydown',function(e){
+    if(['ArrowRight','ArrowDown',' ','PageDown'].indexOf(e.key)>-1){e.preventDefault();go(1)}
+    if(['ArrowLeft','ArrowUp','PageUp'].indexOf(e.key)>-1){e.preventDefault();go(-1)}
+    if(e.key==='Home'){e.preventDefault();show(0)}
+    if(e.key==='End'){e.preventDefault();show(slides.length-1)}
+  });
+  var h=parseInt(location.hash.replace('#',''));
+  show(isNaN(h)?0:h-1);
+</script>
+</body>
+</html>
