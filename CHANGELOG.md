@@ -5,6 +5,34 @@ All notable changes to this repository. Dates are UTC.
 Open problems and known blockers are tracked separately in
 [`PROBLEMS.md`](./PROBLEMS.md), using the same date sections.
 
+## [2026-09-15]
+
+### Changed
+- **PR #231** — environment configuration rewritten around per-component
+  templates. `.env` was tracked at the root while the codebase reads 148
+  distinct variables across its components, so one file could neither document
+  them nor stay secret; `.env` is now untracked at every level and each
+  component that reads env carries a `.env.example` beside its code —
+  `graphql_api/`, `frontend/`, `scripts/`, `deliverables/{pm-backend,
+  fastapi-obsidian-backend, agent-security-suite, manus-client}` and
+  `deliverables/product-crud/{server,web}`. The root template is regrouped by
+  concern with every variable annotated with the file that reads it, and
+  `docs/ENVIRONMENT.md` covers the layout, the precedence rules, the
+  service-name-vs-localhost distinction between running inside compose and on
+  the host, the secrets policy and the CI secret list.
+  Two latent defects surfaced and were fixed with it. First, `.gitignore`'s
+  `.env.*` pattern matched `.env.example` at every depth, so the new templates
+  were written to disk, silently ignored, and would never have been committed —
+  negations now track them while `.env` stays ignored. Second,
+  `app/core/config.py` declares `JWT_SECRET` and `app/config.py` declares
+  `JWT_SECRET_KEY`, both reading the same `.env`: setting only one makes login
+  succeed while every subsequent token fails verification. Both are documented
+  with that warning, alongside `SENTRY_DSN`, `CACHE_ENABLED` and `CACHE_TTL`,
+  which had no template entry at all. `scripts/validate_env_templates.py`
+  checks the whole arrangement — 11 templates parse, every declared key
+  resolves to a real read in the component it documents, and every variable the
+  core app reads is documented.
+
 ## [2026-09-14]
 
 ### Added
