@@ -47,6 +47,14 @@ Thumbs.db
 # Environment & secrets
 .env
 .env.*
+# ...but env TEMPLATES are tracked on purpose — they are documentation, not
+# secrets. Without these negations `.env.*` above silently swallows every
+# per-component `.env.example` (git check-ignore -v <path> confirms it).
+!.env.example
+!.env.local.example
+!.env.sample
+!.env.template
+!**/.env.example
 *.pem
 *.key
 *.csv
