@@ -8,6 +8,22 @@ Open problems and known blockers are tracked separately in
 ## [2026-09-15]
 
 ### Added
+- **`deliverables/ci/verify_workflows.py`** — a workflow validator that checks the
+  thing the repo's existing `lint.py` does not: that each action pin names a
+  commit which actually exists. `lint.py` accepts any 40 hex characters, which
+  is how `actions/checkout@f548e57c…` sat on `main` through green lint runs while
+  every job failed at `Set up job` in two seconds. The new validator makes three
+  checks — the file parses as YAML, it exposes `on:` and `jobs:` so GitHub will
+  register it (a bare `on:` parses as boolean `True` under YAML 1.1, which trips
+  naive checkers), and every `uses:` is a full-length SHA resolved against its
+  real repository. It exits non-zero on any failure so it can gate CI, and
+  `--check-shas` is opt-in because that pass needs network. Note the `git`
+  invocation has to bypass the Fig gitconfig: it rewrites `github.com` to an
+  enterprise host that cannot serve public third-party repos. TASK-20260915-003
+  records the audit that produced it.
+
+### Added
+
 - **PR #295 (pending)** — `skills/auto-label/` — labels a PR from two signals it
   already carries: the conventional-commit type in its title, and the paths the
   diff touches. The cost of triage is not reading each PR, it is routing it —
