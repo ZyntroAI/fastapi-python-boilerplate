@@ -7,7 +7,30 @@ Open problems and known blockers are tracked separately in
 
 ## [2026-09-16]
 
+### Fixed
+- **Repaired workflows delivered for installation** — the GitHub App cannot push
+  `.github/workflows/**` (no `workflows` scope: *refusing to allow a GitHub App to
+  create or update workflow*), and that refusal happens at the transport layer,
+  before a PR can even be opened. So the repaired set travels inside the PR under
+  `deliverables/ci/workflows-repaired/` and is installed by a dry-run-by-default
+  script. The repairs themselves: six of eleven workflow files could not be
+  parsed or registered at all. `secret-scan.yml` carried a stray semicolon
+  (`workflow_dispatch;`) that turned the rest of the line into another mapping
+  key; `Auto-Index-Sync.yml` opened a shell heredoc whose body sat at column 0,
+  ending the surrounding `run: |` block early; `dependabot-automerge.yml` had
+  6,190 characters of GitHub UI documentation pasted onto its end;
+  `test-suite.yml` was a chat reply — prose, a horizontal rule, the workflow
+  inside a ```` ```yaml ```` fence, and 42 lines of trailing commentary;
+  `github-actions-autodebug-autorerun` was a spec document saved without an
+  extension; and `release_drafter.yaml` was not a workflow but a release-drafter
+  config filed in the workflows directory, so GitHub registered it as an
+  always-failing workflow. All 73 `uses:` refs are now pinned to real commits —
+  60 had been left as tags or placeholders, including three SHAs that are
+  well-formed but name nothing, which is why PRs failed at `Set up job` in two
+  seconds while `lint.py` stayed green.
+
 ### Added
+
 - **PR #297** — docs: added `PROBLEMS.md` P-012, recording why `new-crystalcastle` PR #163 cannot merge. The dependabot bump to `react-dom@19.3.0` sits outside `@react-three/fiber@9.7.0`'s declared peer range (`>=19 <19.3`), so `npm ci` fails with `ERESOLVE`. Established by running `npm ci` on both refs rather than reading the log: `main` installs 703 packages (exit 0), the PR head fails (exit 1). No published stable fiber accepts `react-dom@19.3.0` yet — only `10.0.0-canary.*`. The entry also separates this PR's 2 failures from the 11 that are pre-existing on `main` (P-002, P-007).
 
 ## [2026-09-15]
