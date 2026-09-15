@@ -31,7 +31,8 @@ Open problems and known blockers are tracked separately in
   which had no template entry at all. `scripts/validate_env_templates.py`
   checks the whole arrangement — 11 templates parse, every declared key
   resolves to a real read in the component it documents, and every variable the
-  core app reads is documented.
+  core app reads is documented. `README.md`'s `docs/` count is corrected for the
+  added file (37 → 38), which `deliverables/docs-verify/` caught.
 
 ## [2026-09-14]
 

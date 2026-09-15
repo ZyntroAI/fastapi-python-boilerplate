@@ -24,7 +24,7 @@ self-contained deliverable suites, and a reference docs library.
 | `frontend/` | React 18 + Vite + TypeScript frontend (own `package.json`, `Dockerfile`, `tsconfig.json`) |
 | `skills/` | 12 reusable AI-agent skill definitions — `fetching`, `research`, `patch`, `credential-management`, `changelog-auto-update`, `pr-triage-automove`, `ci-workflow-authoring`, … |
 | `deliverables/` | 26 self-contained feature suites, each with its own README and tests — see [`deliverables/README.md`](./deliverables/README.md) |
-| `docs/` | Reference library (37 files): GraphQL, FireCrawl, Google Chat, GitHub Actions, MCP, incident drills, release notes |
+| `docs/` | Reference library (38 files): GraphQL, FireCrawl, Google Chat, GitHub Actions, MCP, environment configuration, incident drills, release notes |
 | `tests/` | Test suite — `unit/`, `e2e/`, plus repo-level tests (`tests/conftest.py`, `pytest.ini` at root) |
 | `helm/`, `k8s/` | Deployment — Helm chart (`oauth-app`) and Kubernetes manifests (deployment, HPA, ingress, monitoring) |
 | `.github/workflows/` | 11 workflow files — only 6 of which parse, so the rest never run; see [CI/CD](#cicd--supply-chain-integrity) |
