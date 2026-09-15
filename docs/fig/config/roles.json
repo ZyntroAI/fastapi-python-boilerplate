@@ -1,0 +1,24 @@
+{
+  "$schema": "./schemas/roles.schema.json",
+  "roles": {
+    "ORGANIZATION_OWNER": [
+      "READ",
+      "WRITE",
+      "UPDATE",
+      "DELETE",
+      "SYSTEM"
+    ],
+    "ADMIN": [
+      "READ",
+      "WRITE",
+      "UPDATE"
+    ],
+    "MAINTAINER": [
+      "READ",
+      "WRITE"
+    ],
+    "VIEWER": [
+      "READ"
+    ]
+  }
+}

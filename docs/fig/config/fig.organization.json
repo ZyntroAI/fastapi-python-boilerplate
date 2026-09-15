@@ -1,0 +1,11 @@
+{
+  "$schema": "./schemas/fig.organization.schema.json",
+  "version": "4.1",
+  "name": "ZyntroAI",
+  "mode": "organization",
+  "ownership": {
+    "ownerOnly": true,
+    "require2FA": true,
+    "requireAudit": true
+  }
+}

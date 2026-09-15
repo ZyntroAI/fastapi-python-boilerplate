@@ -1,0 +1,14 @@
+{
+  "$schema": "./schemas/masterfiles.schema.json",
+  "mode": "strict",
+  "ownerOnly": true,
+  "immutable": true,
+  "requireApproval": true,
+  "requireAudit": true,
+  "protectedPaths": [
+    "/api/v1/masterfiles",
+    "/api/v1/system",
+    "/api/v1/config",
+    "/api/v1/settings"
+  ]
+}

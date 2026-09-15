@@ -1,0 +1,10 @@
+{
+  "$schema": "./schemas/github-rules.schema.json",
+  "masterfiles": {
+    "require_code_owner": true,
+    "require_pull_request": true,
+    "require_status_checks": true,
+    "require_signed_commits": true,
+    "require_review_count": 2
+  }
+}
