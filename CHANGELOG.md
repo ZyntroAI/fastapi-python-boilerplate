@@ -8,6 +8,22 @@ Open problems and known blockers are tracked separately in
 ## [2026-09-16]
 
 ### Fixed
+- **PR #301** — fixed the SHA resolver in `deliverables/ci/verify_workflows.py`,
+  which had been reporting every *correct* pin as non-existent. That is worse than
+  having no check at all: it would fail CI on a healthy tree. Two independent bugs
+  produced it. First, `git ls-remote <url> <sha>` is not a membership test —
+  ls-remote takes ref *patterns*, so a raw SHA matches nothing and every pin looks
+  fake; the fix lists a repository's refs once (cached) and tests membership.
+  Second, `--refs` suppresses the peeled `<tag>^{}` lines, and for an annotated
+  tag that line is the only place the *commit* hash appears — so a correctly
+  pinned annotated tag was reported as fabricated. Dropping `--refs` resolves both
+  lightweight tags (commit straight) and annotated tags (peeled) while a
+  fabricated SHA still matches nothing. `deliverables/ci/test_verify_workflows.py`
+  adds 11 cases covering both tag shapes, the `f548e57c…` fabrication that was
+  live on `main`, a fabrication behind an action subpath, and a well-formed hash
+  that names nothing. Found while installing the repaired workflows: after the
+  repair, `--check-shas` still flagged four genuinely real pins.
+
 - **Repaired workflows delivered for installation** — the GitHub App cannot push
   `.github/workflows/**` (no `workflows` scope: *refusing to allow a GitHub App to
   create or update workflow*), and that refusal happens at the transport layer,
