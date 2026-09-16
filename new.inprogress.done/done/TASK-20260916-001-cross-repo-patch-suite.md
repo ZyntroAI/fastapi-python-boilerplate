@@ -1,14 +1,14 @@
 ---
 id: TASK-20260916-001
 title: Cross-repo patch suite — byte-faithful patches, EOL fidelity, workflow gate
-status: in-progress
+status: done
 priority: medium
 created: 2026-09-16
 updated: 2026-09-16
 owner: fig-ai-agent
 repo: ZyntroAI/fastapi-python-boilerplate
 issue:
-prs: []
+prs: [308]
 blocked_by:
 tokens: 0
 ---
@@ -31,6 +31,12 @@ none of them is about the change being made:
 Deliver a runnable suite that prevents all three, with the failure modes
 reproduced against real git so the checks are demonstrably grounded.
 
+## Completion
+
+Merged as [PR #308](https://github.com/ZyntroAI/fastapi-python-boilerplate/pull/308)
+(squash `69f982f`, 2026-09-16). 42 files, 3,541 insertions. The deliverable is live at
+`deliverables/cross-repo-patch-suite/` on `main` and indexed in `deliverables/README.md`.
+
 ## Steps
 
 - [x] Audit the deliverables conventions on `main` (layout, manifest, SKILL.yaml,
@@ -45,7 +51,7 @@ reproduced against real git so the checks are demonstrably grounded.
 - [x] Write and run the test suite (125 tests)
 - [x] Write the two helpers, README, SKILL.yaml, and sub-skill docs
 - [x] Record the task, CHANGELOG, and deliverables index entries
-- [ ] Commit, push, open PR
+- [x] Commit, push, open PR
 
 ## Verification
 
