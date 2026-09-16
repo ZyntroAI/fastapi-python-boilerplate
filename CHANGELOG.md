@@ -47,6 +47,16 @@ Open problems and known blockers are tracked separately in
 
 ### Added
 
+- **PR #306** — docs: refreshed `PROBLEMS.md` P-002, which had gone stale twice
+  over: it described the fix as "76 refs pinned across 11 files" (never pushed)
+  and carried 2026-09-14 evidence. Re-measured against `main` @ `6a7754d` —
+  **13 pinned, 60 unpinned of 73 refs**, spread over 9 files and 25 distinct
+  actions. The entry now names the commit the numbers were taken at, describes
+  the fix as the verified patch pack rather than a branch, and carries a
+  copy-pasteable snippet so the next reader re-measures instead of trusting a
+  stored number. Earlier counts in that file (66, 60, 23) had each been
+  overtaken as the tree moved.
+
 - **PR #297** — docs: added `PROBLEMS.md` P-012, recording why `new-crystalcastle` PR #163 cannot merge. The dependabot bump to `react-dom@19.3.0` sits outside `@react-three/fiber@9.7.0`'s declared peer range (`>=19 <19.3`), so `npm ci` fails with `ERESOLVE`. Established by running `npm ci` on both refs rather than reading the log: `main` installs 703 packages (exit 0), the PR head fails (exit 1). No published stable fiber accepts `react-dom@19.3.0` yet — only `10.0.0-canary.*`. The entry also separates this PR's 2 failures from the 11 that are pre-existing on `main` (P-002, P-007).
 
 ## [2026-09-15]
