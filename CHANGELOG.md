@@ -47,7 +47,7 @@ Open problems and known blockers are tracked separately in
 
 ### Added
 
-- **`deliverables/cross-repo-patch-suite/`** — a suite for the three ways a patch
+- **PR #308** — `deliverables/cross-repo-patch-suite/`: a suite for the three ways a patch
   breaks on the way between repositories, none of which is about the change
   itself. First, a Python text-mode round-trip normalises CRLF to LF, so a
   two-line append lands as a whole-file rewrite; the suite never decodes a file
