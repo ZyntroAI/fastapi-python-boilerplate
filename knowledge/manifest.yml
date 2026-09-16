@@ -1,9 +1,9 @@
 # knowledge/manifest.yml — machine-readable index of knowledge/ notes
-# Generated 2026-09-13. sha256 is over the BODY ONLY (excludes YAML front matter).
+# Generated 2026-09-16. sha256 is over the BODY ONLY (excludes YAML front matter).
 
 version: 1
-generated: "2026-09-13"
-note_count: 6
+generated: "2026-09-16"
+note_count: 7
 conventions:
   filename: "lowercase-kebab-case.md"
   front_matter_required: [title, description, tags, doc_kind, status, owner, last_reviewed]
@@ -12,6 +12,19 @@ conventions:
   no_secrets: true
 
 notes:
+- file: github-actions-sha-pinning-guidelines.md
+  title: "GitHub Actions SHA Pinning Guidelines"
+  description: "Pin every action to a verified commit SHA: why tags are unsafe, how to prove a SHA exists, and the workflow-file traps that fail before any job runs."
+  area: "Engineering / CI-CD"
+  doc_kind: guideline
+  status: active
+  owner: "Platform Engineering"
+  last_reviewed: "2026-09-14"
+  review_frequency: "Quarterly"
+  sources: 12
+  words: 944
+  sha256: "9be3251a90b3ef622f2a148f0698f8712e1e3a4f4a158372301519334abadee7"
+  tags: ["knowledge/github-actions", "knowledge/security", "knowledge/supply-chain", "knowledge/ci"]
 - file: supabase-audit-log-drains-guidelines.md
   title: "Supabase Audit Log Drains Guidelines"
   description: "Organization-level audit log drains: destinations, eligibility, and end-to-end routing."

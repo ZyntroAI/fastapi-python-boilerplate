@@ -71,3 +71,6 @@ docker-compose.override.yml
 
 # FastAPI specific
 uvicorn.log
+
+# Generated search index (built from knowledge/ notes; see sync_knowledge_index.py)
+knowledge_index.json
