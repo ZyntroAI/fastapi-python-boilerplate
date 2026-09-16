@@ -1,0 +1,100 @@
+Here is the clean, consolidated, and properly formatted Markdown version of the comprehensive guide to the GitHub integration in Slack. You can copy and paste this directly into any Markdown editor, README, or documentation system.
+
+markdown
+# Comprehensive Guide: GitHub Integration in Slack
+
+This guide covers all key features of the GitHub integration in Slack, including setup, advanced notification customization, Copilot agent integration, issue management, and scheduled review reminders.
+
+---
+
+## 1. Initial Setup & Installation
+
+Before using the integration, it must be installed at the workspace level and connected to your personal GitHub account.
+
+### Prerequisites
+- A GitHub account.
+- Admin permissions in your Slack workspace to install apps.
+- *(For Copilot)*: A paid GitHub Copilot plan with **cloud sandboxes enabled** by your organization/enterprise admin.
+
+### Step-by-Step Setup
+1. **Install the App**: Go to the GitHub integration for Slack page and click **Add to Slack**. 
+   - *(Slack Enterprise Grid)*: Admins can install it across multiple workspaces via Slack Enterprise Grid settings > Integrations > Install apps.
+2. **Authorize Access**: Follow the on-screen prompts to grant GitHub access to your Slack workspace.
+3. **Invite to Channels**: The app is not in channels by default. Type `/invite @github` in any channel where you want to use it.
+4. **Connect Your Account**: 
+   - Open a direct message with the `@GitHub` app in Slack.
+   - Click the provided link to authenticate and authorize the connection between your Slack and GitHub accounts. 
+   - *Note: This mapping is required for personalized mentions, notifications, and advanced features.*
+
+---
+
+## 2. Advanced Notification Customization
+
+By default, `/github subscribe OWNER/REPO` subscribes a channel to `open`, `close`, and `reopen` events for issues and pull requests, as well as `push` events to the default branch. You can customize this heavily to reduce noise.
+
+### Default vs. Optional Events
+- **Enabled by default** (disable with `/github unsubscribe OWNER/REPO [EVENT]`):
+  - `issues`: Opened, closed, or reopened issues.
+  - `pulls`: New, merged, or draft PRs marked ready for review.
+  - `commits`: New commits on the default branch.
+  - `releases`: Published releases.
+  - `deployments`: Deployment status updates.
+- **Disabled by default** (enable with `/github subscribe OWNER/REPO [EVENT]`):
+  - `reviews`: Pull request reviews.
+  - `workflows`: GitHub Actions workflow runs.
+  - `branches`: Created or deleted branches.
+  - `comments`: New comments on issues and PRs.
+  - `discussions`: Discussions created or answered.
+
+### Advanced Filtering
+- **Branch Filters**: Control commit notifications by branch name or pattern.
+  - Specific branch: `/github subscribe OWNER/REPO commits:main`
+  - Branch pattern: `/github subscribe OWNER/REPO commits:feature/*`
+  - All branches: `/github subscribe OWNER/REPO commits:*`
+- **Label Filters**: Restrict notifications to trigger only when a specific label is applied *(Note: Only one required label filter is allowed per repository at a time)*.
+  - Add a label filter: `/github subscribe OWNER/REPO +label:"YOUR-LABEL"`
+  - Remove it: `/github unsubscribe OWNER/REPO +label:"YOUR-LABEL"`
+- **Workflow Filters**: Filter GitHub Actions notifications by workflow name, actor, branch, or event.
+  - Example: `/github subscribe OWNER/REPO workflows:{name:"CI" event:"push" branch:"main"}`
+
+### Broadcasting & Threading
+- **Broadcasting**: By default, comments and reviews are hidden inside Slack threads. To broadcast them to the entire channel:
+  - `/github subscribe OWNER/REPO comments:"CHANNEL"`
+  - `/github subscribe OWNER/REPO reviews:"CHANNEL"`
+- **Managing Threading**: Disable threaded notifications per channel by typing `/github settings` and toggling "Disable threading for Pull Request and Issue notifications".
+- **Audit Subscriptions**: Use `/github subscribe list` to see all repositories the current channel is subscribed to.
+
+---
+
+## 3. Managing Issues & Pull Requests
+
+Create, manage, and track work directly from Slack without switching contexts.
+
+### Essential Slash Commands
+
+| Command | Purpose |
+| :--- | :--- |
+| `/github open OWNER/REPO` | Prompts you to create a new issue with a title and description. |
+| `/github close [ISSUE-LINK]` | Closes the specified issue. Add `reason:"NOT-PLANNED"` to specify a reason. |
+| `/github reopen [ISSUE-LINK]` | Reopens a closed issue. |
+| `/github signin` / `/github signout` | Connect or disconnect your GitHub account from Slack. |
+| `/github settings` | Open the interactive menu to configure threading, default repos, and preferences. |
+
+### Smart Mentions
+Once your accounts are linked, GitHub will automatically `@mention` you in Slack when:
+- You are assigned to an issue or PR.
+- Your review is requested on a PR or deployment.
+- You are `@mentioned` in a GitHub comment, issue, or discussion.
+*(Note: Mentions only work in the Slack workspace where you most recently logged into the GitHub app).*
+
+---
+
+## 4. GitHub Copilot Cloud Agent in Slack *(Public Preview)*
+
+Initiate and steer Copilot cloud agent sessions directly within Slack to research, plan, write code, and create artifacts without leaving your chat.
+
+#
+
+
+Let me know if you'd like to adjust the formatting, add specific examples for your team's repositories, or export this in another format!
+
