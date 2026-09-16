@@ -1,0 +1,82 @@
+# ============================================================
+# Docker targets for deliverables/docker-stack/
+#
+# The repo-root Makefile has no docker targets. Rather than rewrite it (it is
+# owned by the app workflow), these targets live with the stack that uses them.
+#
+# Use them either way:
+#
+#   make -f deliverables/docker-stack/Makefile.docker up
+#   # or, copy the block below into the root Makefile and run `make docker-up`
+#
+# The existing root Makefile already defines PY / VENV / PY_BIN / REQ and vars
+# follow the same style (BSD/macOS-portable, .PHONY declared).
+# ============================================================
+
+COMPOSE ?= docker compose
+STACK   := deliverables/docker-stack
+COMPOSE_FILE := $(STACK)/docker-compose.yml
+IMAGE   ?= fastapi-boilerplate-api:local
+PORT    ?= 8000
+
+.PHONY: docker-build docker-build-fresh docker-up docker-down docker-logs \
+        docker-ps docker-shell docker-test docker-smoke docker-clean docker-check
+
+## Build the application image.
+docker-build:
+	$(COMPOSE) -f $(COMPOSE_FILE) build api
+
+## Build with no layer cache (use when a base image moved under you).
+docker-build-fresh:
+	$(COMPOSE) -f $(COMPOSE_FILE) build --no-cache api
+
+## Start the stack in the background and wait for health.
+docker-up:
+	$(COMPOSE) -f $(COMPOSE_FILE) up -d --build
+	@echo "Waiting for api to report healthy..."
+	@for i in $$(seq 1 30); do \
+	  state=$$(docker inspect -f '{{.State.Health.Status}}' $$($(COMPOSE) -f $(COMPOSE_FILE) ps -q api) 2>/dev/null || echo starting); \
+	  if [ "$$state" = "healthy" ]; then echo "api is healthy"; exit 0; fi; \
+	  sleep 2; \
+	done; \
+	echo "api did not become healthy in 60s"; exit 1
+
+## Stop and remove containers (volumes are kept).
+docker-down:
+	$(COMPOSE) -f $(COMPOSE_FILE) down
+
+## Follow logs from all services.
+docker-logs:
+	$(COMPOSE) -f $(COMPOSE_FILE) logs -f --tail=100
+
+## Show container status.
+docker-ps:
+	$(COMPOSE) -f $(COMPOSE_FILE) ps
+
+## Shell into the running api container.
+docker-shell:
+	$(COMPOSE) -f $(COMPOSE_FILE) exec api /bin/sh
+
+## Run the test suite inside the api image (host does not need Python deps).
+docker-test:
+	$(COMPOSE) -f $(COMPOSE_FILE) run --rm --no-deps --entrypoint sh api -c \
+	  "pip install -q pytest pytest-cov && python -m pytest tests/ -q"
+
+## Hit the health endpoints from the host. Proves the container serves traffic.
+docker-smoke:
+	@set -e; \
+	echo "GET /health"; curl -fsS "http://127.0.0.1:$(PORT)/health"; echo; \
+	echo "GET /health/ready"; curl -fsS "http://127.0.0.1:$(PORT)/health/ready"; echo; \
+	echo "GET /health/live"; curl -fsS "http://127.0.0.1:$(PORT)/health/live"; echo; \
+	echo "smoke test passed"
+
+## Validate the compose file and the Dockerfile without running anything.
+docker-check:
+	$(COMPOSE) -f $(COMPOSE_FILE) config --quiet && echo "compose config OK"
+	@test -f $(STACK)/Dockerfile && echo "Dockerfile present"
+	@grep -q 'FROM python:3' $(STACK)/Dockerfile && echo "base image is Python" \
+	  || { echo "Dockerfile is not a Python image"; exit 1; }
+
+## Tear everything down including named volumes.
+docker-clean:
+	$(COMPOSE) -f $(COMPOSE_FILE) down -v --remove-orphans

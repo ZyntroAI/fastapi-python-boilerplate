@@ -24,6 +24,7 @@
 | `onspace-ai/` | [OnSpaceAI](./onspace-ai/README.md) — AI reliability engine (cache, circuit breaker, fallback router, context compiler, token budget, Prometheus) เป็น standalone FastAPI app (31 tests) |
 | `onspace-platform-integration/` | [OnSpace Platform Integration](./onspace-platform-integration/README.md) — ดึง OnSpaceAI engine ออกมาเป็น reusable AI infrastructure service (`OnSpaceAIService`, ไม่มี FastAPI import) + provider chain (OpenAI/Anthropic/Google/mock) + [ADR-001](./onspace-platform-integration/ADR-001-onspace-as-platform-service.md) และ [Migration Plan](./onspace-platform-integration/MIGRATION.md) (58 tests) |
 | `cross-repo-patch-suite/` | [Cross-Repo Patch Suite](./cross-repo-patch-suite/README.md) — patch ให้ข้าม repo แล้ว byte-faithful: append ที่ไม่เขียนทับ byte เดิม, CRLF/EOL fidelity, ตรวจ workflow YAML + SHA-pin, overwrite guard (125 tests) |
+| `docker-stack/` | [Docker stack](./docker-stack/README.md) — FastAPI + PostgreSQL + Redis ที่รันได้จริง: multi-stage Python image (non-root, tini, HEALTHCHECK), compose + optional nginx, docker targets ใน Makefile แยกไฟล์ — แก้ 2 อย่างที่ repo ไม่ได้บอก: `requirements.txt` ขาด 2 dependency ที่แอปต้องใช้ และ health path จริงคือ `/health` ไม่ใช่ `/health/` (307) |
 
 ## ไฟล์อ้างอิงที่เกี่ยวข้อง
 
