@@ -1,0 +1,14 @@
+# Extra runtime dependencies the application imports but the repo's
+# requirements.txt does not declare.
+#
+# Found by building a clean venv from requirements.txt alone and importing
+# app.main (scripts/probe_deps.py). The image fails at startup without these:
+#
+#   app/core/config.py        -> pydantic_settings   (pydantic-settings)
+#   app/services/token_service.py -> jwt             (pyjwt)
+#
+# requirements.txt at the repo root is left untouched — this file is additive
+# so the container stack does not change what CI installs.
+
+pydantic-settings>=2.2
+pyjwt>=2.8
