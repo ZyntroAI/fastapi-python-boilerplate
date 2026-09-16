@@ -205,8 +205,8 @@ are pinned, 55 are not.
 **Owner:** `TASK-20260910-004`
 
 The org requires every action reference to be a full-length commit SHA. 60 of
-73 refs still use movable tags (`@v4`, `@v5`, …), so every workflow fails at
-*Set up job* with:
+73 refs still use movable tags (`@v4`, `@v5`, …) or placeholders
+(`@<commit-sha>`, `@<pin-latest-sha>`), so every workflow fails at *Set up job*:
 
 ```
 The actions actions/checkout@v4, actions/setup-python@v5, … are not allowed
@@ -216,16 +216,51 @@ full-length commit SHA.
 
 This is the reason `main` itself is red, and why PRs show `UNSTABLE`.
 
-**Evidence:** re-measured 2026-09-14 against current `main` — 60 unpinned of 73
-total refs, across 10 files (`build-compress-all-platforms.yml` 29,
-`ci.yml` 13, `live-task.yml` 7, `github-actions-autodebug-autorerun` 5,
-`static.yml` 4, `test-and-coverage.yaml` 4, `Auto-Index-Sync.yml` 3,
-`secret-scan.yml` 3, `test-suite.yml` 3, `dependabot-automerge.yml` 2). The
-earlier counts in this file (66 and 23) are both stale — the tree has moved.
-Failure reproduced in run logs for the current `main` HEAD.
+**Evidence (re-measured 2026-09-16, `main` @ `6a7754d`):**
 
-**Fix:** prepared and verified (76 refs pinned across 11 files, 0 unpinned
-remaining, `ci.yml` line endings preserved), but cannot be pushed — see P-003.
+| | refs |
+| --- | --- |
+| pinned (40-hex) | 13 |
+| unpinned | **60** |
+| total | 73 |
+
+60 unpinned occurrences across **9 files**, covering **25 distinct actions**:
+`build-compress-all-platforms.yml` 29, `live-task.yml` 7,
+`github-actions-autodebug-autorerun` 5, `static.yml` 4,
+`test-and-coverage.yaml` 4, `ci.yml` 3, `secret-scan.yml` 3,
+`test-suite.yml` 3, `dependabot-automerge.yml` 2.
+
+Counts recorded earlier in this file (66, 60, 23, 76) are stale — the tree has
+moved each time. This measurement is reproducible with the command below.
+
+**Fix:** prepared and verified as a patch pack (delivery attached to
+`TASK-20260910-004`). Three repairs that must land together, because they
+overlap:
+
+1. the five unparseable workflow files (P-001)
+2. every action ref pinned to a real, verified commit SHA
+3. activation of the `notify-whatsapp` workflow that PR #233 shipped as a
+   template only
+
+Verified against a fresh clone: 70/70 refs pinned, 10/10 workflows parse with a
+`jobs:` block, `ci.yml` keeps its CRLF endings, and every pinned SHA was
+confirmed to exist on the remote. **Cannot be pushed — see P-003.**
+
+Reproduce the count:
+
+```bash
+python3 - <<'EOF'
+import re, pathlib, collections
+k = collections.Counter()
+for p in pathlib.Path(".github/workflows").iterdir():
+    if not p.is_file(): continue
+    for m in re.finditer(r"uses:\s*([^\s#]+)", p.read_text(errors="ignore")):
+        r = m.group(1)
+        k["local" if r.startswith(("./", "docker://"))
+          else "pinned" if re.search(r"@[0-9a-f]{40}$", r) else "unpinned"] += 1
+print(dict(k))
+EOF
+```
 
 ---
 
