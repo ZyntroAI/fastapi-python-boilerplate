@@ -216,7 +216,7 @@ full-length commit SHA.
 
 This is the reason `main` itself is red, and why PRs show `UNSTABLE`.
 
-**Evidence (re-measured 2026-09-16, `main` @ `6a7754d`):**
+**Evidence (re-measured 2026-09-16, `main` @ `2f2a234`):**
 
 | | refs |
 | --- | --- |
@@ -234,17 +234,27 @@ Counts recorded earlier in this file (66, 60, 23, 76) are stale — the tree has
 moved each time. This measurement is reproducible with the command below.
 
 **Fix:** prepared and verified as a patch pack (delivery attached to
-`TASK-20260910-004`). Three repairs that must land together, because they
-overlap:
+`TASK-20260910-004`). It takes the set that PR #311 merged into
+`workflows-repaired/` and **activates it in `.github/workflows/`** — the only
+directory GitHub reads. #311 was staging only; it changed no live workflow, so CI
+stayed red.
+
+Three repairs land together, because they overlap:
 
 1. the five unparseable workflow files (P-001)
 2. every action ref pinned to a real, verified commit SHA
-3. activation of the `notify-whatsapp` workflow that PR #233 shipped as a
-   template only
+3. `github-actions-autodebug-autorerun` renamed to `.yml` — it had no extension,
+   so GitHub never ran it
 
-Verified against a fresh clone: 70/70 refs pinned, 10/10 workflows parse with a
-`jobs:` block, `ci.yml` keeps its CRLF endings, and every pinned SHA was
-confirmed to exist on the remote. **Cannot be pushed — see P-003.**
+Verified against a fresh clone: **72/72 refs pinned, 10/10 workflows parse with a
+`jobs:` block, 0 fabricated SHAs, `ci.yml` keeps its 112 CRLF bytes**, and all 24
+distinct SHAs were confirmed to exist via the GitHub API (0 unresolvable).
+**Cannot be pushed — see P-003.**
+
+Correction: an earlier revision of this entry claimed the fix activates a
+`notify-whatsapp` workflow. It does not — no such file exists in
+`.github/workflows/`, `workflows-repaired/`, or `templates/workflows/`. That was
+wrong and is removed.
 
 Reproduce the count:
 
