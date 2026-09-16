@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@1.4.0",
+        "--headless",
+        "--isolated",
+        "--redact-network-headers",
+        "--no-usage-statistics",
+        "--no-performance-crux",
+        "--channel=stable",
+        "--user-data-dir=/tmp/chrome-mcp-profile",
+        "--log-file=/var/log/chrome-devtools-mcp.log",
+        "--blocked-url-pattern=https://*/auth/*",
+        "--blocked-url-pattern=https://*/api/*/private"
+      ],
+      "env": {
+        "CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS": "1",
+        "NODE_ENV": "production"
+      }
+    }
+  }
+}

@@ -7,6 +7,24 @@ Open problems and known blockers are tracked separately in
 
 ## [2026-09-16]
 
+### Added
+- **Chrome DevTools MCP production setup** — added
+  `docs/Chrome-DevTools-MCP-Production-Setup.md` with a hardened
+  `chrome-devtools-mcp` configuration, a containerised browser, and a CI gate.
+  Every flag in the config was verified against the installed package rather than
+  taken on trust, because the server's CLI parser is **non-strict**: an unknown
+  flag is silently ignored and the process still exits 0, so a broken config looks
+  healthy. That check is now automated —
+  `scripts/verify-mcp-flags.py` asserts each configured flag appears in the pinned
+  version's `--help`, and it runs in `docs/mcp/mcp-ci.yml`. Four findings changed
+  the config from its draft: `--blocked-url-pattern` is real but postdates `1.0.1`
+  (config pins `1.4.0`); `--redact-network-headers` is real and implemented in
+  `1.0.1`; `--disable-gpu` and `--no-sandbox` are **not** server flags and work
+  only via `--chrome-arg=`; and `--categoryExtensions` /
+  `--categoryExperimentalThirdParty` already default to `false`, making the draft's
+  `--no-*` forms both redundant and unrecognised. Companion files live in
+  `docs/mcp/`; the workflow is SHA-pinned and sits outside `.github/workflows/`
+  because the Fig App cannot push there. TASK-20260916-003.
 ### Fixed
 - **PR #311** — merged the repaired workflow set to `main` and re-confirmed the
   push gate. The repair travels under `workflows-repaired/`: eleven workflow files
