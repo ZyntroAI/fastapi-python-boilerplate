@@ -1,14 +1,14 @@
 ---
 id: TASK-20260916-003
 title: Wire the cache scan in as an advisory CI gate
-status: inprogress
+status: done
 priority: normal
 created: 2026-09-16
 updated: 2026-09-16
 owner:
 repo: ZyntroAI/fastapi-python-boilerplate
 issue:
-prs: []
+prs: [318]
 blocked_by:
 tokens: 0
 ---
@@ -42,7 +42,7 @@ and as a downloadable artifact — without ever blocking a merge.
 - [x] Vendor the toolkit onto `ci/cache-scan-gate`.
 - [x] Author the advisory workflow with SHA-pinned refs.
 - [x] Validate: YAML parse, repo pin verifier, dry-run the scan step.
-- [ ] Push branch and open the PR.
+- [x] Push branch and open the PR (#318).
 - [x] CHANGELOG + task record.
 
 ## Acceptance criteria
@@ -55,7 +55,8 @@ and as a downloadable artifact — without ever blocking a merge.
       by the repo's own repair set.
 - [x] The job cannot fail a build: every finding-bearing step is
       `continue-on-error: true`.
-- [ ] Branch pushed and PR open.
+- [x] Branch pushed and PR open (#318). The workflow file itself is
+      handed off in a PR comment — the App lacks the `workflows` scope.
 
 ## Dependencies / blockers
 
@@ -97,4 +98,21 @@ comment and explains the one-line promotion path.
 
 ## Completion summary
 
-Fill in only when moving to `done/` or `archive/`.
+The cache scan is wired in as an advisory job. `deliverables/cache-reduction-skill/`
+now carries the toolkit (41 tests passing from its vendored location) and
+`.github/workflows/cache-scan.yml` runs `cache_reduction scan app/` on every push to
+`main`/`dev` and every PR to `main`, writing findings to the job summary and
+uploading `cache-scan.json`. Every finding-bearing step is `continue-on-error`, so
+the job reports without ever failing a build — deliberate, because the scan
+currently reports three findings against `app/`, at least two of which are false
+positives (`setex` with a variable TTL; `@lru_cache` on a zero-argument getter).
+
+Delivered as PR #318. The workflow file could not be pushed: the GitHub App lacks
+the `workflows` scope, and the remote refused the ref with "refusing to allow a
+GitHub App to create or update workflow ... without `workflows` permission". A
+discriminator push of the same commit minus that file succeeded, pinning the block
+to the App permission rather than credentials or branch rules. The file is handed
+off verbatim in a PR comment for a maintainer to apply.
+
+Follow-up: clear the three findings (or tighten the two rules), then flip
+`continue-on-error` off to promote the job to a real gate.
