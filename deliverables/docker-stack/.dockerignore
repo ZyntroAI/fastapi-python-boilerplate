@@ -1,0 +1,93 @@
+# Build-context exclusions for the image.
+#
+# The build context is the repo root, and this repo carries a lot of unrelated
+# material (screenshots, fonts, CSVs, archives, commits-in-progress). Excluding
+# it keeps the context small and stops test-only or secret-bearing files from
+# ever reaching a layer.
+#
+# Everything not needed to *run* the API is excluded.
+
+# VCS / editors
+.git
+.gitignore
+.github
+.vscode
+.idea
+
+# Python build + test artifacts
+**/__pycache__
+**/*.py[cod]
+.venv
+venv
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.coverage
+htmlcov
+**/*.egg-info
+
+# Tests and test data — the image runs the API, it does not run the suite
+tests
+pytest
+vitest.config.mjs
+
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+credentials
+**/*.secret
+*.pem
+*.key
+
+# Node / frontend (built separately if needed)
+node_modules
+frontend
+electron-app
+**/dist
+
+# Docs, deliverables and other repo material
+docs
+deliverables
+new.inprogress.done
+archive
+workflows-repaired
+patches
+Images
+Documents
+Documents_Markdown
+Documents_Figma
+ManusAIDocs
+Knowledge-Base
+Plan
+Skills
+agents
+skills
+
+# Notebooks, media and misc root clutter
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.woff2
+*.zip
+*.PDF
+*.html
+*.csv
+*.txt
+*.xls*
+*.pptx
+
+# Container + infra definitions (not needed inside the image)
+Dockerfile*
+docker-compose*.yml
+docker
+helm
+k8s
+*.yaml
+
+# `*.txt` above would drop the required requirements files; re-include them.
+!requirements.txt
+!requirements-dev.txt
+!deliverables/docker-stack/requirements.stack.txt

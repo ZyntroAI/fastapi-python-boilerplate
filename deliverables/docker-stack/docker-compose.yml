@@ -1,0 +1,111 @@
+# FastAPI Python Boilerplate — container stack
+#
+#   docker compose -f deliverables/docker-stack/docker-compose.yml up --build
+#
+# The root docker-compose.yml is a different stack (its API service build
+# context does not exist in this repo), so this file is additive: it does not
+# replace or modify it.
+#
+# Env comes from the repo-root .env when present. Copy .env.example first:
+#   cp .env.example .env
+
+name: fastapi-boilerplate
+
+x-app-env: &app-env
+  ENV: ${ENV:-production}
+  PORT: "8000"
+  # `app/config.py` defaults this to a local sqlite file; point it at the
+  # postgres service so the stack is actually wired together.
+  DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://app:${DB_PASSWORD:-apppass}@postgres:5432/appdb}
+  REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+  # The repo has TWO settings modules that disagree on names:
+  #   app/core/config.py  -> JWT_SECRET,  REDIS_URL
+  #   app/config.py       -> JWT_SECRET_KEY, DATABASE_URL, REDIS_URL
+  # Set both JWT keys so whichever module loads gets a real value instead of
+  # silently falling back to the "super-secret-change-in-production" default.
+  JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+  JWT_SECRET_KEY: ${JWT_SECRET:-change-me-in-production}
+  JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+  JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-60}
+  OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID:-}
+  OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET:-}
+  FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+
+services:
+  api:
+    build:
+      # Context is the repo root: the app package and requirements.txt live there.
+      context: ../..
+      dockerfile: deliverables/docker-stack/Dockerfile
+    image: fastapi-boilerplate-api:local
+    restart: unless-stopped
+    environment:
+      <<: *app-env
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    networks: [backend]
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-apppass}
+      POSTGRES_DB: appdb
+      TZ: ${TZ:-Asia/Bangkok}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d appdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [backend]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [backend]
+
+  # Optional TLS/reverse-proxy front end. Off by default because it needs
+  # certificates to be useful — start it with:
+  #   docker compose --profile proxy up --build
+  proxy:
+    image: nginx:1.27-alpine
+    profiles: [proxy]
+    restart: unless-stopped
+    ports:
+      - "${PROXY_PORT:-8080}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [backend]
+
+volumes:
+  postgres-data:
+  redis-data:
+
+networks:
+  backend:
+    driver: bridge
