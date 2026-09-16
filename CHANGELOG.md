@@ -7,6 +7,19 @@ Open problems and known blockers are tracked separately in
 
 ## [2026-09-16]
 
+### Added
+- **Cache scan as an advisory CI gate** — the cache-footprint audit now runs on
+  every push to `main`/`dev` and every PR to `main`, publishing its findings to
+  the job summary and as a `cache-scan-report` artifact. The toolkit moves into
+  `deliverables/cache-reduction-skill/` so the scan has a stable path to run
+  from. Scope is `app/`. The job is deliberately advisory — every
+  finding-bearing step is `continue-on-error: true` — because the scan reports
+  three findings against the current tree, at least two of which are false
+  positives (`setex` with a variable TTL, `@lru_cache` on a zero-argument
+  getter), so a blocking gate would be red from its first run. Refs are pinned
+  to the SHAs the repo's own repair set already verified.
+
+
 ### Fixed
 - **PR #311** — merged the repaired workflow set to `main` and re-confirmed the
   push gate. The repair travels under `workflows-repaired/`: eleven workflow files
