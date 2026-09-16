@@ -1,0 +1,73 @@
+# cross-repo-patch-suite policy
+#
+# Every threshold and default the suite applies, in one place. Change behaviour
+# here rather than in code.
+
+name: cross-repo-patch-suite
+version: 1.0.0
+description: >-
+  Keep patches byte-faithful across repositories: appends that never rewrite
+  existing bytes, CRLF/EOL fidelity, workflow YAML that parses, and action
+  references pinned to full commit SHAs.
+
+# --- Append behaviour -------------------------------------------------------
+appends:
+  # Rewrite the payload's line endings to match the target file. Without this a
+  # two-line append to a CRLF file shows up as every line changed.
+  align_to_file: true
+  # Insert a terminator when the existing file does not end with one, so the
+  # appended block starts on its own line. This is the ONLY pre-existing-byte
+  # mutation an append is allowed to make.
+  close_unterminated_final_line: true
+  # Never decode-and-re-encode. Recorded so the rule is greppable and reviewable.
+  byte_exact: true
+  # Fail the append if the target's EOL style is mixed and the majority is under
+  # this confidence; better to refuse than to guess and rewrite the file.
+  mixed_eol_confidence_floor: 0.6
+
+# --- Overwrite guard --------------------------------------------------------
+guard:
+  # Creating over an existing path is refused. New work is written beside the
+  # existing file.
+  refuse_create_over_existing: true
+  # Replacement requires an approval value equal to the exact path — a blanket
+  # yes is not accepted, because the point is to force the file into view.
+  replace_requires_exact_path_approval: true
+  # Appends are additive and therefore allowed without approval.
+  allow_append_without_approval: true
+
+# --- Patch application ------------------------------------------------------
+patch:
+  prefer: "apply"          # apply | am
+  three_way: true
+  whitespace: "nowarn"
+  # Report these as distinct causes rather than one generic "does not apply".
+  diagnose:
+    - whitespace
+    - eol
+    - index_mismatch
+    - missing_path
+    - existing_path
+    - malformed_patch
+
+# --- Workflow files ---------------------------------------------------------
+workflow:
+  # A uses: reference must be a 40-character commit SHA. Branch names and tags
+  # are mutable and therefore not acceptable.
+  require_sha_pin: true
+  sha_length: 40
+  allow_list:
+    - "./"            # local composite action
+    - "docker://"     # container image reference
+  # Validate YAML before any push. Unquoted colons in strings are the most
+  # common ScannerError cause in generated workflows.
+  validate_yaml_before_push: true
+  quote_colon_strings: true
+
+# --- Offline / credential-constrained operation -----------------------------
+offline:
+  # When the app token cannot push to .github/workflows/, ship a verified patch
+  # plus a handoff document instead of failing silently.
+  patch_handoff: true
+  handoff_doc: "HANDOFF.md"
+  verify_patch_applies_on_fresh_clone: true
