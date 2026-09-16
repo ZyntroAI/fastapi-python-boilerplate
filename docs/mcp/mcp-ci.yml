@@ -1,0 +1,71 @@
+# Reference CI for the Chrome DevTools MCP setup.
+#
+# This file lives under docs/mcp/ rather than .github/workflows/ because the Fig
+# GitHub App cannot push to .github/workflows/** (missing App-installation
+# `workflows` permission). A maintainer can move it into place unchanged:
+#
+#     git mv docs/mcp/mcp-ci.yml .github/workflows/mcp-ci.yml
+#
+# All `uses:` refs are pinned to real 40-character commit SHAs, resolved from the
+# upstream tags. (Both `actions/checkout@v4` and `actions/setup-node@v4` publish a
+# tag object rather than a commit, so the SHA below is the dereferenced commit.)
+name: MCP Server CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: "0 0 * * 1" # weekly, to surface upstream patch releases
+
+env:
+  NODE_VERSION: "20.19"
+  # Pinned deliberately. This must match the spec in docs/mcp/mcp-config.json and
+  # the ENTRYPOINT in docs/mcp/Dockerfile. Any bump is a reviewed change, not a drift.
+  MCP_VERSION: "1.4.0"
+
+jobs:
+  validate-mcp-setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install repository dependencies
+        run: npm ci
+
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@c785b87e244131f27c9f19c1a33e2ead956ab7ce # v1
+        with:
+          chrome-version: stable
+
+      - name: Validate configuration is well-formed JSON
+        run: |
+          jq -e '.mcpServers' docs/mcp/mcp-config.json > /dev/null
+          echo "config parses and declares mcpServers"
+
+      - name: Verify every configured flag is supported by the pinned server
+        # This is the real gate. The server's CLI parser is non-strict, so an
+        # unknown flag is silently ignored and the process still exits 0 -- a
+        # broken config would otherwise pass every other check in this file.
+        run: |
+          python3 scripts/verify-mcp-flags.py \
+            docs/mcp/mcp-config.json \
+            --server "chrome-devtools-mcp@${MCP_VERSION}"
+
+      - name: Confirm the pinned version is installable and starts
+        run: |
+          npx -y "chrome-devtools-mcp@${MCP_VERSION}" --help > /dev/null
+          echo "executed pinned chrome-devtools-mcp@${MCP_VERSION}"
+
+      - name: Validate the compose file
+        run: |
+          docker compose -f docs/mcp/docker-compose.yml config > /dev/null
+          echo "compose file is valid"
