@@ -1,0 +1,52 @@
+name: cross-repo-patch-suite
+version: 1.0.0
+description: >-
+  Keep patches byte-faithful across repositories — appends that never rewrite
+  existing bytes, CRLF/EOL fidelity, parseable workflow YAML, and action
+  references pinned to full commit SHAs.
+license: MIT
+entrypoint: src/patchsuite
+persona: |
+  You are careful with other people's files. You never decode a file you are
+  going to write back, you never overwrite work that already exists, and when a
+  command fails you name the cause instead of repeating the error text. When you
+  cannot verify something — an unpinned action, a patch that will not apply —
+  you say so rather than guessing.
+capabilities:
+  - byte-exact-append
+  - line-ending-fidelity
+  - patch-application-and-diagnosis
+  - workflow-yaml-validation
+  - action-sha-pinning
+  - overwrite-guard
+  - credential-constrained-handoff
+constraints:
+  - Never overwrite an existing file without approval naming that exact path.
+  - Prefer creating a new file beside existing work over replacing it.
+  - Dry-run by default; require --apply for any write.
+  - Never resolve an action pin by guessing — report it unresolved instead.
+  - Do not normalise line endings the task did not require changing.
+inputs:
+  - file-paths
+  - patch-files
+  - repository-roots
+outputs:
+  - append-results
+  - verification-reports
+  - yaml-diagnostics
+  - pin-audits
+  - handoff-bundles
+triggers:
+  - "patch does not apply"
+  - "git am fails"
+  - "CRLF line endings"
+  - "file shows as fully rewritten in the diff"
+  - "workflow file will not parse"
+  - "unpin the actions"
+  - "SHA-pin the workflows"
+  - "do not overwrite the existing file"
+verification:
+  tests: tests/
+  command: python -m pytest -q
+  coverage: "125 tests"
+  fixtures: fixtures/

@@ -47,6 +47,25 @@ Open problems and known blockers are tracked separately in
 
 ### Added
 
+- **`deliverables/cross-repo-patch-suite/`** — a suite for the three ways a patch
+  breaks on the way between repositories, none of which is about the change
+  itself. First, a Python text-mode round-trip normalises CRLF to LF, so a
+  two-line append lands as a whole-file rewrite; the suite never decodes a file
+  it will write back, and `verify_append` proves the pre-existing region survived
+  byte for byte. Second, a CRLF file with no trailing newline passes
+  `git apply --check` and *fails* `git am` with "patch does not apply" — the two
+  commands disagree and the one that says OK is the one you run first. That is
+  reproduced against real git in `tests/test_end_to_end.py`, with the
+  byte-identical LF control passing both, and `audit_eol_risk` finds these files
+  before the attempt. Third, an unquoted colon (`:x:`) is a YAML `ScannerError`
+  and an `uses:` reference on a tag parses fine while still being mutable, so the
+  parse check and the SHA-pin audit are kept independent. Includes `patchctl`
+  (six subcommands), two helpers — `safe_append.py` and `fix_eol.py` — a
+  `kernel/policy.yaml` holding every threshold, an overwrite guard that refuses a
+  create over an existing file and requires exact-path approval to replace, and
+  clean/broken fixtures written as exact bytes. Every mutating command is a dry
+  run unless `--apply` is passed. 125 tests. TASK-20260916-001.
+
 - **PR #306** — docs: refreshed `PROBLEMS.md` P-002, which had gone stale twice
   over: it described the fix as "76 refs pinned across 11 files" (never pushed)
   and carried 2026-09-14 evidence. Re-measured against `main` @ `6a7754d` —

@@ -23,6 +23,7 @@
 | `product-crud/` | [Products CRUD](./product-crud/README.md) — Prisma `Product` + Express (Zod → service → controller → routes) และ React + TanStack Query (search/pagination state อยู่ใน query key, 30 tests) |
 | `onspace-ai/` | [OnSpaceAI](./onspace-ai/README.md) — AI reliability engine (cache, circuit breaker, fallback router, context compiler, token budget, Prometheus) เป็น standalone FastAPI app (31 tests) |
 | `onspace-platform-integration/` | [OnSpace Platform Integration](./onspace-platform-integration/README.md) — ดึง OnSpaceAI engine ออกมาเป็น reusable AI infrastructure service (`OnSpaceAIService`, ไม่มี FastAPI import) + provider chain (OpenAI/Anthropic/Google/mock) + [ADR-001](./onspace-platform-integration/ADR-001-onspace-as-platform-service.md) และ [Migration Plan](./onspace-platform-integration/MIGRATION.md) (58 tests) |
+| `cross-repo-patch-suite/` | [Cross-Repo Patch Suite](./cross-repo-patch-suite/README.md) — patch ให้ข้าม repo แล้ว byte-faithful: append ที่ไม่เขียนทับ byte เดิม, CRLF/EOL fidelity, ตรวจ workflow YAML + SHA-pin, overwrite guard (125 tests) |
 
 ## ไฟล์อ้างอิงที่เกี่ยวข้อง
 

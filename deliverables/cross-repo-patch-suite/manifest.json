@@ -1,0 +1,71 @@
+{
+  "name": "cross-repo-patch-suite",
+  "version": "1.0.0",
+  "kind": "skill-suite",
+  "summary": "Keep patches byte-faithful across repositories — appends that never rewrite existing bytes, CRLF/EOL fidelity, parseable workflow YAML, and SHA-pinned action references.",
+  "entrypoint": "src/patchsuite",
+  "cli": "scripts/patchctl.py",
+  "policy": "kernel/policy.yaml",
+  "python": ">=3.10",
+  "dependencies": {
+    "runtime": ["PyYAML>=6.0"],
+    "optional": ["httpx>=0.24"],
+    "test": ["pytest>=7.0"]
+  },
+  "sub_skills": [
+    {
+      "id": "byte-append",
+      "title": "Byte-exact append",
+      "summary": "Append to a file without decoding it, matching the target's line endings so the diff shows only the new lines.",
+      "module": "src/patchsuite/append.py",
+      "entrypoints": ["append_text", "plan_append", "verify_append", "diff_stat"],
+      "cli": ["patchctl append", "patchctl verify"]
+    },
+    {
+      "id": "eol-fidelity",
+      "title": "Line-ending fidelity",
+      "summary": "Detect LF/CRLF/CR/mixed, find the CRLF-without-trailing-newline combination that breaks `git am`, and rewrite endings without touching content.",
+      "module": "src/patchsuite/eol.py",
+      "entrypoints": ["detect_eol", "dominant_terminator", "to_bytes", "normalize_terminators", "profile"],
+      "cli": ["patchctl eol"]
+    },
+    {
+      "id": "patch-apply",
+      "title": "Patch apply and diagnosis",
+      "summary": "Run `git apply` / `git am` and turn the single unhelpful 'does not apply' message into a named cause and a fix.",
+      "module": "src/patchsuite/gitops.py",
+      "entrypoints": ["check_patch", "apply_patch", "apply_mailbox", "diagnose_patch_failure", "audit_eol_risk", "working_tree_state"],
+      "cli": ["patchctl check"]
+    },
+    {
+      "id": "workflow-gate",
+      "title": "Workflow YAML and SHA-pin gate",
+      "summary": "Validate workflow YAML before pushing, locate unquoted-colon ScannerErrors by line and column, and audit every `uses:` reference for a full-SHA pin.",
+      "module": "src/patchsuite/yamlgate.py",
+      "entrypoints": ["validate_yaml_file", "find_action_refs", "audit_pins", "resolve_sha", "is_sha_pinned"],
+      "cli": ["patchctl yaml", "patchctl pins"]
+    },
+    {
+      "id": "overwrite-guard",
+      "title": "Overwrite guard",
+      "summary": "Refuse a create over an existing file and require exact-path approval for a replace, so new work is written beside existing work rather than on top of it.",
+      "module": "src/patchsuite/guard.py",
+      "entrypoints": ["guard", "plan_writes", "all_allowed"],
+      "cli": ["patchctl guard"]
+    },
+    {
+      "id": "handoff",
+      "title": "Credential-constrained handoff",
+      "summary": "When the app token cannot push to .github/workflows/, ship a verified patch plus a handoff document instead of failing silently.",
+      "module": "scripts/make_handoff.py",
+      "entrypoints": ["build_handoff"],
+      "cli": []
+    }
+  ],
+  "fixtures": {
+    "clean": "fixtures/clean-project",
+    "broken": "fixtures/broken-project",
+    "generator": "scripts/make_fixtures.py"
+  },
+  "tags": ["git", "patch", "line-endings", "crlf", "github-actions", "sha-pinning", "yaml", "ci", "cross-repo"]
+}
