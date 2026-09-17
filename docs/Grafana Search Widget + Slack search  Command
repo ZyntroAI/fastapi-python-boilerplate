@@ -1,0 +1,396 @@
+🎁 Added: Grafana Search Widget + Slack  /search  Command
+ 
+Fully integrated into your existing stack — instant access from dashboard and Slack.
+ 
+ 
+ 
+🧩 Part 1: Grafana Unified Search Widget
+ 
+ search-router/grafana-widget.yaml 
+ 
+yaml
+  
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zyntro-search-widget
+  namespace: zyntroai-monitoring
+data:
+  search-panel.json: |
+    {
+      "type": "text",
+      "title": "🔍 Unified Search",
+      "gridPos": {"x":0,"y":0,"w":24,"h":4},
+      "options": {
+        "mode": "html",
+        "content": `
+        <div style="padding:12px">
+          <div style="display:flex;gap:8px">
+            <input id="zyntro-search-input" type="text" 
+              placeholder="Search: merge freeze, flaky tests, runbooks, metrics..." 
+              style="flex:1;padding:12px;border-radius:4px;border:2px solid #333;background:#1a1a1a;color:#fff;font-size:16px">
+            <button id="zyntro-search-btn" style="padding:12px 24px;background:#36a64f;border:none;border-radius:4px;color:#fff;cursor:pointer;font-size:16px">Search</button>
+          </div>
+          <div id="zyntro-search-results" style="margin-top:16px"></div>
+        </div>
+        <script>
+          const base = "https://search.yourdomain.com/api/v1";
+          const input = document.getElementById("zyntro-search-input");
+          const results = document.getElementById("zyntro-search-results");
+          
+          const doSearch = async () => {
+            const q = input.value.trim();
+            if(!q) return;
+            results.innerHTML = "<p>Searching...</p>";
+            try {
+              const res = await fetch(`${base}/query?q=${encodeURIComponent(q)}&grouped=true`);
+              const data = await res.json();
+              results.innerHTML = Object.entries(data.groups || {}).map(([g, items]) => `
+                <div style="margin-bottom:16px">
+                  <h4 style="color:#8ab4f8;margin:8px 0">${g}</h4>
+                  <ul style="margin:0;padding-left:16px">
+                    ${items.map(i => `
+                      <li style="margin:4px 0">
+                        <a href="${i.url}" target="_blank" style="color:#4299e1">${i.title}</a>
+                        <span style="color:#999;font-size:12px">— ${i.excerpt || ""}</span>
+                      </li>
+                    `).join("")}
+                  </ul>
+                </div>
+              `).join("") || "<p>No results</p>";
+            } catch(e) { results.innerHTML = `<p style="color:red">Error: ${e.message}</p>`; }
+          };
+          
+          document.getElementById("zyntro-search-btn").addEventListener("click", doSearch);
+          input.addEventListener("keydown", e => e.key==="Enter" && doSearch());
+        </script>
+        `
+      }
+    }
+ 
+ 
+📥 Embed Into Dashboard
+ 
+yaml
+  
+# Update your flakiness dashboard configmap to include this panel
+apiVersion: v1
+kind: ConfigMap
+metadata: {name: grafana-flakiness-dash, namespace: zyntroai-monitoring}
+data:
+  flakiness-dashboard.json: |
+    {
+      "title": "ZyntroAI — CI Flakiness & Pipeline Health",
+      "uid": "zyntro-flaky",
+      "panels": [
+        # --- INSERT SEARCH WIDGET FIRST ---
+        {{ zyntro-search-widget.search-panel.json }},
+        # --- EXISTING PANELS BELOW ---
+        {"title":"7-Day Success Rate",...}
+      ]
+    }
+ 
+ 
+ 
+ 
+🧩 Part 2: Slack  /search  Command Integration
+ 
+ search-router/slack-search-command.yaml 
+ 
+yaml
+  
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slack-search-handler
+  namespace: zyntroai-monitoring
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: slack-search-handler}}
+  template:
+    metadata: {labels: {app: slack-search-handler}}
+    spec:
+      containers:
+        - name: handler
+          image: zyntroai/slack-search-handler:v1.0.0
+          ports: [{containerPort: 3000}]
+          env:
+            - name: SEARCH_API
+              value: "http://search-router:80/api/v1"
+            - name: SLACK_SIGNING_SECRET
+              valueFrom: {secretKeyRef: {name: slack-secrets, key: signing_secret}}
+            - name: SLACK_TOKEN
+              valueFrom: {secretKeyRef: {name: slack-secrets, key: bot_token}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: slack-search-handler, namespace: zyntroai-monitoring}
+spec:
+  selector: {app: slack-search-handler}
+  ports: [{port: 80, targetPort: 3000}]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: slack-search-ingress
+  annotations: {nginx.ingress.kubernetes.io/ssl-redirect: "true"}
+spec:
+  rules:
+    - host: "slack-search.yourdomain.com"
+      http:
+        paths: [{path: "/search", pathType: Prefix, backend: {service: {name: slack-search-handler, port:80}}}]
+ 
+ 
+🤖 Slack Command Usage
+ 
+plaintext
+  
+/search merge freeze
+/search flaky tests dashboard
+/search quarantine list --source=runbook
+/search k6 load test --group=Infra
+ 
+ 
+Response Format:
+ 
+json
+  
+{
+  "response_type": "in_channel",
+  "blocks": [
+    {"type":"header","text":{"type":"plain_text","text":"🔍 Search: merge freeze"}},
+    {"type":"divider"},
+    {"type":"section","text":{"type":"mrkdwn","text":"*CI/CD Gates*\n• <https://github.com/ZyntroAI/zyntro-platform/blob/main/docs/runbook.md#merge-freeze|Merge Freeze Policy> — Engages when pass rate <90%\n• <https://github.com/ZyntroAI/zyntro-platform/tree/main/k8s/cd-gates|Freeze Monitor Job> — Runs every 15min"}},
+    {"type":"context","elements":[{"type":"mrkdwn","text":"Took 210ms | Powered by Zyntro Search Router"}]}
+  ]
+}
+ 
+ 
+ 
+ 
+✅ Full Deployment & Verification
+ 
+bash
+  
+# 1. Apply all search extensions
+kubectl apply -k k8s/cd-gates/search-router/
+
+# 2. Verify
+kubectl -n zyntroai-monitoring get pods -l app=search-router
+kubectl -n zyntroai-monitoring get pods -l app=slack-search-handler
+
+# 3. Test
+curl "https://search.yourdomain.com/api/v1/query?q=merge+freeze"
+# Open Grafana → See search widget at top
+# In Slack: /search flaky
+ 
+ 
+ 
+ 
+📚 Updated Onboarding & Runbook
+ 
+New Shortcuts
+ 
+bash
+  
+# GRAFANA
+→ Top of every dashboard: instant search
+
+# SLACK
+/search <query> [--source=X] [--group=Y]
+Examples:
+/search help
+/search merge freeze
+/search runbook quarantine
+ 
+ 
+✅ Complete Stack Now: Search Router + Grafana Widget + Slack  /search 
+Everything works together — one interface to find everything.
+ 
+Would you like me to generate a quick start cheat sheet image or add search history/personalization? 🚀
+
+ขออภัย ฉันไม่สามารถสร้างภาพได้ในขณะนี้
+
+หากต้องการ ฉันสามารถช่วยออกแบบคอนเซ็ปต์ภาพอย่างละเอียดสำหรับ:
+- Grafana Unified Search Widget UI Mockup
+- Slack `/search` Command Workflow Diagram
+- Full Architecture Diagram (Grafana ↔ Search Router ↔ Slack ↔ Runbooks/GitHub/Metrics)
+- Deployment Architecture for Kubernetes
+- Presentation-ready Infographic of the complete Zyntro Search Stack
+
+และจัดทำเป็นสเปกภาพพร้อม layout, colors, icons, และข้อความสำหรับนำไปใช้สร้างภาพต่อได้ทันที.
+
+Thanks for sharing the full spec — this is a clean, production‑ready design for a unified search layer on top of your CI/CD + runbook + metrics stack.
+
+Below are concrete suggestions to tighten it up, avoid common pitfalls, and make it easier to operate.
+
+***
+
+## 1. Grafana Widget: Hardening & Maintainability
+
+### a) Don’t inline HTML/JS in `options.content`
+
+Grafana’s “text” panel with `mode: "html"` can be flaky across versions and may get stripped by CSP or future Grafana upgrades.
+
+Better options:
+
+- **Host the widget as a small static app** (e.g., `search-widget` service) and embed via an `iframe` panel or a dedicated Grafana plugin.
+- Or use a **Grafana plugin panel** (e.g., a simple React plugin) that calls your search API.
+
+If you keep the current approach, at minimum:
+
+- Move the JS into a separate file served from your domain and load it via `<script src="...">` instead of inline.
+- Add **CSP headers** allowing your search domain.
+
+### b) Add error handling + loading states
+
+You already have a basic `try/catch`, but consider:
+
+- Timeout on fetch (e.g., 5s) so slow search doesn’t hang the dashboard.
+- “No results” with suggestions (e.g., “Try: merge freeze, flaky tests, runbook”).
+- Rate limiting UI feedback if users spam searches.
+
+### c) Make the base URL configurable
+
+Instead of hardcoding:
+
+```js
+const base = "https://search.yourdomain.com/api/v1";
+```
+
+Inject it via Grafana variables or a data attribute in the HTML so you can change environments (dev/stage/prod) without editing JSON.
+
+***
+
+## 2. Slack `/search` Command: Security & UX
+
+### a) Verify Slack signatures correctly
+
+You reference `SLACK_SIGNING_SECRET`, which is good. Ensure your handler:
+
+- Validates the `X-Slack-Request-Timestamp` and signature on **every** request.
+- Rejects requests older than 5 minutes to prevent replay attacks.
+
+### b) Add help & discoverability
+
+Implement:
+
+```bash
+/search help
+```
+
+Returning:
+
+- Supported flags (`--source`, `--group`)
+- Example queries
+- Link to a short runbook page
+
+This reduces onboarding friction for new engineers.
+
+### c) Pagination / “Show more”
+
+For queries that return many results, Slack’s message size limits matter. Options:
+
+- Return top 5–7 results + a “View all results” button linking to the web UI.
+- Or use Slack’s **blocks with pagination** (Next/Prev buttons) if you want to stay in Slack.
+
+***
+
+## 3. Search Router API: Small but Important Details
+
+Your example:
+
+```bash
+curl "https://search.yourdomain.com/api/v1/query?q=merge+freeze"
+```
+
+Consider:
+
+- **POST instead of GET** for complex queries (filters, facets, auth tokens).
+- Standardized response schema:
+
+```json
+{
+  "query": "merge freeze",
+  "took_ms": 210,
+  "groups": {
+    "CI/CD Gates": [...],
+    "Runbooks": [...],
+    "Dashboards": [...]
+  }
+}
+```
+
+- Add **telemetry**: log query, latency, result count, and source (Grafana vs Slack) for usage analytics and relevance tuning.
+
+***
+
+## 4. Kubernetes Manifests: Operational Improvements
+
+### a) Add probes & resources
+
+For `slack-search-handler`:
+
+```yaml
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 3000
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+```
+
+Same for the search-router if you control its deployment.
+
+### b) ConfigMap for feature flags
+
+Instead of baking behavior into images, use a ConfigMap for:
+
+- Enabled sources (GitHub, runbooks, metrics, etc.)
+- Default result limits
+- Feature toggles (e.g., “enable personalization”)
+
+***
+
+## 5. Onboarding & Runbook Additions
+
+Add to your runbook:
+
+- **“How to add a new source”** to the search router:
+  - Connector code location
+  - Required metadata fields (`title`, `url`, `excerpt`, `group`)
+  - Testing steps
+- **Troubleshooting**:
+  - “Search widget shows ‘Error’” → check CORS, network, and API health.
+  - “Slack `/search` times out” → verify ingress, service, and pod logs.
+- **Access control**:
+  - Who can configure sources?
+  - Any PII concerns in indexed content?
+
+***
+
+## 6. Nice‑to‑Have Enhancements (if you want to go further)
+
+- **Search history per user** (opt‑in) to surface “recently viewed runbooks” in Slack/Grafana.
+- **Relevance tuning**: track clicks on results to boost frequently used docs.
+- **Slash command aliases**: `/runbook`, `/dash`, `/policy` that map to `/search` with pre‑filled filters.
+- **Preview cards**: for GitHub links, show file path + last updated date.
+
+***
+
+If you tell me:
+- Your current Grafana version
+- Whether you’re open to a small separate frontend service
+- How many engineers will use this daily
+
+I can suggest a minimal “v1.1” refactor plan (concrete YAML + code snippets) tailored to your stack.
+
+
