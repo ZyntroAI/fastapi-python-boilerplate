@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cache-reduction"
+version = "1.0.0"
+description = "Cache-footprint audit toolkit — static source, HTTP/CDN headers, Redis INFO — for ZyntroAI services"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.setuptools]
+packages = ["cache_reduction"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-q"

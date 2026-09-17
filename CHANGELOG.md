@@ -8,23 +8,18 @@ Open problems and known blockers are tracked separately in
 ## [2026-09-16]
 
 ### Added
-- **Chrome DevTools MCP production setup** — added
-  `docs/Chrome-DevTools-MCP-Production-Setup.md` with a hardened
-  `chrome-devtools-mcp` configuration, a containerised browser, and a CI gate.
-  Every flag in the config was verified against the installed package rather than
-  taken on trust, because the server's CLI parser is **non-strict**: an unknown
-  flag is silently ignored and the process still exits 0, so a broken config looks
-  healthy. That check is now automated —
-  `scripts/verify-mcp-flags.py` asserts each configured flag appears in the pinned
-  version's `--help`, and it runs in `docs/mcp/mcp-ci.yml`. Four findings changed
-  the config from its draft: `--blocked-url-pattern` is real but postdates `1.0.1`
-  (config pins `1.4.0`); `--redact-network-headers` is real and implemented in
-  `1.0.1`; `--disable-gpu` and `--no-sandbox` are **not** server flags and work
-  only via `--chrome-arg=`; and `--categoryExtensions` /
-  `--categoryExperimentalThirdParty` already default to `false`, making the draft's
-  `--no-*` forms both redundant and unrecognised. Companion files live in
-  `docs/mcp/`; the workflow is SHA-pinned and sits outside `.github/workflows/`
-  because the Fig App cannot push there. TASK-20260916-003.
+- **Cache scan as an advisory CI gate** — the cache-footprint audit now runs on
+  every push to `main`/`dev` and every PR to `main`, publishing its findings to
+  the job summary and as a `cache-scan-report` artifact. The toolkit moves into
+  `deliverables/cache-reduction-skill/` so the scan has a stable path to run
+  from. Scope is `app/`. The job is deliberately advisory — every
+  finding-bearing step is `continue-on-error: true` — because the scan reports
+  three findings against the current tree, at least two of which are false
+  positives (`setex` with a variable TTL, `@lru_cache` on a zero-argument
+  getter), so a blocking gate would be red from its first run. Refs are pinned
+  to the SHAs the repo's own repair set already verified.
+
+
 ### Fixed
 - **Workflow repair install — handed off (TASK-20260916-004).** Every job on `main`
   still fails at `Set up job` in ~2–4s before a test runs, because the repaired
