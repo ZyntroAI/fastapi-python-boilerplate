@@ -1,0 +1,330 @@
+"""
+Search Router - Production: PG FTS + Elasticsearch + History
+"""
+from fastapi import APIRouter, Query, Depends, Header
+from typing import Optional
+from sqlalchemy.orm import Session
+
+# Dependency to get DB session
+try:
+    from database import get_db
+except ImportError:
+    def get_db():
+        yield None
+
+from services.production_search_service import production_search_service
+from services.search_service import search_service
+
+router = APIRouter()
+
+@router.get("/")
+async def search(
+    q: str = Query(..., description="Search query", min_length=1),
+    tab: str = Query("all", description="Tab: all, workflows, jobs, execution, yandex, audit"),
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    x_user_id: Optional[str] = Header(None, alias="X-User-ID"),
+    db: Session = Depends(get_db)
+):
+    import time
+    from services.metrics_service import search_metrics_service
+    start = time.time()
+    user_id = x_user_id or "anonymous"
+    
+    try:
+        if db is None:
+            results = search_service.search(query=q, tab=tab, limit=limit)
+            latency = (time.time() - start) * 1000
+            search_metrics_service.record_search(query=q, tab=tab, latency_ms=latency, success=True, results_count=results["total"])
+            return {
+                "query": q,
+                "tab": tab,
+                "total": results["total"],
+                "limit": limit,
+                "offset": offset,
+                "tabs": search_service.get_tabs(),
+                "results": results["results"][offset:offset+limit],
+                "engine": "mock",
+                "latency_ms": int(latency)
+            }
+        
+        search_result = await production_search_service.search(
+            db=db, query=q, tab=tab, limit=limit, offset=offset, user_id=user_id
+        )
+        latency = (time.time() - start) * 1000
+        search_metrics_service.record_search(query=q, tab=tab, latency_ms=latency, success=True, results_count=search_result["total"])
+        
+        return {
+            "query": q,
+            "tab": tab,
+            "total": search_result["total"],
+            "limit": limit,
+            "offset": offset,
+            "tabs": search_service.get_tabs(),
+            "results": search_result["results"],
+            "engine": search_result["engine"],
+            "user_id": user_id,
+            "latency_ms": int(latency)
+        }
+    except Exception as e:
+        latency = (time.time() - start) * 1000
+        search_metrics_service.record_search(query=q, tab=tab, latency_ms=latency, success=False, error_type=str(type(e).__name__))
+        raise
+
+
+@router.get("/tabs")
+async def get_search_tabs():
+    return {"tabs": search_service.get_tabs()}
+
+@router.post("/submit")
+async def search_submit(
+    q: str,
+    tab: str = "all",
+    filters: Optional[dict] = None,
+    x_user_id: Optional[str] = Header(None, alias="X-User-ID"),
+    db: Session = Depends(get_db)
+):
+    from services.audit_logger import audit_logger
+    user_id = x_user_id or "anonymous"
+    
+    audit_logger.log(
+        actor=user_id,
+        action="search.submit",
+        resource=f"search:{tab}",
+        details={"query": q, "filters": filters}
+    )
+    
+    if db:
+        result = await production_search_service.search(db=db, query=q, tab=tab, user_id=user_id)
+        return {
+            "submitted": True,
+            "query": q,
+            "tab": tab,
+            "results": result["results"][:20],
+            "total": result["total"],
+            "engine": result["engine"]
+        }
+    else:
+        results = search_service.search(query=q, tab=tab)
+        return {"submitted": True, "query": q, "tab": tab, "results": results["results"][:20], "total": results["total"], "engine": "mock"}
+
+@router.get("/history")
+async def get_search_history(
+    limit: int = Query(10, ge=1, le=50),
+    x_user_id: str = Header(..., alias="X-User-ID"),
+    db: Session = Depends(get_db)
+):
+    """ Get per-user search history """
+    if db is None:
+        return {"user_id": x_user_id, "history": [], "message": "DB not connected"}
+    
+    history = production_search_service.get_user_history(db, user_id=x_user_id, limit=limit)
+    return {"user_id": x_user_id, "history": history, "total": len(history)}
+
+@router.get("/popular")
+async def get_popular_searches(
+    limit: int = Query(10, ge=1, le=20),
+    db: Session = Depends(get_db)
+):
+    """ Popular searches last 7 days """
+    if db is None:
+        return {"popular": []}
+    popular = production_search_service.get_popular_searches(db, limit=limit)
+    return {"popular": popular}
+
+@router.delete("/history")
+async def clear_search_history(
+    x_user_id: str = Header(..., alias="X-User-ID"),
+    db: Session = Depends(get_db)
+):
+    """ Clear user's search history (GDPR) """
+    if db is None:
+        return {"deleted": False}
+    from sqlalchemy import text
+    try:
+        db.execute(text("DELETE FROM search_history WHERE user_id = :uid"), {"uid": x_user_id})
+        db.commit()
+        return {"deleted": True, "user_id": x_user_id}
+    except Exception as e:
+        db.rollback()
+        return {"deleted": False, "error": str(e)}
+
+
+@router.get("/suggest")
+async def search_suggest(
+    q: str = Query(..., alias="q", description="Partial query for typeahead", min_length=1, max_length=100),
+    tab: str = Query("all", description="Tab-aware filtering: all, workflows, jobs, execution, yandex, audit"),
+    limit: int = Query(8, ge=1, le=20, description="Max suggestions for typeahead"),
+    x_user_id: Optional[str] = Header(None, alias="X-User-ID"),
+    use_cache: bool = Query(True, description="Use Redis cache for <20ms response"),
+    db: Session = Depends(get_db)
+):
+    """
+    Enterprise-grade hybrid suggest for typeahead UX
+    - Sources: Elasticsearch (fuzzy AUTO) + PostgreSQL FTS (pg_trgm similarity) + user history + popular
+    - Typo tolerance: sale -> sales, yandx -> yandex, workflw -> workflow
+    - Tab-aware: boosts suggestions matching current tab
+    - Deduped: merges identical queries across sources, keeps highest score
+    - Highlighting: <mark> tags + positions
+    - Source attribution: source, all_sources, metadata
+    - Scoring: base_score, weight, tab_boost, final_score, rank
+    - Low-latency: parallel fetch with asyncio, <100ms target
+    """
+    user_id = x_user_id or "anonymous"
+    
+    if db is None:
+        # Dev mock suggest with typo tolerance simulation
+        from services.search_service import search_service
+        mock_tabs = search_service.get_tabs()
+        # simple mock deduped suggestions
+        base = [
+            {"text": "Daily Sales Summary", "tab": "workflows"},
+            {"text": "daily sales report", "tab": "workflows"},
+            {"text": "yandex-sync", "tab": "jobs"},
+            {"text": "yandex gpt report", "tab": "yandex"},
+        ]
+        import re
+        filtered = [b for b in base if q.lower() in b["text"].lower() or b["text"].lower().startswith(q.lower()[:3])]
+        suggestions = []
+        seen = set()
+        for i, item in enumerate(filtered[:limit]):
+            norm = item["text"].lower().strip()
+            if norm in seen:
+                continue
+            seen.add(norm)
+            hl = re.sub(f"({re.escape(q)})", r"<mark>\1</mark>", item["text"], flags=re.I)
+            suggestions.append({
+                "text": item["text"],
+                "query": item["text"],
+                "highlighted": hl,
+                "positions": [{"start": 0, "end": len(q), "text": q}],
+                "source": "mock",
+                "all_sources": ["mock"],
+                "tab": item["tab"],
+                "score": 0.8 - i*0.1,
+                "final_score": 0.8 - i*0.1,
+                "rank": len(suggestions)+1,
+                "scoring": {"base_score": 0.8 - i*0.1, "weight": 1.0, "tab_boost": 1.5 if item["tab"]==tab else 1.0, "final_score": 0.8 - i*0.1, "source": "mock"},
+                "metadata": {"type": "entity", "engine": "mock"}
+            })
+        return {
+            "query": q,
+            "tab": tab,
+            "user_id": user_id,
+            "suggestions": suggestions,
+            "total": len(suggestions),
+            "latency_ms": 5,
+            "sources": {"mock": len(suggestions)},
+            "deduped_from": len(suggestions),
+            "engine": "hybrid-mock"
+        }
+    
+    # Production hybrid suggest with metrics
+    import time
+    from services.metrics_service import search_metrics_service
+    s_start = time.time()
+    result = await production_search_service.suggest(
+        db=db, query=q, tab=tab, user_id=user_id, limit=limit, use_cache=use_cache
+    )
+    s_latency = (time.time() - s_start) * 1000
+    # Extract ES/PG latency from result if available, else use total
+    es_lat = result.get("es_latency_ms", 0)
+    pg_lat = result.get("pg_latency_ms", 0)
+    cache_lat = result.get("latency_ms", 0) if result.get("cached") else 0
+    search_metrics_service.record_suggest(
+        query=q, tab=tab, latency_ms=s_latency, cached=result.get("cached", False),
+        results_count=result.get("total", 0), es_latency=es_lat, pg_latency=pg_lat,
+        cache_latency=cache_lat, user_id=user_id
+    )
+    # Add metrics to response
+    result["metrics"] = {
+        "recorded": True,
+        "hit_rate": search_metrics_service.suggest_cache_hit_rate.values.get(("all",), 0) if hasattr(search_metrics_service.suggest_cache_hit_rate, 'values') else 0
+    }
+    return result
+
+@router.get("/suggest/debug")
+async def search_suggest_debug(
+    q: str = Query(..., min_length=1),
+    tab: str = Query("all"),
+    x_user_id: Optional[str] = Header(None, alias="X-User-ID"),
+    db: Session = Depends(get_db)
+):
+    """ Debug view: raw results from each source before dedup """
+    if db is None:
+        return {"error": "DB not connected"}
+    
+    import asyncio
+    user_id = x_user_id or "anonymous"
+    
+    # Fetch each source separately for debugging
+    es_raw = await production_search_service.suggest_elasticsearch(q, tab, limit=5) if production_search_service.es_enabled else []
+    # sync in thread
+    loop = asyncio.get_event_loop()
+    pg_raw = await loop.run_in_executor(None, lambda: production_search_service.suggest_postgres_fts(db, q, tab, 5))
+    hist_raw = await loop.run_in_executor(None, lambda: production_search_service.suggest_history(db, q, user_id, tab, 5))
+    pop_raw = await loop.run_in_executor(None, lambda: production_search_service.suggest_popular(db, q, tab, 5))
+    
+    merged = await production_search_service.suggest(db, q, tab, user_id, limit=8)
+    
+    return {
+        "query": q,
+        "tab": tab,
+        "raw_sources": {
+            "elasticsearch": es_raw,
+            "postgres_fts": pg_raw,
+            "history": hist_raw,
+            "popular": pop_raw
+        },
+        "merged_hybrid": merged,
+        "scoring_weights": production_search_service.weights
+    }
+
+
+@router.get("/cache/stats")
+async def cache_stats():
+    """ Redis cache stats for suggest performance """
+    from services.redis_cache import redis_cache_service
+    stats = await redis_cache_service.get_stats()
+    return {
+        "cache": stats,
+        "config": {
+            "ttl_seconds": redis_cache_service.ttl,
+            "ttl_popular_seconds": redis_cache_service.ttl_popular,
+            "enabled": redis_cache_service.enabled,
+            "redis_url": redis_cache_service.redis_url
+        },
+        "performance_target": "<20ms for cached popular queries"
+    }
+
+@router.delete("/cache")
+async def invalidate_cache(
+    pattern: str = Query("cronflow:suggest:*", description="Pattern to invalidate"),
+    x_user_id: Optional[str] = Header(None, alias="X-User-ID")
+):
+    """ Invalidate Redis cache (e.g., after workflow creation) """
+    from services.redis_cache import redis_cache_service
+    await redis_cache_service.invalidate_pattern(pattern)
+    return {"invalidated": True, "pattern": pattern, "message": f"Cache cleared for {pattern}"}
+
+@router.get("/suggest/cache/warmup")
+async def cache_warmup(
+    tab: str = Query("all"),
+    db: Session = Depends(get_db)
+):
+    """ Warmup cache with popular queries for <20ms first hit """
+    from services.redis_cache import redis_cache_service
+    from sqlalchemy import text
+    try:
+        # Get top 20 popular queries
+        rows = db.execute(text("SELECT query, tab FROM search_history GROUP BY query, tab ORDER BY COUNT(*) DESC LIMIT 20")).fetchall()
+        warmed = 0
+        for r in rows:
+            try:
+                await production_search_service.suggest(db=db, query=r.query, tab=r.tab, limit=8, use_cache=True)
+                warmed += 1
+            except:
+                pass
+        return {"warmed": warmed, "message": f"Pre-cached {warmed} popular queries for <20ms response"}
+    except Exception as e:
+        return {"warmed": 0, "error": str(e)}

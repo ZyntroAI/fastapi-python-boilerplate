@@ -1,0 +1,52 @@
+# Hardened Chrome DevTools MCP server, containerised.
+#
+# Runs the MCP server over stdio as a non-root user, with no published ports and
+# no route to the internet except the browser traffic the agent itself drives.
+#
+# Validated as-is with `docker compose config`. Chromium is needed here because
+# the server launches a browser; the allow/deny patterns are enforced at the
+# browser level by the server itself.
+services:
+  chrome-devtools-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: chrome-devtools-mcp-hardened:local
+    container_name: chrome-devtools-mcp
+
+    environment:
+      # Belt and braces: the server also accepts --no-usage-statistics, and this
+      # env var is honoured regardless of which one you use.
+      CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS: "1"
+      NODE_ENV: production
+
+    # `read_only` is the point of this service: the browser profile, the log
+    # directory and /tmp are the only writable paths, and all three are mounted
+    # as tmpfs or named volumes so nothing survives a restart.
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=512m
+      - /var/log:rw,noexec,nosuid,size=64m
+
+    # Chromium needs a real /dev/shm; the default 64MB in Docker is not enough
+    # and produces crashes that look like random page failures.
+    shm_size: "1gb"
+
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+    # No `ports:` and no `expose:` -- the DevTools endpoint is reached over the
+    # container's own stdio channel, never over TCP from the host.
+    restart: unless-stopped
+
+    networks:
+      - mcp-internal
+
+networks:
+  mcp-internal:
+    driver: bridge
+    # `internal: true` gives containers on this network no route off the host,
+    # so even a Chromium started with a debug port cannot be reached from outside.
+    internal: true

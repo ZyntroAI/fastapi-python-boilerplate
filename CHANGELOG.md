@@ -21,6 +21,24 @@ Open problems and known blockers are tracked separately in
 
 
 ### Fixed
+- **Workflow repair install — handed off (TASK-20260916-004).** Every job on `main`
+  still fails at `Set up job` in ~2–4s before a test runs, because the repaired
+  workflow set has never been *installed* — `deliverables/ci/workflows-repaired/` sits
+  on `main` unapplied. Installing it into a clean clone and running the repo's own gate
+  gives `PASS — 11 workflows parse, are shaped correctly, and all 28 action refs are
+  SHA-pinned`, versus four parse failures on `main`. The install cannot travel as a PR
+  from the Fig App: a push touching `.github/workflows/**` is refused with
+  `refusing to allow a GitHub App to create or update workflow … without workflows
+  permission`, and that refusal lands before a PR can be opened. A non-workflow push to
+  the same repo in the same session succeeded, so the block is the App-installation
+  `workflows` permission — not credentials, not branch rules. Retried after the grant
+  was reported: still refused, and an independent workflow-file write through the REST
+  API returned `403 Resource not accessible by integration`, so the grant is not yet
+  effective for this installation. Delivered instead as a non-workflow handoff —
+  `docs/workflow-repair/` (verified patch + `HANDOFF.md`) and
+  `scripts/install-workflow-repair.sh`, which installs, verifies, commits, pushes, and
+  opens the PR in one command. No probe artifact was left on the repo.
+
 - **PR #311** — merged the repaired workflow set to `main` and re-confirmed the
   push gate. The repair travels under `workflows-repaired/`: eleven workflow files
   that parse, with all 27 distinct `uses:` refs pinned to real 40-character commit
