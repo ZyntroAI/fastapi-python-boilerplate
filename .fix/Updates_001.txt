@@ -1,0 +1,11 @@
+hereทุกไฟล์ compile ผ่านครับ (Python 3.12)
+**สรุปสถาปัตยกรรม:**
+
+| ไฟล์ | หน้าที่ |
+|---|---|
+| `github_client.py` | wrapper GitHub REST API — อ่าน/สร้าง repo, list branches/tags, อ่านไฟล์ (ใช้เช็ค `.gitattributes`) |
+| `validator.py` | เช็คก่อนเริ่มจริง: source เข้าถึงได้ไหม, target ว่างหรือยัง, มี `git`/`git-lfs` ไหม, disk พอไหม |
+| `planner.py` | อ่านข้อมูล source repo แล้ว build `MigrationPlan` เป็น step list (data-driven ไม่ hardcode logic) |
+| `git_migrator.py` | รัน `git clone --mirror` / `git push --mirror` จริงผ่าน subprocess |
+| `lfs.py` | จัดการ LFS แยกต่างหาก เพราะ `--mirror` ไม่ย้าย LFS blob ให้ |
+| `verifier.py` | เทียบ branch/tag/LFS count ระหว่าง source-target หลัง push เสร็จ |
