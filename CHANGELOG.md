@@ -92,6 +92,68 @@ Open problems and known blockers are tracked separately in
   well-formed but name nothing, which is why PRs failed at `Set up job` in two
   seconds while `lint.py` stayed green.
 
+- **Three fabricated SHAs confirmed live on `main` — the cause of its red CI** —
+  closes the open question from the PR #301 resolver work above, which proved
+  `actions/checkout@f548e57c…` was a fabrication but could not say how much of
+  the tree was affected. `main` has been failing since at least
+  2026-09-15T20:31Z, and its `lint` job dies in *Set up job* after two seconds
+  with
+
+  ```
+  ##[error]Unable to resolve action `actions/checkout@f548e57c…`, unable to find version `f548e57c…`
+  ```
+
+  Three distinct SHAs are well-formed 40-hex strings that name no real commit,
+  used across 10 refs — all of them in `ci.yml`:
+
+  | Ref | Refs |
+  | --- | --- |
+  | `actions/checkout@f548e57c3d3c…` | 4 |
+  | `actions/setup-python@5fda3b9c7092…` | 3 |
+  | `github/codeql-action/{init,autobuild,analyze}@977e6ce40888…` | 3 |
+
+  So `ci.yml` is the one file that cannot start. The other nine workflows are
+  unaffected by this, which is why the damage looked narrower than it is — every
+  PR check routes through `ci.yml`. The repaired set under
+  `deliverables/ci/workflows-repaired/` replaces all three with commits that
+  resolve.
+
+  This is a **different defect from P-002** despite looking identical in a diff.
+  P-002 is unpinned *tags* (`@v4`), which the org's SHA-pinning policy rejects.
+  These are pinned to nothing. The distinction matters because the two checks
+  disagree: the org-policy check demands a pin and passes these, while GitHub
+  executes the pin and fails them. An unpinned tag fails honestly and loudly; a
+  fabricated SHA fails silently — which is exactly why PRs looked *blocked on
+  CI* while the real cause was a pin pointing nowhere.
+
+### Investigated
+
+- **FIG-TASK-001 and FIG-TASK-002 are done; 003 was already done; 004 is blocked
+  on `workflows` permission** — worked the four 🔴 items from the 2026-09-16
+  FIG-TASK request (tracked as `TASK-20260916-001`). Two of the four needed no
+  work, which is worth recording so the list can be trusted:
+
+  **001** — `scripts.vite` was `">=6.4.3"`, a semver range where a command
+  belongs, so `npm run vite` could never run. Set to `"vite"`.
+
+  **002** — the fix the task list proposed would not have worked. It specifies
+  `.eslintrc.cjs`, but the repo pins `eslint ^10.10.0`, which no longer reads
+  `.eslintrc.*` at all — that file would have reproduced the identical failure.
+  Added `eslint.config.mjs` (flat config) composing `@eslint/js`,
+  `typescript-eslint`, `globals` and `eslint-config-prettier`, with per-file-type
+  scoping so each plugin is registered in the same config object that uses it
+  (a flat-config requirement, and the reason a hand-rolled spread throws
+  *couldn't find plugin "typescript-eslint"*). `npm run lint` now exits 0.
+
+  **003** — already done on `main` in `d2d29a4`. `.env` is not tracked, and
+  `.gitignore` already covers `.env` and `.env.*`. No change needed.
+
+  **004** — the repairs already exist on `main` under `deliverables/ci/`, so
+  this is an install step, not missing work. Re-packaging them would have been a
+  duplicate: the repaired set installs cleanly (`install.sh --apply`), after
+  which `verify_workflows.py` passes — 11 workflows parse, 28 refs pinned, and
+  every pin resolves to a real commit.
+
 ### Added
 
 - **PR #308** — `deliverables/cross-repo-patch-suite/`: a suite for the three ways a patch
