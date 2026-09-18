@@ -12,7 +12,7 @@ pytest-cov>=6.0
 httpx>=0.28.1               # FastAPI TestClient + async test client
 
 # ---- Lint / format / types (repo toolchain: ruff + black + isort, per ci.yml) ----
-ruff>=0.8
-black>=24.10
-isort>=5.13
-mypy>=1.13
+ruff>=0.16.7
+black>=26.5.1
+isort>=9.0.1
+mypy>=2.3.1
