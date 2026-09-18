@@ -1,0 +1,195 @@
+จัดให้ครับ! นี่คือไฟล์ **`figma_tool.py`** ฉบับจัดเต็มที่ออกแบบมาเพื่อทำงานร่วมกับระบบ AI Agent (เช่น `crystal-global`) โดยเฉพาะ 
+
+เวอร์ชันนี้ผมได้เพิ่ม Type Hinting, การจัดการ Error (Exception Handling), ฟังก์ชันช่วยจัดการ `node-id` (แก้ปัญหาเครื่องหมาย `-` กับ `:`) และปรับโครงสร้างให้เรียกใช้งานจากภายนอกได้เสถียรที่สุดครับ เหมือนกับตัว `gdrive_tool.py` เลยครับ
+
+---
+
+### 🎨 `figma_tool.py`
+
+```python
+import os
+import requests
+from typing import Dict, Any, List, Optional
+from requests.exceptions import HTTPError
+
+# โหลด Token จาก Environment Variable
+FIGMA_TOKEN: str = os.getenv("FIGMA_ACCESS_TOKEN", "")
+BASE_URL: str = "https://api.figma.com/v1"
+
+
+def _get_headers() -> Dict[str, str]:
+    """
+    สร้าง HTTP Headers สำหรับการยืนยันตัวตนกับ Figma API
+    """
+    if not FIGMA_TOKEN:
+        raise ValueError(
+            "ไม่พบ FIGMA_ACCESS_TOKEN ใน Environment Variables "
+            "กรุณาตั้งค่าก่อนเรียกใช้งานฟังก์ชันของ Figma"
+        )
+    return {"X-Figma-Token": FIGMA_TOKEN}
+
+
+def _format_node_ids(node_ids: List[str]) -> str:
+    """
+    ฟังก์ชันช่วยแปลง Node ID เนื่องจากเวลา Copy จาก URL มักจะเป็นเครื่องหมาย '-' (เช่น 1-23)
+    แต่ Figma API ต้องการเครื่องหมาย ':' (เช่น 1:23)
+    """
+    formatted_ids = [node_id.replace("-", ":") for node_id in node_ids]
+    return ",".join(formatted_ids)
+
+
+def get_figma_file_metadata(file_key: str) -> Dict[str, Any]:
+    """
+    ดึงโครงสร้าง JSON ของไฟล์ Figma ทั้งหมด
+    ⚠️ คำเตือน: หากไฟล์มีขนาดใหญ่มาก JSON ที่ได้อาจจะมีขนาดหลาย Megabytes
+    แนะนำให้ใช้กับ Agent เมื่อจำเป็นต้องวิเคราะห์โครงสร้างรวมเท่านั้น
+
+    :param file_key: Key ของไฟล์ Figma (ดูได้จาก URL ของไฟล์)
+    :return: Dict ข้อมูลโครงสร้างไฟล์ทั้งหมด
+    """
+    endpoint = f"{BASE_URL}/files/{file_key}"
+    
+    try:
+        response = requests.get(endpoint, headers=_get_headers())
+        response.raise_for_status()
+        
+        print(f"📄 ดึงข้อมูล Metadata ของไฟล์ {file_key} สำเร็จ")
+        return response.json()
+    
+    except HTTPError as error:
+        print(f"❌ เกิดข้อผิดพลาดในการดึงข้อมูลไฟล์: {error}")
+        raise
+
+
+def get_file_nodes(file_key: str, node_ids: List[str]) -> Dict[str, Any]:
+    """
+    ดึงข้อมูลโครงสร้างเฉพาะ Node (Layer/Frame) ที่ระบุ 
+    เหมาะสำหรับให้ AI วิเคราะห์เฉพาะส่วนเพื่อประหยัด Context Window
+
+    :param file_key: Key ของไฟล์ Figma
+    :param node_ids: List ของ Node ID ที่ต้องการ (เช่น ["1:2", "3:45"])
+    :return: Dict ข้อมูลของ Node ที่ระบุ
+    """
+    ids_str = _format_node_ids(node_ids)
+    endpoint = f"{BASE_URL}/files/{file_key}/nodes?ids={ids_str}"
+    
+    try:
+        response = requests.get(endpoint, headers=_get_headers())
+        response.raise_for_status()
+        
+        print(f"🎯 ดึงข้อมูล Nodes [{ids_str}] สำเร็จ")
+        return response.json()
+        
+    except HTTPError as error:
+        print(f"❌ เกิดข้อผิดพลาดในการดึงข้อมูล Nodes: {error}")
+        raise
+
+
+def export_images(
+    file_key: str, 
+    node_ids: List[str], 
+    format: str = "png", 
+    scale: float = 1.0
+) -> Dict[str, str]:
+    """
+    สั่งให้ Figma Render ภาพของ Node ที่ระบุ แล้วส่ง URL สำหรับดาวน์โหลดกลับมา
+
+    :param file_key: Key ของไฟล์ Figma
+    :param node_ids: List ของ Node ID ที่ต้องการ Export
+    :param format: นามสกุลไฟล์ที่ต้องการ ('png', 'jpg', 'svg', 'pdf')
+    :param scale: ขนาดภาพ (เฉพาะ png, jpg) เช่น 1.0, 2.0
+    :return: Dict ที่มี Key เป็น Node ID และ Value เป็น URL สำหรับดาวน์โหลดภาพ
+    """
+    ids_str = _format_node_ids(node_ids)
+    endpoint = f"{BASE_URL}/images/{file_key}?ids={ids_str}&format={format}&scale={scale}"
+    
+    try:
+        response = requests.get(endpoint, headers=_get_headers())
+        response.raise_for_status()
+        
+        data = response.json()
+        images = data.get("images", {})
+        
+        print(f"🖼️ Export รูปภาพสำเร็จ จำนวน {len(images)} รูป")
+        return images
+        
+    except HTTPError as error:
+        print(f"❌ เกิดข้อผิดพลาดในการ Export รูปภาพ: {error}")
+        raise
+
+
+def get_file_comments(file_key: str) -> List[Dict[str, Any]]:
+    """
+    ดึงคอมเมนต์ทั้งหมดในไฟล์ เพื่อให้ AI สรุป Feedback จากทีม
+
+    :param file_key: Key ของไฟล์ Figma
+    :return: List ของคอมเมนต์ทั้งหมดในไฟล์
+    """
+    endpoint = f"{BASE_URL}/files/{file_key}/comments"
+    
+    try:
+        response = requests.get(endpoint, headers=_get_headers())
+        response.raise_for_status()
+        
+        comments = response.json().get("comments", [])
+        print(f"💬 ดึงคอมเมนต์สำเร็จ จำนวน {len(comments)} รายการ")
+        return comments
+        
+    except HTTPError as error:
+        print(f"❌ เกิดข้อผิดพลาดในการดึงคอมเมนต์: {error}")
+        raise
+
+
+# =====================================================================
+# 🧪 ตัวอย่างการใช้งานและทดสอบ (Run Direct Script)
+# =====================================================================
+if __name__ == "__main__":
+    # ระบุ File Key และ Node ID สำหรับการทดสอบ
+    # File Key หาได้จาก URL: figma.com/file/【FILE_KEY】/FileName
+    TEST_FILE_KEY = os.getenv("FIGMA_TEST_FILE_KEY", "YOUR_FILE_KEY")
+    TEST_NODE_ID = "0-1"  # สามารถใช้เครื่องหมาย - ได้ ฟังก์ชันจะแปลงเป็น : ให้เอง
+
+    print("--- 🚀 ทดสอบการทำงาน figma_tool.py ---")
+
+    if not FIGMA_TOKEN:
+        print("⚠️ กรุณาตั้งค่า FIGMA_ACCESS_TOKEN ก่อนรันสคริปต์")
+    elif TEST_FILE_KEY == "YOUR_FILE_KEY":
+        print("⚠️ กรุณาระบุ FIGMA_TEST_FILE_KEY หรือแก้ไข TEST_FILE_KEY ในโค้ดก่อนทดสอบ")
+    else:
+        try:
+            # 1. ทดสอบดึงข้อมูล Node
+            print("\n>> 1. ทดสอบ get_file_nodes")
+            nodes_data = get_file_nodes(TEST_FILE_KEY, [TEST_NODE_ID])
+            node_key = TEST_NODE_ID.replace("-", ":")
+            
+            if node_key in nodes_data.get("nodes", {}):
+                node_name = nodes_data["nodes"][node_key]["document"]["name"]
+                print(f"✅ พบข้อมูล Node: {node_name}")
+            else:
+                print("❌ ไม่พบข้อมูล Node ที่ระบุ (อาจจะลบไปแล้ว หรือสิทธิ์ไม่ถึง)")
+
+            # 2. ทดสอบดึงคอมเมนต์
+            print("\n>> 2. ทดสอบ get_file_comments")
+            comments = get_file_comments(TEST_FILE_KEY)
+            print(f"✅ พบ {len(comments)} คอมเมนต์ในไฟล์นี้")
+
+        except Exception as e:
+            print(f"💥 เกิดข้อผิดพลาดขณะทดสอบ: {e}")
+```
+
+---
+
+### ⚙️ วิธีการนำไปใช้งาน (Integration)
+
+1. **ติดตั้ง Dependencies:**
+   ```bash
+   pip install requests
+   ```
+
+2. **ตั้งค่า Environment Variables:**
+   เพื่อความปลอดภัย ไม่ควร Hardcode Token ไว้ในสคริปต์ ให้เซ็ตค่าผ่าน Terminal หรือไฟล์ `.env` (หากใช้ `python-dotenv`):
+   ```bash
+   export FIGMA_ACCESS_TOKEN="figd_XXXXXXXXXXXXXXXXXXXX"
+   ```
+
+**💡 ทริคสำหรับการทำ AI Agent:** ในขั้นตอนที่ Agent เรียกใช้ `export_images` มันจะได้เป็น URL ของรูปภาพกลับมา (เช่น `https://s3-alpha-sig.figma.com/...`) คุณสามารถนำ URL นี้โยนเข้า Vision Model (เช่น GPT-4o หรือ Gemini Pro Vision) เพื่อให้ AI ช่วยอธิบายหรือตรวจสอบ UI Design ต่อได้ทันทีเลยครับ!
