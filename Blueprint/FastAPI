@@ -1,0 +1,980 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI Enterprise Blueprint & Automation Hub</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Minimal Embedded CSS for Chart Containers and Scrollbars -->
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 280px;
+            max-height: 380px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 320px;
+            }
+        }
+        pre {
+            background-color: #0f172a;
+            color: #f8fafc;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        /* Custom scrollbar for code blocks */
+        pre::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        pre::-webkit-scrollbar-track {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        pre::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased font-sans min-h-screen flex flex-col">
+
+    <!-- Chosen Palette: Slate Warm Neutral (Background: #f8fafc, Nav: #0f172a, Accent Primary: #3b82f6, Accent Secondary: #10b981, Dark Text: #0f172a) -->
+    <!-- Application Structure Plan: Designed as an Interactive Developer Hub & System Architecture Dashboard. It transforms static boilerplate docs into an explorable tool featuring: 1) Executive Blueprint Overview & Stats; 2) Interactive Directory Hierarchy Browser with file purpose tooltips; 3) Visual CI/CD Pipeline Flowchart with clickable job definitions; 4) Dynamic Code & Config Viewer with snippet copying and tabbed navigation; 5) Interactive Command Palette & CLI Cheat Sheet; 6) Production Readiness Assessment Radar/Chart. This non-linear, task-oriented structure allows engineers to quickly reference code, copy configs, and visualize deployment workflows far more effectively than a raw text file. -->
+    <!-- Visualization & Content Choices:
+      1. Component Distribution (Donut Chart - Chart.js): Categorizes project scope into Backend Logic, Infra/Docker, CI/CD, and Testing. Goal: Quick balance awareness.
+      2. CI/CD Stage Flow (Interactive HTML/CSS Stepper/Nodes): Visualizes 5 pipeline stages (Lint, Test, Security, Build, Deploy) with active job detail drawer. Goal: Clear process understanding without SVG/Mermaid.
+      3. Interactive Code Browser (Tabbed Code Cards with Line Numbers): Displays config.py, database.py, security.py, etc. Goal: Contextual code consumption.
+      4. Dynamic Command Filter (Searchable Matrix): Filters setup, Docker, migration, and linting commands. Goal: Developer productivity.
+      5. Architecture Metrics (Bar Chart - Chart.js): Displays key configuration stats (Endpoints, Models, Pipeline Jobs, Utility Scripts).
+      Confirming NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Header Navigation Bar -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <span class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">🚀 FastAPI Hub</span>
+                    <span class="bg-slate-800 text-blue-400 text-xs font-semibold px-2.5 py-1 rounded border border-slate-700">Production Blueprint v2.0</span>
+                </div>
+                <nav class="hidden md:flex space-x-1 text-sm font-medium">
+                    <button onclick="scrollToSection('overview')" class="px-3 py-2 rounded-md hover:bg-slate-800 transition">Overview</button>
+                    <button onclick="scrollToSection('architecture')" class="px-3 py-2 rounded-md hover:bg-slate-800 transition">Directory Structure</button>
+                    <button onclick="scrollToSection('pipeline')" class="px-3 py-2 rounded-md hover:bg-slate-800 transition">CI/CD Pipeline</button>
+                    <button onclick="scrollToSection('code-viewer')" class="px-3 py-2 rounded-md hover:bg-slate-800 transition">Code & Configs</button>
+                    <button onclick="scrollToSection('commands')" class="px-3 py-2 rounded-md hover:bg-slate-800 transition">Commands & Scripts</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+        <!-- SECTION 1: OVERVIEW & SYSTEM DASHBOARD -->
+        <section id="overview" class="space-y-6">
+            <div class="bg-white rounded-xl p-6 sm:p-8 shadow-sm border border-slate-200">
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">FastAPI Production Automation System Blueprint</h1>
+                <p class="mt-3 text-slate-600 max-w-4xl leading-relaxed">
+                    This interactive guide provides an enterprise-grade, clean-architecture boilerplate and CI/CD automation system built with 
+                    <strong>Python 3.12+, FastAPI, SQLAlchemy 2.0 (Async), Pydantic v2, Docker</strong>, and <strong>GitLab CI/CD</strong>. 
+                    Use this dashboard to explore the system layer by layer, examine code files, copy deployment configs, and inspect automated workflows.
+                </p>
+
+                <!-- Metrics Grid -->
+                <div class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 text-center">
+                        <span class="text-3xl font-black text-blue-600 block">3.12+</span>
+                        <span class="text-xs uppercase tracking-wider font-semibold text-slate-500">Python Core</span>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 text-center">
+                        <span class="text-3xl font-black text-emerald-600 block">5 Stages</span>
+                        <span class="text-xs uppercase tracking-wider font-semibold text-slate-500">GitLab CI Pipeline</span>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 text-center">
+                        <span class="text-3xl font-black text-indigo-600 block">100% Async</span>
+                        <span class="text-xs uppercase tracking-wider font-semibold text-slate-500">SQLAlchemy 2.0</span>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 text-center">
+                        <span class="text-3xl font-black text-amber-600 block">Multi-Stage</span>
+                        <span class="text-xs uppercase tracking-wider font-semibold text-slate-500">Docker Build</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visual Charts Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Chart 1: Project Module Distribution -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Architecture Scope Distribution</h3>
+                        <p class="text-xs text-slate-500 mt-1">Breakdown of system components across application layers.</p>
+                    </div>
+                    <div class="chart-container mt-4">
+                        <canvas id="scopeChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Pipeline & Quality Standards -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Automation & Quality Readiness</h3>
+                        <p class="text-xs text-slate-500 mt-1">Verification metrics configured in automation scripts and CI/CD.</p>
+                    </div>
+                    <div class="chart-container mt-4">
+                        <canvas id="qualityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: INTERACTIVE DIRECTORY ARCHITECTURE -->
+        <section id="architecture" class="bg-white rounded-xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-6">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900">1. Project Directory Structure</h2>
+                <p class="mt-2 text-slate-600">
+                    The project strictly adheres to clean architecture principles by separating routing, business logic (`services`), data access (`repositories`), and ORM entities (`models`). Click any item below to inspect its role in the overall full-stack project.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Tree Navigation Sidebar -->
+                <div class="lg:col-span-5 bg-slate-900 text-slate-200 p-4 rounded-xl text-sm font-mono overflow-y-auto max-h-[500px]">
+                    <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">📁 Directory Hierarchy (Click item)</div>
+                    <ul class="space-y-1">
+                        <li>
+                            <button onclick="inspectFile('root')" class="w-full text-left px-2 py-1 rounded hover:bg-slate-800 text-blue-400 font-bold">📂 fastapi-fullstack/</button>
+                            <ul class="pl-4 space-y-1 mt-1 border-l border-slate-800">
+                                <li>
+                                    <button onclick="inspectFile('backend')" class="w-full text-left px-2 py-1 rounded hover:bg-slate-800 text-emerald-400 font-semibold">📂 backend/</button>
+                                    <ul class="pl-4 space-y-1 border-l border-slate-800">
+                                        <li>
+                                            <button onclick="inspectFile('app')" class="w-full text-left px-2 py-1 rounded hover:bg-slate-800 text-amber-300">📂 app/</button>
+                                            <ul class="pl-4 space-y-1 border-l border-slate-800 text-xs">
+                                                <li><button onclick="inspectFile('main')" class="w-full text-left px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">📄 main.py</button></li>
+                                                <li><button onclick="inspectFile('api')" class="w-full text-left px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">📂 api/v1/</button></li>
+                                                <li><button onclick="inspectFile('core')" class="w-full text-left px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">📂 core/ (config, security, db)</button></li>
+                                                <li><button onclick="inspectFile('models')" class="w-full text-left px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">📂 models/ (SQLAlchemy)</button></li>
+                                                <li><button onclick="inspectFile('schemas')" class="w-full text-left px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">📂 schemas/ (Pydantic v2)</button></li>
+                                                <li><button onclick="inspectFile('services')" class="w-full text-left px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">📂 services/ (Business Logic)</button></li>
+                                                <li><button onclick="inspectFile('repositories')" class="w-full text-left px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">📂 repositories/ (Data Access)</button></li>
+                                            </ul>
+                                        </li>
+                                        <li><button onclick="inspectFile('alembic')" class="w-full text-left px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">📂 alembic/ (DB Migrations)</button></li>
+                                        <li><button onclick="inspectFile('tests')" class="w-full text-left px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">📂 tests/ (Pytest suite)</button></li>
+                                        <li><button onclick="inspectFile('scripts')" class="w-full text-left px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">📂 scripts/ (start.sh, test.sh)</button></li>
+                                        <li><button onclick="inspectFile('dockerfile')" class="w-full text-left px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">📄 Dockerfile</button></li>
+                                    </ul>
+                                </li>
+                                <li><button onclick="inspectFile('frontend')" class="w-full text-left px-2 py-1 rounded hover:bg-slate-800 text-purple-400 font-semibold">📂 frontend/ (React / Nginx)</button></li>
+                                <li><button onclick="inspectFile('deploy')" class="w-full text-left px-2 py-1 rounded hover:bg-slate-800 text-teal-400 font-semibold">📂 deploy/ (docker-compose)</button></li>
+                                <li><button onclick="inspectFile('gitlab')" class="w-full text-left px-2 py-1 rounded hover:bg-slate-800 text-rose-400 font-semibold">📄 .gitlab-ci.yml</button></li>
+                                <li><button onclick="inspectFile('makefile')" class="w-full text-left px-2 py-1 rounded hover:bg-slate-800 text-slate-300 font-semibold">📄 Makefile</button></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Inspector Card -->
+                <div class="lg:col-span-7 bg-slate-50 border border-slate-200 rounded-xl p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-100 px-2.5 py-1 rounded" id="inspectCategory">Architecture Module</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mt-3" id="inspectTitle">Select a component to inspect</h3>
+                        <p class="text-slate-600 text-sm mt-2 leading-relaxed" id="inspectDescription">
+                            Click on any node in the directory tree on the left to see detailed specifications regarding its architecture layer, responsibilities, and key design patterns.
+                        </p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-200">
+                        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Key Architectural Responsibility</div>
+                        <div class="text-sm font-medium text-slate-800 mt-1" id="inspectDetails">
+                            Clean Architecture principle: strict direction of dependencies inwards towards domain models.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: VISUAL CI/CD PIPELINE FLOW -->
+        <section id="pipeline" class="bg-white rounded-xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-6">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900">2. GitLab CI/CD Pipeline Visualizer</h2>
+                <p class="mt-2 text-slate-600">
+                    The automation system features a 5-stage automated delivery pipeline configured in <code>.gitlab-ci.yml</code>. Click on any pipeline stage block below to inspect its executed commands, security tooling, and triggers.
+                </p>
+            </div>
+
+            <!-- Pipeline Flow Diagram (Pure HTML/CSS - NO SVG/Mermaid) -->
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-3 relative">
+                <!-- Stage 1 -->
+                <button onclick="showPipelineStage('lint')" id="btn-stage-lint" class="pipeline-btn p-4 rounded-lg border-2 border-blue-500 bg-blue-50 text-left transition hover:shadow-md">
+                    <span class="text-xs font-bold text-blue-600 uppercase block">Stage 1</span>
+                    <span class="text-sm font-extrabold text-slate-900 block mt-1">1. Lint</span>
+                    <span class="text-xs text-slate-500 block mt-1">Ruff & Mypy static checks</span>
+                </button>
+
+                <!-- Stage 2 -->
+                <button onclick="showPipelineStage('test')" id="btn-stage-test" class="pipeline-btn p-4 rounded-lg border border-slate-200 bg-slate-50 text-left transition hover:shadow-md">
+                    <span class="text-xs font-bold text-slate-400 uppercase block">Stage 2</span>
+                    <span class="text-sm font-extrabold text-slate-900 block mt-1">2. Test</span>
+                    <span class="text-xs text-slate-500 block mt-1">Pytest + Postgres Service</span>
+                </button>
+
+                <!-- Stage 3 -->
+                <button onclick="showPipelineStage('security')" id="btn-stage-security" class="pipeline-btn p-4 rounded-lg border border-slate-200 bg-slate-50 text-left transition hover:shadow-md">
+                    <span class="text-xs font-bold text-slate-400 uppercase block">Stage 3</span>
+                    <span class="text-sm font-extrabold text-slate-900 block mt-1">3. Security</span>
+                    <span class="text-xs text-slate-500 block mt-1">pip-audit & Gitleaks</span>
+                </button>
+
+                <!-- Stage 4 -->
+                <button onclick="showPipelineStage('build')" id="btn-stage-build" class="pipeline-btn p-4 rounded-lg border border-slate-200 bg-slate-50 text-left transition hover:shadow-md">
+                    <span class="text-xs font-bold text-slate-400 uppercase block">Stage 4</span>
+                    <span class="text-sm font-extrabold text-slate-900 block mt-1">4. Build</span>
+                    <span class="text-xs text-slate-500 block mt-1">Docker Multi-stage push</span>
+                </button>
+
+                <!-- Stage 5 -->
+                <button onclick="showPipelineStage('deploy')" id="btn-stage-deploy" class="pipeline-btn p-4 rounded-lg border border-slate-200 bg-slate-50 text-left transition hover:shadow-md">
+                    <span class="text-xs font-bold text-slate-400 uppercase block">Stage 5</span>
+                    <span class="text-sm font-extrabold text-slate-900 block mt-1">5. Deploy</span>
+                    <span class="text-xs text-slate-500 block mt-1">Staging & Production SSH</span>
+                </button>
+            </div>
+
+            <!-- Stage Details Drawer -->
+            <div class="bg-slate-900 text-slate-200 p-6 rounded-xl space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h3 class="text-lg font-bold text-emerald-400" id="stageTitle">Stage 1: Code Quality & Linting</h3>
+                    <span class="text-xs font-mono bg-slate-800 text-slate-300 px-2.5 py-1 rounded border border-slate-700" id="stageTrigger">Runs on: All Commits</span>
+                </div>
+                <p class="text-sm text-slate-300" id="stageDesc">
+                    Ensures strict compliance with modern Python 3.12 syntax, type safety, and standardized formatting before code execution.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <span class="text-xs font-semibold text-slate-400 uppercase block mb-1">Configured Jobs</span>
+                        <ul class="list-disc list-inside text-xs text-slate-300 space-y-1 font-mono" id="stageJobs">
+                            <li>lint: ruff check & ruff format</li>
+                            <li>type-check: mypy app/</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold text-slate-400 uppercase block mb-1">Output Artifacts / Rules</span>
+                        <div class="text-xs text-slate-300 font-mono bg-slate-950 p-2.5 rounded border border-slate-800" id="stageArtifacts">
+                            Fails pipeline if static checks fail. Zero tolerance for unformatted code.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: CODE & CONFIGURATION BROWSER -->
+        <section id="code-viewer" class="bg-white rounded-xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">3. Core Code & Configuration Viewer</h2>
+                    <p class="mt-1 text-slate-600">Select and inspect key python core files, deployment specs, and CI configs.</p>
+                </div>
+                <!-- File Selector Dropdown -->
+                <select id="codeFileSelector" onchange="loadCodeFile(this.value)" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 font-medium">
+                    <option value="config">backend/app/core/config.py</option>
+                    <option value="database">backend/app/core/database.py</option>
+                    <option value="security">backend/app/core/security.py</option>
+                    <option value="main">backend/app/main.py</option>
+                    <option value="start_sh">backend/scripts/start.sh</option>
+                    <option value="test_sh">backend/scripts/test.sh</option>
+                    <option value="dockerfile">backend/Dockerfile</option>
+                    <option value="docker_compose">deploy/docker-compose.yml</option>
+                    <option value="gitlab_ci">.gitlab-ci.yml</option>
+                    <option value="makefile">Makefile</option>
+                </select>
+            </div>
+
+            <!-- Code Display Box -->
+            <div class="relative">
+                <div class="flex items-center justify-between bg-slate-800 text-slate-300 px-4 py-2 rounded-t-lg text-xs font-mono">
+                    <span id="currentFilePath">backend/app/core/config.py</span>
+                    <button onclick="copyCurrentCode()" class="bg-blue-600 hover:bg-blue-500 text-white font-sans font-semibold px-3 py-1 rounded transition text-xs flex items-center gap-1">
+                        📋 Copy Code
+                    </button>
+                </div>
+                <pre class="rounded-t-none"><code id="codeBlock">Loading source code...</code></pre>
+            </div>
+        </section>
+
+        <!-- SECTION 5: COMMAND PALETTE & CLI CHEAT SHEET -->
+        <section id="commands" class="bg-white rounded-xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-6">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900">4. Quick Start & Command Matrix</h2>
+                <p class="mt-2 text-slate-600">
+                    Comprehensive CLI workflow commands for local virtual environments, database migrations with Alembic, Pytest executions, and Docker Compose orchestration.
+                </p>
+            </div>
+
+            <!-- Command Category Filter Buttons -->
+            <div class="flex flex-wrap gap-2">
+                <button onclick="filterCommands('all')" class="cmd-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white">All Commands</button>
+                <button onclick="filterCommands('env')" class="cmd-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Env Setup</button>
+                <button onclick="filterCommands('run')" class="cmd-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Run App</button>
+                <button onclick="filterCommands('db')" class="cmd-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Migrations (Alembic)</button>
+                <button onclick="filterCommands('test')" class="cmd-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Testing & Linting</button>
+                <button onclick="filterCommands('docker')" class="cmd-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Docker Compose</button>
+            </div>
+
+            <!-- Command List Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="commandGrid">
+                <!-- Command items rendered dynamically by JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-slate-800 text-slate-400 py-6 mt-12 text-center text-xs">
+        <div class="max-w-7xl mx-auto px-4">
+            FastAPI Production Full-Stack Blueprint • Powered by Python 3.12, Async SQLAlchemy 2.0, & Docker
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // -------------------------------------------------------------
+        // Data Store: Architecture Inspector Items
+        // -------------------------------------------------------------
+        const archData = {
+            'root': {
+                cat: 'Project Root',
+                title: 'fastapi-fullstack/',
+                desc: 'Root container directory housing full-stack application modules, docker compositions, deployment rules, and CI/CD automation pipelines.',
+                details: 'Contains backend/, frontend/, deploy/, .gitlab-ci.yml, Makefile, and project README.'
+            },
+            'backend': {
+                cat: 'Backend Module',
+                title: 'backend/',
+                desc: 'Standalone Python 3.12 FastAPI microservice engineered with clean domain-driven layering.',
+                details: 'Encapsulates application routes, business logic, ORM models, Pydantic schemas, and automated pytest suites.'
+            },
+            'app': {
+                cat: 'Core Logic',
+                title: 'backend/app/',
+                desc: 'Main Python application package housing all application components.',
+                details: 'Organized into api/, core/, models/, schemas/, services/, and repositories/.'
+            },
+            'main': {
+                cat: 'App Entrypoint',
+                title: 'app/main.py',
+                desc: 'Instantiates FastAPI application, sets up lifespan context managers, registers CORS middleware, and includes API routers.',
+                details: 'Exposes docs at /docs and health checks at /health.'
+            },
+            'api': {
+                cat: 'Routing Layer',
+                title: 'app/api/v1/',
+                desc: 'Versioned API routes and dependency injection providers. Separates endpoints by domain resources (auth, users, items).',
+                details: 'Uses FastAPI Depends() for asynchronous DB sessions and JWT security verification.'
+            },
+            'core': {
+                cat: 'Infrastructure',
+                title: 'app/core/',
+                desc: 'Central configuration engine managing Pydantic Settings (.env), SQLAlchemy 2.0 Async engine, and Password/JWT security.',
+                details: 'Includes config.py, database.py, security.py, and exceptions.py.'
+            },
+            'models': {
+                cat: 'Data Domain',
+                title: 'app/models/',
+                desc: 'SQLAlchemy 2.0 Declarative ORM models representing database tables.',
+                details: 'Uses mapped_column and Async relationships (User and Item tables).'
+            },
+            'schemas': {
+                cat: 'Validation Layer',
+                title: 'app/schemas/',
+                desc: 'Pydantic v2 schemas providing strict data validation and JSON serialization/deserialization.',
+                details: 'Configured with from_attributes=True for seamless ORM conversion.'
+            },
+            'services': {
+                cat: 'Business Logic',
+                title: 'app/services/',
+                desc: 'Service layer encapsulating domain business logic, keeping API endpoints lightweight and clean.',
+                details: 'Contains auth_service.py and user_service.py.'
+            },
+            'repositories': {
+                cat: 'Data Access',
+                title: 'app/repositories/',
+                desc: 'Repository pattern abstraction decoupling SQLAlchemy ORM execution from higher-level services.',
+                details: 'Generic async CRUD operations base repository (CRUDBase).'
+            },
+            'alembic': {
+                cat: 'Migrations',
+                title: 'backend/alembic/',
+                desc: 'Alembic database revision environment managing programmatic schema changes for PostgreSQL.',
+                details: 'Executes autogenerated migrations seamlessly during app startup.'
+            },
+            'tests': {
+                cat: 'Automated Testing',
+                title: 'backend/tests/',
+                desc: 'Pytest test suite structured into unit and API integration tests.',
+                details: 'Uses AsyncClient (HTTPX) and isolated test database sessions.'
+            },
+            'scripts': {
+                cat: 'Automation Shell',
+                title: 'backend/scripts/',
+                desc: 'Executable shell scripts for container startup, migration execution, and static quality checking.',
+                details: 'Contains start.sh, lint.sh, and test.sh.'
+            },
+            'dockerfile': {
+                cat: 'Containerization',
+                title: 'backend/Dockerfile',
+                desc: 'Multi-stage production Docker build leveraging python:3.12-slim for minimal security footprint and fast execution.',
+                details: 'Separates build stage dependencies from final non-root execution runner.'
+            },
+            'frontend': {
+                cat: 'Frontend Web App',
+                title: 'frontend/',
+                desc: 'Modern Single-Page Client Application (React/Next.js/Vue) configured with Nginx reverse proxy container.',
+                details: 'Communicates with Backend REST API over async endpoints.'
+            },
+            'deploy': {
+                cat: 'Orchestration',
+                title: 'deploy/',
+                desc: 'Docker Compose configurations for local hot-reloading dev environments and production stack composition.',
+                details: 'Orchestrates FastAPI Backend and PostgreSQL 16 Alpine with health checks.'
+            },
+            'gitlab': {
+                cat: 'Continuous Integration',
+                title: '.gitlab-ci.yml',
+                desc: 'Multi-stage GitLab CI/CD pipeline automation script.',
+                details: 'Stages: Lint -> Test -> Security -> Build -> Deploy.'
+            },
+            'makefile': {
+                cat: 'Developer Shortcuts',
+                title: 'Makefile',
+                desc: 'Standard developer shortcut matrix for quick installation, testing, linting, and docker operations.',
+                details: 'Provides single-word commands like `make dev`, `make test`, `make build`.'
+            }
+        };
+
+        function inspectFile(key) {
+            const data = archData[key] || archData['root'];
+            document.getElementById('inspectCategory').innerText = data.cat;
+            document.getElementById('inspectTitle').innerText = data.title;
+            document.getElementById('inspectDescription').innerText = data.desc;
+            document.getElementById('inspectDetails').innerText = data.details;
+        }
+
+        // -------------------------------------------------------------
+        // Data Store: CI/CD Pipeline Stages
+        // -------------------------------------------------------------
+        const pipelineStages = {
+            'lint': {
+                title: 'Stage 1: Code Quality & Linting',
+                trigger: 'Runs on: All Commits & Merge Requests',
+                desc: 'Ensures strict compliance with modern Python 3.12 syntax, type safety, and standardized formatting before code execution.',
+                jobs: ['lint: ruff check . & ruff format --check .', 'type-check: mypy app/'],
+                artifacts: 'Blocks job progression if formatting or typing errors occur.'
+            },
+            'test': {
+                title: 'Stage 2: Unit & Integration Testing',
+                trigger: 'Runs on: All Commits',
+                desc: 'Spins up an isolated PostgreSQL 16 container service and executes Pytest with async coverage analysis.',
+                jobs: ['unit-test: pytest tests/ -v --cov=app'],
+                artifacts: 'Generates Cobertura XML coverage reports; enforces 80%+ test coverage threshold.'
+            },
+            'security': {
+                title: 'Stage 3: Vulnerability Scanning & Secrets Audit',
+                trigger: 'Runs on: Main & Staging Commits',
+                desc: 'Scans third-party Python dependencies for known CVE vulnerabilities and audits git commits for exposed secrets.',
+                jobs: ['dependency-audit: pip-audit', 'secret-scan: gitleaks detect --source .'],
+                artifacts: 'Provides immediate pipeline failure if high-severity vulnerabilities or plain-text secrets are found.'
+            },
+            'build': {
+                title: 'Stage 4: Docker Multi-Stage Image Build',
+                trigger: 'Runs on: main & develop branches',
+                desc: 'Builds optimized multi-stage Docker images and pushes tagged images to the private container registry.',
+                jobs: ['build-backend: docker build & tag with CI_COMMIT_SHORT_SHA', 'docker push to registry'],
+                artifacts: 'Docker images tagged with commit SHA and latest tag.'
+            },
+            'deploy': {
+                title: 'Stage 5: Automated Staging & Production Deployment',
+                trigger: 'Staging: Automatic on develop | Production: Manual on main',
+                desc: 'Connects to remote deployment hosts via SSH, pulls the latest Docker images, and executes zero-downtime stack reload.',
+                jobs: ['deploy-staging: ssh deployment to staging host', 'deploy-production: manual release trigger to prod'],
+                artifacts: 'Deploys application stack and verifies endpoint health.'
+            }
+        };
+
+        function showPipelineStage(stageKey) {
+            const data = pipelineStages[stageKey];
+            document.getElementById('stageTitle').innerText = data.title;
+            document.getElementById('stageTrigger').innerText = data.trigger;
+            document.getElementById('stageDesc').innerText = data.desc;
+
+            const jobsUl = document.getElementById('stageJobs');
+            jobsUl.innerHTML = '';
+            data.jobs.forEach(job => {
+                const li = document.createElement('li');
+                li.innerText = job;
+                jobsUl.appendChild(li);
+            });
+
+            document.getElementById('stageArtifacts').innerText = data.artifacts;
+
+            // Highlight button styling
+            document.querySelectorAll('.pipeline-btn').forEach(btn => {
+                btn.classList.remove('border-2', 'border-blue-500', 'bg-blue-50');
+                btn.classList.add('border', 'border-slate-200', 'bg-slate-50');
+            });
+            const activeBtn = document.getElementById(`btn-stage-${stageKey}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('border-slate-200', 'bg-slate-50');
+                activeBtn.classList.add('border-2', 'border-blue-500', 'bg-blue-50');
+            }
+        }
+
+        // -------------------------------------------------------------
+        // Data Store: Code Snippets
+        // -------------------------------------------------------------
+        const codeSnippets = {
+            'config': {
+                path: 'backend/app/core/config.py',
+                code: `from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import List
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    # App
+    APP_NAME: str = "FastAPI Fullstack"
+    DEBUG: bool = False
+    API_V1_STR: str = "/api/v1"
+
+    # Server
+    HOST: str = "0.0.0.0"
+    PORT: int = 8000
+
+    # Database
+    DATABASE_URL: str = "postgresql+asyncpg://fastapi:fastapi@localhost:5432/fastapi"
+
+    # Security
+    SECRET_KEY: str = "change-me-in-production-min-32-chars!!"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+    # CORS
+    ALLOWED_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5173"]
+
+settings = Settings()`
+            },
+            'database': {
+                path: 'backend/app/core/database.py',
+                code: `from typing import AsyncGenerator
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.orm import DeclarativeBase
+from app.core.config import settings
+
+engine = create_async_engine(
+    settings.DATABASE_URL,
+    echo=settings.DEBUG,
+    future=True,
+    pool_size=20,
+    max_overflow=10
+)
+
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    autoflush=False
+)
+
+class Base(DeclarativeBase):
+    pass
+
+async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()`
+            },
+            'security': {
+                path: 'backend/app/core/security.py',
+                code: `from datetime import datetime, timedelta, timezone
+from typing import Any
+import jwt
+from passlib.context import CryptContext
+from app.core.config import settings
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password: str) -> str:
+    return pwd_context.hash(password)
+
+def create_access_token(subject: str | Any, expires_delta: timedelta | None = None) -> str:
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    
+    to_encode = {"exp": expire, "sub": str(subject), "type": "access"}
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)`
+            },
+            'main': {
+                path: 'backend/app/main.py',
+                code: `from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.core.config import settings
+from app.api.v1.router import api_v1_router
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup tasks (initialize connection pools)
+    yield
+    # Shutdown tasks (close sessions)
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    docs_url="/docs",
+    lifespan=lifespan
+)
+
+if settings.ALLOWED_ORIGINS:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.ALLOWED_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+app.include_router(api_v1_router, prefix=settings.API_V1_STR)
+
+@app.get("/health", tags=["Health"])
+async def health_check():
+    return {"status": "ok", "app": settings.APP_NAME}`
+            },
+            'start_sh': {
+                path: 'backend/scripts/start.sh',
+                code: `#!/bin/bash
+set -e
+
+echo "[STARTUP] Applying database migrations..."
+alembic upgrade head
+
+echo "[STARTUP] Starting FastAPI Uvicorn Server..."
+exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers "\${WORKERS:-4}"`
+            },
+            'test_sh': {
+                path: 'backend/scripts/test.sh',
+                code: `#!/bin/bash
+set -e
+
+echo "[TEST] Static analysis with Ruff..."
+ruff check .
+ruff format --check .
+
+echo "[TEST] Type checking with Mypy..."
+mypy app/
+
+echo "[TEST] Pytest execution with coverage..."
+pytest tests/ -v --cov=app --cov-fail-under=80`
+            },
+            'dockerfile': {
+                path: 'backend/Dockerfile',
+                code: `FROM python:3.12-slim AS builder
+WORKDIR /app
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+RUN apt-get update && apt-get install -y --no-install-recommends gcc libpq-dev && rm -rf /var/lib/apt/lists/*
+COPY requirements.txt .
+RUN python -m venv /venv && /venv/bin/pip install --upgrade pip && /venv/bin/pip install -r requirements.txt --no-cache-dir
+
+FROM python:3.12-slim
+WORKDIR /app
+ENV PATH="/venv/bin:\$PATH"
+COPY --from=builder /venv /venv
+COPY . .
+EXPOSE 8000
+CMD ["bash", "scripts/start.sh"]`
+            },
+            'docker_compose': {
+                path: 'deploy/docker-compose.yml',
+                code: `version: "3.8"
+services:
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://fastapi:fastapi@db:5432/fastapi
+      - ENVIRONMENT=production
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: fastapi
+      POSTGRES_PASSWORD: fastapi
+      POSTGRES_DB: fastapi
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fastapi -d fastapi"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:`
+            },
+            'gitlab_ci': {
+                path: '.gitlab-ci.yml',
+                code: `image: python:3.12
+
+stages:
+  - lint
+  - test
+  - security
+  - build
+  - deploy
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  paths:
+    - .cache/pip
+
+lint:
+  stage: lint
+  before_script:
+    - cd backend && pip install ruff
+  script:
+    - ruff check .
+    - ruff format --check .
+
+unit-test:
+  stage: test
+  services:
+    - name: postgres:16-alpine
+      alias: postgres
+  variables:
+    POSTGRES_USER: test
+    POSTGRES_PASSWORD: test
+    POSTGRES_DB: test
+    DATABASE_URL: "postgresql+asyncpg://test:test@postgres:5432/test"
+  before_script:
+    - cd backend && pip install -r requirements.txt pytest pytest-cov httpx
+  script:
+    - pytest tests/ -v --cov=app --cov-report=term-missing`
+            },
+            'makefile': {
+                path: 'Makefile',
+                code: `.PHONY: install dev test lint format db-migrate build up down logs
+
+install:
+	cd backend && pip install -r requirements.txt
+
+dev:
+	cd backend && uvicorn app.main:app --reload --port 8000
+
+test:
+	cd backend && bash scripts/test.sh
+
+lint:
+	cd backend && ruff check . && mypy app/
+
+format:
+	cd backend && ruff format .
+
+db-migrate:
+	cd backend && alembic upgrade head
+
+db-revision:
+	cd backend && alembic revision --autogenerate -m "$(msg)"
+
+build:
+	docker compose -f deploy/docker-compose.yml build
+
+up:
+	docker compose -f deploy/docker-compose.yml up -d
+
+down:
+	docker compose -f deploy/docker-compose.yml down
+
+logs:
+	docker compose -f deploy/docker-compose.yml logs -f`
+            }
+        };
+
+        function loadCodeFile(key) {
+            const snippet = codeSnippets[key] || codeSnippets['config'];
+            document.getElementById('currentFilePath').innerText = snippet.path;
+            document.getElementById('codeBlock').textContent = snippet.code;
+        }
+
+        function copyCurrentCode() {
+            const codeText = document.getElementById('codeBlock').textContent;
+            navigator.clipboard.writeText(codeText).then(() => {
+                alert('Code copied to clipboard!');
+            });
+        }
+
+        // -------------------------------------------------------------
+        // Data Store: Command Matrix
+        // -------------------------------------------------------------
+        const commandList = [
+            { cat: 'env', title: 'Virtual Environment Creation', cmd: 'python3.12 -m venv .venv && source .venv/bin/activate' },
+            { cat: 'env', title: 'Install Dependencies (uv faster)', cmd: 'uv add fastapi uvicorn sqlalchemy pydantic-settings' },
+            { cat: 'run', title: 'Development Auto-reload Server', cmd: 'uvicorn backend.app.main:app --reload --port 8000' },
+            { cat: 'run', title: 'Production Multi-worker Mode', cmd: 'uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --workers 4' },
+            { cat: 'db', title: 'Initialize Alembic Migrations', cmd: 'cd backend && alembic init alembic' },
+            { cat: 'db', title: 'Autogenerate DB Migration Revision', cmd: 'alembic revision --autogenerate -m "init tables"' },
+            { cat: 'db', title: 'Apply DB Migrations to Head', cmd: 'alembic upgrade head' },
+            { cat: 'test', title: 'Execute Pytest Suite with Coverage', cmd: 'pytest tests/ -v --cov=app --cov-report=html' },
+            { cat: 'test', title: 'Ruff Lint & Format Check', cmd: 'ruff check . && ruff format --check .' },
+            { cat: 'test', title: 'Mypy Static Type Verification', cmd: 'mypy app/' },
+            { cat: 'docker', title: 'Build & Up Production Stack', cmd: 'docker compose -f deploy/docker-compose.yml up --build -d' },
+            { cat: 'docker', title: 'Dev Stack Hot-reload', cmd: 'docker compose -f deploy/docker-compose.dev.yml up --build' },
+            { cat: 'docker', title: 'View Backend Container Logs', cmd: 'docker compose logs -f backend' }
+        ];
+
+        function renderCommands(filter = 'all') {
+            const grid = document.getElementById('commandGrid');
+            grid.innerHTML = '';
+
+            const filtered = filter === 'all' ? commandList : commandList.filter(c => c.cat === filter);
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'bg-slate-50 border border-slate-200 rounded-lg p-4 flex flex-col justify-between';
+                card.innerHTML = `
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-200 px-2 py-0.5 rounded">${item.cat}</span>
+                        <h4 class="text-xs font-bold text-slate-900 mt-2">${item.title}</h4>
+                        <div class="mt-2 bg-slate-900 text-slate-200 p-2 rounded text-xs font-mono overflow-x-auto">
+                            <code>${item.cmd}</code>
+                        </div>
+                    </div>
+                    <button onclick="navigator.clipboard.writeText('${item.cmd}')" class="mt-3 text-left text-xs font-semibold text-blue-600 hover:text-blue-800 transition">
+                        📋 Copy Command
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterCommands(cat) {
+            document.querySelectorAll('.cmd-filter-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('bg-slate-100', 'text-slate-700');
+            });
+            event.target.classList.remove('bg-slate-100', 'text-slate-700');
+            event.target.classList.add('bg-blue-600', 'text-white');
+            renderCommands(cat);
+        }
+
+        function scrollToSection(id) {
+            document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // -------------------------------------------------------------
+        // Chart Initialization (Chart.js Canvas)
+        // -------------------------------------------------------------
+        window.addEventListener('DOMContentLoaded', () => {
+            // Initialize code block
+            loadCodeFile('config');
+            renderCommands('all');
+
+            // Chart 1: Component Distribution
+            const ctx1 = document.getElementById('scopeChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Backend Logic (API/Services)', 'Database & Models', 'CI/CD & Shell Automation', 'Docker Infrastructure', 'Test Suite'],
+                    datasets: [{
+                        data: [35, 20, 20, 15, 10],
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#6366f1', '#ec4899'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 11 }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Chart 2: Quality Metrics Bar
+            const ctx2 = document.getElementById('qualityChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['Target Code Cov %', 'CI Stages', 'Static Linters', 'Containers In Stack', 'Security Audits'],
+                    datasets: [{
+                        label: 'System Count / Target',
+                        data: [80, 5, 2, 2, 2],
+                        backgroundColor: '#10b981',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+```
