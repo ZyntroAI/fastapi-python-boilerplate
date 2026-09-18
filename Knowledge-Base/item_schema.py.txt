@@ -1,0 +1,24 @@
+python
+# app/schemas/item_schema.py (Pydantic)
+from pydantic import BaseModel
+
+class ItemCreate(BaseModel):
+    name: str
+    price: float
+
+class ItemResponse(ItemCreate):
+    id: int
+    
+    class Config:
+        orm_mode = True
+
+# ----------------------------------------
+# app/models/item_model.py (SQLAlchemy)
+from sqlalchemy import Column, Integer, String, Float
+from app.core.database import Base
+
+class Item(Base):
+    __tablename__ = "items"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    price = Column(Float)
