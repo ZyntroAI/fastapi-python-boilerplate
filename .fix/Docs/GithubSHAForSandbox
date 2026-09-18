@@ -1,0 +1,277 @@
+ได้ครับ ด้านล่างเป็นโครงสร้าง GitHub SHA → Docker → Sandbox → Health Check → Auto Debug → Repair → Rerun ที่เหมาะกับ workflow ของคุณ
+
+ได้ครับ ด้านล่างเป็นโครงสร้าง GitHub SHA → Docker → Sandbox → Health Check → Auto Debug → Repair → Rerun ที่เหมาะกับ workflow ของคุณ
+
+GitHub Commit
+    │
+    ▼
+GITHUB_SHA
+    │
+    ├── Docker Image
+    │      └── app:<SHA>
+    │
+    ├── Sandbox Metadata
+    │      └── sha.json
+    │
+    ▼
+Deploy Sandbox
+    │
+    ▼
+Health Check
+    │
+ ┌──┴──┐
+ │     │
+PASS  FAIL
+ │     │
+ ▼     ▼
+Done  Collect Logs
+          │
+          ▼
+       Debug/Repair
+          │
+          ▼
+       New Commit
+          │
+          ▼
+       New SHA
+          │
+          └──────► Sandbox
+
+.github/workflows/sandbox.yml
+
+name: Sandbox SHA Pipeline
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+  actions: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    name: Build SHA Image
+    runs-on: ubuntu-latest
+
+    outputs:
+      sha: ${{ steps.meta.outputs.sha }}
+      image: ${{ steps.meta.outputs.image }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate SHA metadata
+        id: meta
+        shell: bash
+        run: |
+          SHA="${GITHUB_SHA,,}"
+          IMAGE="${REGISTRY}/${IMAGE_NAME,,}:${SHA}"
+
+          echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+
+          cat > sha.json <<EOF
+          {
+            "repository": "${GITHUB_REPOSITORY}",
+            "branch": "${GITHUB_REF_NAME}",
+            "sha": "${GITHUB_SHA}",
+            "run_id": "${GITHUB_RUN_ID}",
+            "run_number": "${GITHUB_RUN_NUMBER}"
+          }
+          EOF
+
+      - name: Login GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        run: |
+          docker build \
+            --label org.opencontainers.image.revision="${GITHUB_SHA}" \
+            --label org.opencontainers.image.source="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" \
+            -t "${{ steps.meta.outputs.image }}" .
+
+      - name: Push image
+        run: |
+          docker push "${{ steps.meta.outputs.image }}"
+
+      - name: Upload SHA metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: sandbox-${{ steps.meta.outputs.sha }}
+          path: sha.json
+
+  sandbox:
+    name: Deploy Sandbox
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Sandbox deployment metadata
+        run: |
+          cat <<EOF
+          {
+            "environment": "sandbox",
+            "sha": "${{ needs.build.outputs.sha }}",
+            "image": "${{ needs.build.outputs.image }}",
+            "run_id": "${GITHUB_RUN_ID}"
+          }
+          EOF
+
+      # Replace with your actual Kubernetes/Vercel/Docker deployment.
+      - name: Deploy
+        run: |
+          echo "Deploying:"
+          echo "${{ needs.build.outputs.image }}"
+
+  health-check:
+    name: Sandbox Health Check
+    needs: [build, sandbox]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Health check
+        id: health
+        continue-on-error: true
+        run: |
+          # Replace with real sandbox URL
+          curl \
+            --fail \
+            --retry 5 \
+            --retry-delay 5 \
+            --max-time 30 \
+            "${SANDBOX_URL}/health"
+
+      - name: Check result
+        if: steps.health.outcome == 'failure'
+        run: |
+          echo "Sandbox failed"
+          exit 1
+
+  repair:
+    name: Auto Debug / Repair
+    needs: health-check
+    if: failure()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout failed SHA
+        uses: actions/checkout@v4
+
+      - name: Capture failure SHA
+        run: |
+          echo "FAILED_SHA=${GITHUB_SHA}" >> "$GITHUB_ENV"
+
+      - name: Collect diagnostics
+        run: |
+          mkdir -p diagnostics
+
+          echo "SHA=${GITHUB_SHA}" \
+            > diagnostics/build.txt
+
+          echo "RUN_ID=${GITHUB_RUN_ID}" \
+            >> diagnostics/build.txt
+
+          echo "REF=${GITHUB_REF}" \
+            >> diagnostics/build.txt
+
+      - name: Auto debug
+        run: |
+          echo "Debugging SHA: ${FAILED_SHA}"
+          echo "Analyze:"
+          echo "- Git diff"
+          echo "- workflow logs"
+          echo "- container logs"
+          echo "- health check"
+          echo "- dependency failures"
+
+      - name: Create repair branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "repair/${GITHUB_SHA}"
+
+      # AI repair step can be inserted here.
+
+      - name: Upload diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: repair-${{ github.sha }}
+          path: diagnostics/
+
+SHA strategy
+
+ผมแนะนำให้แยก identifier ออกเป็น 3 ระดับ
+
+SOURCE SHA
+    ↓
+IMAGE SHA
+    ↓
+DEPLOYMENT SHA
+
+ตัวอย่าง:
+
+Source:
+2582ca8...
+
+Docker:
+ghcr.io/zyntroai/crystalcastlex:2582ca8...
+
+Sandbox:
+sandbox/crystalcastlex/2582ca8...
+
+ดังนั้นเวลาเกิด error จะสามารถตอบได้ทันทีว่า
+
+Environment : sandbox
+Commit      : 2582ca8...
+Image       : ghcr.io/...:2582ca8...
+Workflow    : #152
+Status      : FAILED
+
+และ repair loop จะเป็น:
+
+SHA A
+ │
+ ├─ Build
+ ├─ Test
+ ├─ Deploy Sandbox
+ └─ Health Check
+        │
+        └─ FAIL
+             │
+             ▼
+        Collect Logs
+             │
+             ▼
+        Auto Debug
+             │
+             ▼
+        Patch
+             │
+             ▼
+           SHA B
+             │
+             ▼
+        Build SHA B
+             │
+             ▼
+        Sandbox
+
+English: This gives every sandbox deployment a deterministic source identity, making rollback, debugging, artifact tracing, and automated repair much safer.
+
+ไทย: โครงสร้างนี้ทำให้ทุก sandbox deployment ผูกกับ Git SHA แบบ deterministic จึงสามารถ trace → debug → repair → rebuild → redeploy ได้โดยไม่สับสนว่า sandbox กำลังรัน code version ไหนครับ.
