@@ -1,16 +1,91 @@
 {
+  "_comment": "MCP Server Configuration — ZyntroAI Stack",
+  "_version": "1.0.0",
+  "_docs": "See .env for tokens; run setup script to validate paths",
+
   "mcpServers": {
     "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${workspace}"]
+      "args": [
+        "-y",
+        "--no-update-notifier",
+        "@modelcontextprotocol/server-filesystem@0.6.0",
+        "${workspace}/src",
+        "${workspace}/docs",
+        "${workspace}/config",
+        "${workspace}/scripts"
+      ],
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "timeout": 30000
     },
+
     "github": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"]
+      "args": [
+        "-y",
+        "--no-update-notifier",
+        "@modelcontextprotocol/server-github@0.6.0"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "NODE_ENV": "production"
+      },
+      "timeout": 30000
     },
+
     "sqlite": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sqlite", "${workspace}/data/app.db"]
+      "args": [
+        "-y",
+        "--no-update-notifier",
+        "@modelcontextprotocol/server-sqlite@0.5.0",
+        "${workspace}/data/app.db"
+      ],
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "timeout": 30000
+    },
+
+    "brave-search": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "--no-update-notifier",
+        "@modelcontextprotocol/server-brave-search@0.6.0"
+      ],
+      "env": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}",
+        "NODE_ENV": "production"
+      },
+      "timeout": 15000
+    },
+
+    "memory": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "--no-update-notifier",
+        "@modelcontextprotocol/server-memory@0.6.0"
+      ],
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "timeout": 30000
+    },
+
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "--no-update-notifier",
+        "@modelcontextprotocol/server-postgres@0.5.0",
+        "postgresql://${DB_USER}:${DB_PASS}@localhost:5432/zyntro_db"
+      ],
+      "enabled": false,
+      "timeout": 30000
     }
   }
 }
