@@ -1,0 +1,23 @@
+python
+# app/api/routers/item_router.py
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.core.database import get_db
+from app.schemas.item_schema import ItemCreate, ItemResponse
+from app.services import item_service
+
+router = APIRouter(prefix="/items", tags=["Items"])
+
+@router.post("/", response_model=ItemResponse, status_code=201)
+def create_item(
+    item: ItemCreate, 
+    db: Session = Depends(get_db)  # Dependency Injection
+):
+    """API Endpoint สำหรับรับ Request และส่งให้ Service จัดการ"""
+    try:
+        # โยนงานให้ Service จัดการ (Router ไม่ต้องรู้ว่าเซฟลง DB ยังไง)
+        new_item = item_service.create_new_item(db=db, item_data=item)
+        return new_item
+    except ValueError as e:
+        # ดักจับ Error จาก Service แล้วแปลงเป็น HTTP Error
+        raise HTTPException(status_code=400, detail=str(e))
