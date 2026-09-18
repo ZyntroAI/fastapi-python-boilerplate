@@ -1,0 +1,9 @@
+path "zyntro/data/prod/gateway" {
+  capabilities = ["read"]
+}
+path "zyntro/data/prod/alertmanager" {
+  capabilities = ["read"]
+}
+path "zyntro/data/prod/grafana" {
+  capabilities = ["read"]
+}
