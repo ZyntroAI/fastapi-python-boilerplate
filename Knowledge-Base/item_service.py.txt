@@ -1,0 +1,19 @@
+python
+# app/services/item_service.py
+from sqlalchemy.orm import Session
+from app.models.item_model import Item
+from app.schemas.item_schema import ItemCreate
+
+def create_new_item(db: Session, item_data: ItemCreate) -> Item:
+    """Business logic สำหรับการสร้าง Item"""
+    # สมมติว่ามี Business Logic: ห้ามตั้งราคาสินค้าติดลบ
+    if item_data.price < 0:
+        raise ValueError("ราคาสินค้าห้ามติดลบเด็ดขาด!")
+        
+    # สร้าง Object ลง Database
+    db_item = Item(name=item_data.name, price=item_data.price)
+    db.add(db_item)
+    db.commit()
+    db.refresh(db_item)
+    
+    return db_item
