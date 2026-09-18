@@ -1,0 +1,9 @@
+# Make executable & run setup
+chmod +x setup-mcp.sh
+./setup-mcp.sh
+
+# Test one server manually
+npx @modelcontextprotocol/server-filesystem@0.6.0 ./src
+
+# Verify JSON syntax
+node -e "JSON.parse(require('fs').readFileSync('mcp-config.json')); console.log('✅ JSON Valid')"
