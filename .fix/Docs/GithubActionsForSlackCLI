@@ -1,0 +1,205 @@
+GitHub Actions + Slack CLI
+
+แนวทางที่เหมาะคือทำเป็น reusable workflow สำหรับส่งสถานะ GitHub Actions ไปยัง Slack โดยให้ slackcli ทำหน้าที่เป็น notification layer และไม่เอา Slack token ไป hard-code ใน YAML
+
+A clean architecture is:
+
+GitHub Actions
+      │
+      ├── build
+      ├── test
+      ├── lint
+      └── deploy
+            │
+            ▼
+      Slack CLI wrapper
+            │
+            ▼
+          Slack
+
+1. .github/workflows/slack-notify.yml
+
+name: Slack Notification
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+      - Deploy
+      - Release
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    name: Notify Slack
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Slack CLI
+        shell: bash
+        run: |
+          curl -fsSL https://downloads.slack-edge.com/slack-cli/install.sh | bash
+          echo "$HOME/.slack/bin" >> "$GITHUB_PATH"
+
+      - name: Prepare status
+        id: status
+        shell: bash
+        run: |
+          if [ "${{ github.event.workflow_run.conclusion }}" = "success" ]; then
+            echo "status=SUCCESS" >> "$GITHUB_OUTPUT"
+            echo "emoji=✅" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.workflow_run.conclusion }}" = "failure" ]; then
+            echo "status=FAILED" >> "$GITHUB_OUTPUT"
+            echo "emoji=❌" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=${{ github.event.workflow_run.conclusion }}" >> "$GITHUB_OUTPUT"
+            echo "emoji=⚠️" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Send Slack notification
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+          WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+          WORKFLOW_STATUS: ${{ steps.status.outputs.status }}
+          WORKFLOW_EMOJI: ${{ steps.status.outputs.emoji }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+          ACTOR: ${{ github.event.workflow_run.actor.login }}
+        run: |
+          MESSAGE="${WORKFLOW_EMOJI} *${WORKFLOW_NAME}* — ${WORKFLOW_STATUS}
+
+          Branch: \`${BRANCH}\`
+          Actor: \`${ACTOR}\`
+          <${RUN_URL}|View GitHub Actions run>"
+
+          slack chat send \
+            --channel "$SLACK_CHANNEL" \
+            --text "$MESSAGE"
+
+2. Better production structure
+
+สำหรับหลาย repository เช่น new-crystalcastle และ crystalcastleX ผมแนะนำแยก notification logic เป็น reusable workflow:
+
+.github/
+└── workflows/
+    ├── ci.yml
+    ├── test.yml
+    ├── security.yml
+    ├── deploy.yml
+    ├── release.yml
+    ├── slack-notify.yml
+    └── reusable-slack.yml
+
+ตัว workflow หลักจะส่ง event เข้า reusable workflow:
+
+jobs:
+  slack:
+    uses: ZyntroAI/.github/.github/workflows/reusable-slack.yml@main
+    secrets: inherit
+
+แล้วให้ centralized workflow จัดการ:
+
+CI
+ ├─ success ──┐
+ ├─ failure ──┤
+ └─ cancelled ─┤
+               ▼
+        reusable-slack.yml
+               │
+               ▼
+             Slack
+
+3. Slack message ที่ควรใช้
+
+✅ CI — SUCCESS
+
+Repository: ZyntroAI/new-crystalcastle
+Branch: main
+Commit: 2582ca8
+Actor: ZyntroAI
+
+Tests: PASS
+Lint: PASS
+Build: PASS
+
+View GitHub Actions →
+
+เมื่อ fail:
+
+❌ CI — FAILED
+
+Repository: ZyntroAI/new-crystalcastle
+Branch: main
+Commit: 2582ca8
+
+Failed job: pytest
+Exit code: 1
+
+View failed workflow →
+
+4. เพิ่ม Auto-Debug / Auto-Rerun
+
+สามารถต่อยอดกับ workflow ที่คุณกำลังทำเรื่อง auto-debug ได้:
+
+GitHub Actions
+      │
+      ▼
+   Job fails
+      │
+      ▼
+ Auto Debug
+      │
+      ├── error analysis
+      ├── patch
+      ├── validate
+      └── rerun
+            │
+       ┌────┴────┐
+       ▼         ▼
+    SUCCESS     FAILED
+       │         │
+       ▼         ▼
+     Slack      Slack
+       │         │
+       ▼         ▼
+   "Fixed"   "Needs human"
+
+ตัวอย่าง status ที่ส่ง Slack:
+
+🔧 Auto-Debug
+
+Workflow: CI
+Job: test
+
+Attempt: 2/3
+Error: pytest failed
+
+Action:
+✓ Error detected
+✓ Patch generated
+✓ Tests rerun
+✓ CI recovered
+
+Status: RECOVERED
+
+และเมื่อ retry ครบ:
+
+🚨 Auto-Debug exhausted
+
+Workflow: CI
+Job: test
+
+Attempts: 3/3
+Status: FAILED
+
+Human intervention required.
+
+English: The key design is to keep Slack credentials in GitHub Secrets, centralize notification logic in a reusable workflow, and let CI/security/deploy workflows emit standardized events. This also fits cleanly with your existing auto-debug + auto-rerun pipeline.
