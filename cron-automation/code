@@ -294,4 +294,245 @@ ng serve
 
 ---
 
-**ต้องการให้ผมอธิบายส่วนไหนเพิ่มเติมไหมครับ?** (เช่น Scheduler, Database, Authentication, etc.)
+นี่คือโค้ดตัวอย่างการเพิ่ม WebSocket Endpoint บน FastAPI เพื่อรัน Subprocess (Shell/Python Script) แล้ว stream stdout/stderr ออกมาแบบ Real-Time พร้อมทั้งโค้ด Angular Component / Service สำหรับรับข้อความมาแสดงผลบน UI ครับ
+1. FastAPI Backend Implementation
+สร้างหรืออัปเดตไฟล์ router สำหรับ WebSocket (เช่น backend/routers/execution_ws.py หรือนำไปรวมไว้ใน main.py):
+# backend/routers/execution_ws.py
+import asyncio
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+
+router = APIRouter(prefix="/ws", tags=["websocket"])
+
+@router.websocket("/execution/{job_id}")
+async def websocket_execution_logs(websocket: WebSocket, job_id: str):
+    """
+    WebSocket endpoint สำหรับรัน script/command และ stream log กลับไปยัง client แบบ Real-time
+    """
+    await websocket.accept()
+    
+    # สมมติคำสั่งที่ต้องการรันตาม job_id (หรือดึง script path จาก DB)
+    # ตัวอย่างนี้เป็นการจำลอง command ที่ส่ง log ออกมาเรื่อยๆ
+    command = ["python3", "-u", "-c", f"""
+import time
+print('Starting Job ID: {job_id}...')
+for i in range(1, 6):
+    print(f'Processing step {{i}}/5...')
+    time.sleep(1)
+print('Job Execution Completed Successfully!')
+"""]
+
+    try:
+        # สร้าง Async Subprocess และ Pipe stdout/stderr
+        process = await asyncio.create_subprocess_exec(
+            *command,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+
+        async def stream_reader(stream, log_type: str):
+            """อ่านข้อมูลจาก stream แล้วส่งผ่าน WebSocket"""
+            while True:
+                line = await stream.readline()
+                if not line:
+                    break
+                text = line.decode("utf-8", errors="replace").rstrip()
+                # ส่ง JSON payload กลับไปยัง Angular
+                await websocket.send_json({
+                    "type": log_type,
+                    "message": text
+                })
+
+        # อ่าน stdout และ stderr พร้อมกัน
+        await asyncio.gather(
+            stream_reader(process.stdout, "stdout"),
+            stream_reader(process.stderr, "stderr")
+        )
+
+        # รอให้ process ทำงานเสร็จ
+        return_code = await process.wait()
+        await websocket.send_json({
+            "type": "status",
+            "message": f"Process exited with code {return_code}",
+            "code": return_code
+        })
+
+    except WebSocketDisconnect:
+        print(f"Client disconnected for job: {job_id}")
+    except Exception as e:
+        try:
+            await websocket.send_json({"type": "error", "message": str(e)})
+        except Exception:
+            pass
+    finally:
+        try:
+            await websocket.close()
+        except Exception:
+            pass
+
+นำ Router ไปลงทะเบียนใน backend/main.py:
+# backend/main.py
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from routers.execution_ws import router as ws_router
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:4200"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(ws_router)
+
+2. Angular Frontend Implementation
+2.1 WebSocket Service (src/app/services/websocket.service.ts)
+import { Injectable } from '@angular/core';
+import { Observable, Subject } from 'rxjs';
+
+export interface LogMessage {
+  type: 'stdout' | 'stderr' | 'status' | 'error';
+  message: string;
+  code?: number;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class WebSocketService {
+  private socket?: WebSocket;
+  private logSubject = new Subject<LogMessage>();
+
+  public connectJobLogs(jobId: string): Observable<LogMessage> {
+    const wsUrl = `ws://localhost:8000/ws/execution/${jobId}`;
+    this.socket = new WebSocket(wsUrl);
+
+    this.socket.onopen = () => {
+      this.logSubject.next({ type: 'status', message: 'WebSocket Connected' });
+    };
+
+    this.socket.onmessage = (event) => {
+      try {
+        const data: LogMessage = JSON.parse(event.data);
+        this.logSubject.next(data);
+      } catch (err) {
+        this.logSubject.next({ type: 'stdout', message: event.data });
+      }
+    };
+
+    this.socket.onerror = (error) => {
+      this.logSubject.next({ type: 'error', message: 'WebSocket Connection Error' });
+    };
+
+    this.socket.onclose = () => {
+      this.logSubject.next({ type: 'status', message: 'WebSocket Connection Closed' });
+    };
+
+    return this.logSubject.asObservable();
+  }
+
+  public disconnect(): void {
+    if (this.socket) {
+      this.socket.close();
+      this.socket = undefined;
+    }
+  }
+}
+
+2.2 Live Log Viewer Component (src/app/components/log-viewer.component.ts)
+import { Component, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
+import { WebSocketService, LogMessage } from '../services/websocket.service';
+
+@Component({
+  selector: 'app-log-viewer',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    <div class="log-container">
+      <div class="actions">
+        <button (click)="startStreaming('job-123')">Start Streaming Log (Job 123)</button>
+        <button (click)="stopStreaming()">Disconnect</button>
+      </div>
+
+      <div class="terminal" #terminalContainer>
+        <div *ngFor="let log of logs" [ngClass]="log.type">
+          <span class="timestamp">[{{ getTimestamp() }}]</span>
+          <span class="type">[{{ log.type | uppercase }}]</span>
+          <span class="text">{{ log.message }}</span>
+        </div>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .log-container { margin: 16px; }
+    .actions { margin-bottom: 12px; display: flex; gap: 8px; }
+    .terminal {
+      background-color: #1e1e1e;
+      color: #d4d4d4;
+      font-family: 'Courier New', Courier, monospace;
+      padding: 12px;
+      border-radius: 6px;
+      height: 350px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .stdout { color: #4ec9b0; }
+    .stderr { color: #f44747; }
+    .status { color: #ce9178; font-style: italic; }
+    .error { color: #ff0000; font-weight: bold; }
+    .timestamp { color: #858585; margin-right: 8px; }
+    .type { margin-right: 8px; }
+  `]
+})
+export class LogViewerComponent implements OnDestroy {
+  @ViewChild('terminalContainer') private terminalContainer!: ElementRef;
+  logs: LogMessage[] = [];
+  private sub?: Subscription;
+
+  constructor(private wsService: WebSocketService) {}
+
+  startStreaming(jobId: string): void {
+    this.logs = [];
+    this.stopStreaming();
+
+    this.sub = this.wsService.connectJobLogs(jobId).subscribe({
+      next: (log) => {
+        this.logs.push(log);
+        this.scrollToBottom();
+      }
+    });
+  }
+
+  stopStreaming(): void {
+    if (this.sub) {
+      this.sub.unsubscribe();
+    }
+    this.wsService.disconnect();
+  }
+
+  private scrollToBottom(): void {
+    setTimeout(() => {
+      if (this.terminalContainer) {
+        this.terminalContainer.nativeElement.scrollTop = 
+          this.terminalContainer.nativeElement.scrollHeight;
+      }
+    }, 50);
+  }
+
+  getTimestamp(): string {
+    return new Date().toLocaleTimeString();
+  }
+
+  ngOnDestroy(): void {
+    this.stopStreaming();
+  }
+}
+
+จุดสำคัญที่ควรรู้
+ * Unbuffered Output: ใน FastAPI Subprocess เมื่อรันคำสั่ง Python ให้ใส่ flag -u (Unbuffered) เพื่อให้ Python ส่ง output ออกมาทาง stdout ทันทีโดยไม่ต้องรอให้ buffer เต็ม
+ * Auto Auto-Scroll: ใน Angular component มีการใช้ scrollToBottom() เพื่อให้หน้าจอ Terminal เลื่อนลงอัตโนมัติเมื่อมี Log บรรทัดใหม่เข้ามา
