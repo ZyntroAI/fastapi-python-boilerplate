@@ -1,0 +1,7 @@
+Server	Version	Purpose
+server-filesystem	0.6.0	Controlled file access
+server-github	0.6.0	Repo/PR management
+server-sqlite	0.5.0	Local structured data
+server-brave-search	0.6.0	Internet search
+server-memory	0.6.0	Persistent memory across sessions
+server-postgres	0.5.0	Enterprise DB (disabled by default)
