@@ -1,0 +1,255 @@
+นี่คือไฟล์ **`gdrive_tool.py`** ฉบับสมบูรณ์ที่ได้รับการออกแบบสำหรับนำไปใช้เป็น **Skill Module / Tool** สำหรับ AI Agent หรือ Backend Service ครับ
+
+โค้ดชุดนี้ใช้ **Google Drive API v3 (Service Account)** มีระบบตรวจจับ MIME type อัตโนมัติ, การจัดการ Error, การใส่ Type Hinting และฟังก์ชันหลักสำหรับการจัดการไฟล์และโฟลเดอร์บน Google Drive อย่างครบถ้วน
+
+---
+
+### 📄 `gdrive_tool.py`
+
+```python
+import os
+import mimetypes
+from typing import Dict, List, Optional, Any
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
+from googleapiclient.errors import HttpError
+
+# Scope สำหรับการเข้าถึงและจัดการไฟล์ Google Drive
+SCOPES: List[str] = ["https://www.googleapis.com/auth/drive"]
+
+# โหลดตำแหน่งไฟล์ Credentials จาก Environment Variable หรือใช้ค่า Default
+SERVICE_ACCOUNT_FILE: str = os.getenv("GDRIVE_SA_FILE", "service_account.json")
+
+
+def get_drive_service():
+    """
+    สร้างและคืนค่า Google Drive Service Instance โดยใช้ Service Account Credentials
+    """
+    if not os.path.exists(SERVICE_ACCOUNT_FILE):
+        raise FileNotFoundError(
+            f"ไม่พบไฟล์ Service Account Key ที่ตำแหน่ง: '{SERVICE_ACCOUNT_FILE}' "
+            "กรุณาตรวจสอบว่าตั้งค่า GDRIVE_SA_FILE หรือวางไฟล์ service_account.json เรียบร้อยแล้ว"
+        )
+
+    creds = service_account.Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE, scopes=SCOPES
+    )
+    return build("drive", "v3", credentials=creds)
+
+
+def upload_file(
+    file_path: str,
+    folder_id: str,
+    custom_file_name: Optional[str] = None,
+    mime_type: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    อัปโหลดไฟล์ไปยัง Google Drive ภายในโฟลเดอร์ที่กำหนด
+
+    :param file_path: Path ของไฟล์ในเครื่องที่ต้องการอัปโหลด
+    :param folder_id: ID ของโฟลเดอร์ปลายทางบน Google Drive
+    :param custom_file_name: (Optional) ตั้งชื่อไฟล์ใหม่บน Drive หากไม่ระบุจะใช้ชื่อไฟล์เดิม
+    :param mime_type: (Optional) ระบุ MIME Type ของไฟล์ หากไม่ระบุระบบจะตรวจจับให้อัตโนมัติ
+    :return: Dict ข้อมูลไฟล์ที่อัปโหลดสำเร็จ (id, name, webViewLink, webContentLink)
+    """
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"ไม่พบไฟล์ต้นทางที่ตำแหน่ง: '{file_path}'")
+
+    service = get_drive_service()
+    file_name = custom_file_name or os.path.basename(file_path)
+
+    # ตรวจจับ MIME type อัตโนมัติหากไม่ได้ระบุ
+    if not mime_type:
+        mime_type, _ = mimetypes.guess_type(file_path)
+        if not mime_type:
+            mime_type = "application/octet-stream"
+
+    file_metadata = {
+        "name": file_name,
+        "parents": [folder_id]
+    }
+
+    media = MediaFileUpload(file_path, mimetype=mime_type, resumable=True)
+
+    try:
+        file = service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields="id, name, mimeType, webViewLink, webContentLink"
+        ).execute()
+
+        print(f"✅ อัปโหลดไฟล์สำเร็จ: {file.get('name')} (ID: {file.get('id')})")
+        return file
+
+    except HttpError as error:
+        print(f"❌ เกิดข้อผิดพลาดในการอัปโหลดไฟล์: {error}")
+        raise
+
+
+def create_folder(
+    folder_name: str,
+    parent_folder_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    สร้างโฟลเดอร์ใหม่บน Google Drive
+
+    :param folder_name: ชื่อโฟลเดอร์ที่ต้องการสร้าง
+    :param parent_folder_id: (Optional) ID ของโฟลเดอร์แม่ หากต้องการสร้างโฟลเดอร์ย่อย
+    :return: Dict ข้อมูลโฟลเดอร์ที่สร้างสำเร็จ
+    """
+    service = get_drive_service()
+
+    file_metadata = {
+        "name": folder_name,
+        "mimeType": "application/vnd.google-apps.folder"
+    }
+
+    if parent_folder_id:
+        file_metadata["parents"] = [parent_folder_id]
+
+    try:
+        folder = service.files().create(
+            body=file_metadata,
+            fields="id, name, webViewLink"
+        ).execute()
+
+        print(f"📁 สร้างโฟลเดอร์สำเร็จ: {folder.get('name')} (ID: {folder.get('id')})")
+        return folder
+
+    except HttpError as error:
+        print(f"❌ เกิดข้อผิดพลาดในการสร้างโฟลเดอร์: {error}")
+        raise
+
+
+def list_files_in_folder(folder_id: str) -> List[Dict[str, Any]]:
+    """
+    ดึงรายการไฟล์ทั้งหมดที่อยู่ในโฟลเดอร์เป้าหมาย (ไม่รวมไฟล์ใน ถังขยะ / Trash)
+
+    :param folder_id: ID ของโฟลเดอร์ที่ต้องการค้นหา
+    :return: List ของ Dict รายการไฟล์
+    """
+    service = get_drive_service()
+    query = f"'{folder_id}' in parents and trashed = false"
+
+    try:
+        results = service.files().list(
+            q=query,
+            fields="files(id, name, mimeType, size, modifiedTime, webViewLink)"
+        ).execute()
+
+        return results.get("files", [])
+
+    except HttpError as error:
+        print(f"❌ เกิดข้อผิดพลาดในการดึงรายการไฟล์: {error}")
+        raise
+
+
+def download_file(file_id: str, output_path: str) -> str:
+    """
+    ดาวน์โหลดไฟล์จาก Google Drive มาบันทึกลงในเครื่อง
+
+    :param file_id: ID ของไฟล์บน Google Drive
+    :param output_path: Path ปลายทางที่ต้องการเซฟไฟล์ในเครื่อง
+    :return: Path ของไฟล์ที่ดาวน์โหลดเรียบร้อย
+    """
+    service = get_drive_service()
+    request = service.files().get_media(fileId=file_id)
+
+    try:
+        with open(output_path, "wb") as f:
+            downloader = MediaIoBaseDownload(f, request)
+            done = False
+            while not done:
+                status, done = downloader.next_chunk()
+                if status:
+                    print(f"📥 กำลังดาวน์โหลด... {int(status.progress() * 100)}%")
+
+        print(f"✅ ดาวน์โหลดไฟล์สำเร็จ บันทึกไว้ที่: {output_path}")
+        return output_path
+
+    except HttpError as error:
+        print(f"❌ เกิดข้อผิดพลาดในการดาวน์โหลดไฟล์: {error}")
+        raise
+
+
+def share_file(
+    file_id: str,
+    email_address: str,
+    role: str = "writer",
+    type_: str = "user"
+) -> Dict[str, Any]:
+    """
+    กำหนดสิทธิ์การเข้าถึงไฟล์/โฟลเดอร์ให้กับผู้ใช้งานรายอื่น
+
+    :param file_id: ID ของไฟล์หรือโฟลเดอร์
+    :param email_address: อีเมลของผู้รับสิทธิ์
+    :param role: บทบาทสิทธิ์ เช่น 'reader', 'commenter', 'writer'
+    :param type_: ประเภทผู้รับสิทธิ์ เช่น 'user', 'group', 'domain', 'anyone'
+    :return: Dict ข้อมูล Permission
+    """
+    service = get_drive_service()
+
+    permission_metadata = {
+        "role": role,
+        "type": type_,
+        "emailAddress": email_address
+    }
+
+    try:
+        permission = service.permissions().create(
+            fileId=file_id,
+            body=permission_metadata,
+            fields="id, role, emailAddress"
+        ).execute()
+
+        print(f"🔑 แชร์สิทธิ์สำเร็จให้ {email_address} สิทธิ์: {role}")
+        return permission
+
+    except HttpError as error:
+        print(f"❌ เกิดข้อผิดพลาดในการแชร์ไฟล์: {error}")
+        raise
+
+
+# =====================================================================
+# 🧪 ตัวอย่างการใช้งานและทดสอบ (Run Direct Script)
+# =====================================================================
+if __name__ == "__main__":
+    # ระบุ ID ของโฟลเดอร์ Google Drive เป้าหมายที่แชร์ให้ Service Account แล้ว
+    TARGET_FOLDER_ID = os.getenv("GDRIVE_TARGET_FOLDER_ID", "YOUR_GOOGLE_DRIVE_FOLDER_ID")
+
+    print("--- 🚀 ทดสอบการทำงาน gdrive_tool.py ---")
+
+    if TARGET_FOLDER_ID == "YOUR_GOOGLE_DRIVE_FOLDER_ID":
+        print("⚠️ กรุณาระบุ GDRIVE_TARGET_FOLDER_ID ก่อนทำการทดสอบ")
+    else:
+        try:
+            # 1. ทดสอบสร้างโฟลเดอร์ใหม่
+            new_folder = create_folder("Test_Folder_by_Agent", parent_folder_id=TARGET_FOLDER_ID)
+
+            # 2. ทดสอบดึงรายการไฟล์ในโฟลเดอร์
+            files = list_files_in_folder(TARGET_FOLDER_ID)
+            print(f"📂 จำนวนไฟล์ในโฟลเดอร์หลัก: {len(files)} ไฟล์")
+
+        except Exception as e:
+            print(f"💥 เกิดข้อผิดพลาดขณะทดสอบ: {e}")
+```
+
+---
+
+### ⚙️ สิ่งที่ต้องเตรียมเพื่อรันสคริปต์นี้
+
+1. **ติดตั้ง Dependencies:**
+   ```bash
+   pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
+   ```
+
+2. **ไฟล์ `service_account.json`:**
+   * วางไฟล์ไว้ใน Directory เดียวกับสคริปต์ หรือตั้งค่า Environment Variable:
+     ```bash
+     export GDRIVE_SA_FILE="/path/to/your/service_account.json"
+     ```
+
+3. **แชร์โฟลเดอร์เป้าหมายให้ Service Account:**
+   * เปิดไฟล์ `service_account.json` ดูอีเมลในช่อง `"client_email"` (เช่น `my-agent@project.iam.gserviceaccount.com`)
+   * ไปที่ Google Drive สร้างโฟลเดอร์ กด **Share** แล้วใส่อีเมลนั้นลงไป กำหนดสิทธิ์เป็น **Editor**
