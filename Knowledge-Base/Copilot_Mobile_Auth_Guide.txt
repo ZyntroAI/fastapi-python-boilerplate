@@ -1,0 +1,250 @@
+‐-‐-----------------------------------------------------------------------------‐--
+📄 Copilot Mobile Auth Guide (TypeScript)
+------------------------------------------ 
+Bilingual EN/TH • Strict Type • Production-Ready • Mobile-Friendly 📱🔐
+ 
+typescript  
+/**
+ * @file copilot-auth-guide.ts
+ * @name CopilotMobileAuthHelper
+ * @description Bilingual EN/TH guide for Google Sign-In & Cookie Management
+ * @target https://copilot.microsoft.com/shares/y8X4MN5am1465yoYoKF9h
+ * @platform Android/iOS • Browser: Chrome/Safari/Edge/Firefox
+ * @version 1.1.0
+ */
+
+// ==============================================
+// 📚 TYPE DEFINITIONS / คำนิยามประเภท
+// ==============================================
+export type Lang = 'en' | 'th';
+export type BrowserType = 'chrome' | 'safari' | 'edge' | 'firefox';
+export type Platform = 'android' | 'ios' | 'unknown';
+export type CookiePolicy = 'allow-all' | 'block-third' | 'block-all';
+
+export interface Domain {
+  domain: string;
+  required: boolean;
+}
+
+export interface Step {
+  step: number;
+  action: Record<Lang, string>;
+  target?: string;
+  note?: Record<Lang, string>;
+}
+
+export interface BrowserConfig {
+  platform: Platform;
+  browser: BrowserType;
+  requiredDomains: Domain[];
+  cookiePolicy: CookiePolicy;
+  steps: Step[];
+}
+
+// ==============================================
+// 🔗 REQUIRED DOMAINS / โดเมนที่จำเป็น
+// ==============================================
+export const REQUIRED_DOMAINS: Domain[] = [
+  { domain: 'copilot.microsoft.com', required: true },
+  { domain: 'login.microsoftonline.com', required: true },
+  { domain: 'accounts.google.com', required: true },
+];
+
+// ==============================================
+// 📋 BILINGUAL CONFIGS / การตั้งค่า 2 ภาษา
+// ==============================================
+export const GUIDE_CONFIGS: Record<Platform, Partial<Record<BrowserType, BrowserConfig>>> = {
+  android: {
+    chrome: {
+      platform: 'android',
+      browser: 'chrome',
+      requiredDomains: REQUIRED_DOMAINS,
+      cookiePolicy: 'block-third',
+      steps: [
+        {
+          step: 1,
+          action: { en: 'Open target link', th: 'เปิดลิงก์เป้าหมาย' },
+          target: 'https://copilot.microsoft.com/shares/y8X4MN5am1465yoYoKF9h',
+        },
+        {
+          step: 2,
+          action: { en: 'Tap lock/info icon in address bar', th: 'แตะไอคอนแม่กุญแจ/ข้อมูลที่แถบที่อยู่' },
+          note: { en: 'Access site settings', th: 'เข้าสู่การตั้งค่าไซต์' },
+        },
+        {
+          step: 3,
+          action: { en: 'Select Cookies → View all data', th: 'เลือก Cookies → ดูข้อมูลทั้งหมด' },
+        },
+        {
+          step: 4,
+          action: { en: 'Clear cookies for specific domains', th: 'ล้างคุกกี้เฉพาะโดเมน' },
+          target: 'copilot.microsoft.com / accounts.google.com',
+        },
+        {
+          step: 5,
+          action: { en: 'Set: Allow cookies + Block third-party', th: 'ตั้งค่า: อนุญาตคุกกี้ + บล็อกบุคคลที่สาม' },
+        },
+        {
+          step: 6,
+          action: { en: 'Restart browser → Sign in with Google', th: 'รีสตาร์ทเบราว์เซอร์ → เข้าสู่ระบบด้วย Google' },
+        },
+      ],
+    },
+    edge: {
+      platform: 'android',
+      browser: 'edge',
+      requiredDomains: REQUIRED_DOMAINS,
+      cookiePolicy: 'block-third',
+      steps: [
+        {
+          step: 1,
+          action: { en: 'Menu ⋮ → Settings → Privacy', th: 'เมนู ⋮ → การตั้งค่า → ความเป็นส่วนตัว' },
+        },
+        {
+          step: 2,
+          action: { en: 'Cookies → Allow all + Add domain exceptions', th: 'คุกกี้ → เปิดอนุญาต + เพิ่มข้อยกเว้น' },
+        },
+        {
+          step: 3,
+          action: { en: 'Clear site data for: copilot.microsoft.com', th: 'ล้างข้อมูลไซต์เฉพาะ: copilot.microsoft.com' },
+        },
+      ],
+    },
+  },
+  ios: {
+    safari: {
+      platform: 'ios',
+      browser: 'safari',
+      requiredDomains: REQUIRED_DOMAINS,
+      cookiePolicy: 'allow-all',
+      steps: [
+        {
+          step: 1,
+          action: { en: 'Settings → Safari → Advanced → Website Data', th: 'การตั้งค่า → Safari → ขั้นสูง → ข้อมูลไซต์' },
+        },
+        {
+          step: 2,
+          action: { en: 'Search domain → Swipe left → Delete', th: 'ค้นหาโดเมน → ปัดซ้าย → ลบ' },
+        },
+        {
+          step: 3,
+          action: { en: 'Turn OFF: Block All Cookies / Prevent Cross-Site Tracking', th: 'ปิด: บล็อกคุกกี้ทั้งหมด / ป้องกันการติดตามข้ามไซต์' },
+        },
+        {
+          step: 4,
+          action: { en: 'Restart Safari → Open link', th: 'รีสตาร์ท Safari → เปิดลิงก์' },
+        },
+      ],
+    },
+    chrome: {
+      platform: 'ios',
+      browser: 'chrome',
+      requiredDomains: REQUIRED_DOMAINS,
+      cookiePolicy: 'block-third',
+      steps: [
+        {
+          step: 1,
+          action: { en: 'Menu ⋮ → Settings → Privacy → Clear Browsing Data', th: 'เมนู ⋮ → การตั้งค่า → ความเป็นส่วนตัว → ล้างข้อมูล' },
+        },
+        {
+          step: 2,
+          action: { en: 'Select: Cookies → Confirm', th: 'เลือก: คุกกี้ → ยืนยัน' },
+        },
+        {
+          step: 3,
+          action: { en: 'Enable third-party cookies for Microsoft/Google', th: 'เปิดคุกกี้บุคคลที่สามสำหรับ Microsoft/Google' },
+        },
+      ],
+    },
+  },
+};
+
+// ==============================================
+// 🔍 DETECTION UTILITIES / ฟังก์ชันตรวจสอบ
+// ==============================================
+export function detectPlatform(): Platform {
+  const ua = navigator.userAgent.toLowerCase();
+  if (/android/.test(ua)) return 'android';
+  if (/iphone|ipad|ipod/.test(ua)) return 'ios';
+  return 'unknown';
+}
+
+export function detectBrowser(): BrowserType {
+  const ua = navigator.userAgent.toLowerCase();
+  if (/edg/.test(ua)) return 'edge';
+  if (/firefox/.test(ua)) return 'firefox';
+  if (/safari/.test(ua) && !/chrome/.test(ua)) return 'safari';
+  return 'chrome';
+}
+
+// ==============================================
+// 📖 GET BILINGUAL GUIDE / ดึงคู่มือ 2 ภาษา
+// ==============================================
+export function getCurrentGuide(lang: Lang = 'en'): Step[] | { error: Record<Lang, string> } {
+  const platform = detectPlatform();
+  const browser = detectBrowser();
+  const config = GUIDE_CONFIGS[platform]?.[browser];
+
+  if (!config) {
+    return {
+      error: {
+        en: `Unsupported: ${platform} / ${browser} → Use Chrome/Safari/Edge`,
+        th: `ไม่รองรับ: ${platform} / ${browser} → ใช้ Chrome/Safari/Edge`,
+      },
+    };
+  }
+  return config.steps;
+}
+
+export function getDomains(): string[] {
+  return REQUIRED_DOMAINS.map(d => d.domain);
+}
+
+// ==============================================
+// 🧪 EXAMPLE USAGE / ตัวอย่างการใช้งาน
+// ==============================================
+/*
+console.log('📱 Platform / แพลตฟอร์ม:', detectPlatform());
+console.log('🌐 Browser / เบราว์เซอร์:', detectBrowser());
+console.log('🔗 Required Domains / โดเมนจำเป็น:', getDomains());
+console.log('📋 Guide (EN):', getCurrentGuide('en'));
+console.log('📋 คู่มือ (TH):', getCurrentGuide('th'));
+*/
+
+export default {
+  REQUIRED_DOMAINS,
+  GUIDE_CONFIGS,
+  detectPlatform,
+  detectBrowser,
+  getCurrentGuide,
+  getDomains,
+};
+ 
+ 
+ 
+ 
+📁 File Info / ข้อมูลไฟล์
+ 
+- Filename:  copilot-auth-bilingual.ts 
+- Language: TypeScript • Bilingual EN/TH
+- Features:
+✅ Strict Type Safety / ประเภทชัดเจน
+✅ Auto-Detect Platform/Browser / ตรวจสอบอัตโนมัติ
+✅ Full Step-by-Step EN+TH / คู่มือทีละขั้น 2 ภาษา
+✅ Ready for React/Vue/Node/Browser / ใช้ได้ทุกสภาพแวดล้อม
+- Use: Auth guide, cookie troubleshooting, embedded docs 🚀
+ 
+ 
+ 
+🧩 Quick Output / ผลลัพธ์ย่อ
+ 
+ts  
+// Example: iOS Safari Guide (TH)
+[
+  { step:1, action:{en:"Settings→Safari",th:"การตั้งค่า→Safari"} },
+  { step:2, action:{en:"Clear Site Data",th:"ล้างข้อมูลไซต์"} },
+  { step:3, action:{en:"Allow Cookies",th:"อนุญาตคุกกี้"} },
+]
+ 
+ 
+------------- End --------------------
