@@ -352,6 +352,21 @@ When creating a new post, make sure to choose the predetermined category that be
 
 This repository works in conjunction with the [GitHub public product roadmap](https://github.com/github/roadmap), which is where you can learn about what features we're working on, and when they'll be available. Accordingly, the Issues feature of this repository has been disabled. Discussion categories have been established for specific features listed above, as well as a general category for other topics. Additional categories may be added in the future. In the meantime, topics outside of the listed categories above, will be transferred into the General category. Please review the [CODE OF CONDUCT](https://docs.github.com/en/site-policy/github-terms/github-community-forum-code-of-conduct) before participating in discussions.
 
+## Initialize Secrets in Vault (One-Time)
+# Store values — NEVER touch Kubernetes Secret objects again
+vault kv put zyntro/prod/gateway \
+  ADMIN_KEY="$(openssl rand -base64 32)" \
+  OPENAI_API_KEY="sk-..." \
+  STRIPE_SECRET_KEY="sk_live_..." \
+  SUPABASE_SERVICE_ROLE_KEY="..."
+
+vault kv put zyntro/prod/alertmanager \
+  SLACK_WEBHOOK_URL="https://hooks.slack.com/services/REAL/VALUE/HERE" \
+  SMTP_PASSWORD="real-smtp-pass"
+
+vault kv put zyntro/prod/grafana \
+  GF_SECURITY_ADMIN_PASSWORD="$(openssl rand -base64 16)"
+
 ## Making suggestions
 
 We encourage you to [open a discussion](https://github.com/orgs/community/discussions) if you have suggestions for how we can improve our products. You don't need to have a solution to the problem you are facing to kick off a discussion. 
