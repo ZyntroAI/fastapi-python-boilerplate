@@ -74,3 +74,9 @@ uvicorn.log
 
 # Generated search index (built from knowledge/ notes; see sync_knowledge_index.py)
 knowledge_index.json
+
+# Secrets — NEVER commit
+**/*secrets*.yaml
+**/.env
+**/*.key
+vault-values.yaml
