@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GitLab CI Pipeline - Best Practices</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; background: #f9f9f9; }
+    h1, h2 { color: #2c3e50; }
+    pre { background: #272822; color: #f8f8f2; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; margin-top: 1rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: left; }
+    th { background: #eaeaea; }
+    .section { margin-bottom: 2rem; }
+  </style>
+</head>
+<body>
+  <h1>GitLab CI Pipeline - Best Practice Implementation</h1>
+
+  <div class="section">
+    <h2>Pipeline YAML</h2>
+    <pre>
+stages:
+  - lint
+  - test
+  - security
+  - deploy
+
+variables:
+  PYTHON_VERSION: "3.11"
+
+lint:
+  stage: lint
+  image: python:${PYTHON_VERSION}
+  script:
+    - pip install yamllint
+    - yamllint skill.yaml
+    - echo "✅ Manifest lint passed"
+
+unit_tests:
+  stage: test
+  image: python:${PYTHON_VERSION}
+  script:
+    - pip install pytest mock
+    - pytest tests/unit --maxfail=1 --disable-warnings -q
+  artifacts:
+    paths:
+      - tests/reports
+    expire_in: 1 week
+
+integration_tests:
+  stage: test
+  image: python:${PYTHON_VERSION}
+  script:
+    - pip install pytest requests
+    - pytest tests/integration --maxfail=1 --disable-warnings -q
+
+security_scan:
+  stage: security
+  image: python:${PYTHON_VERSION}
+  script:
+    - pip install bandit safety
+    - bandit -r handlers.py
+    - safety check
+    - echo "✅ Security scan passed"
+
+deploy_staging:
+  stage: deploy
+  image: python:${PYTHON_VERSION}
+  script:
+    - echo "Deploying skill to staging..."
+    - fig deploy --env=staging skill.yaml
+  environment:
+    name: staging
+
+deploy_production:
+  stage: deploy
+  image: python:${PYTHON_VERSION}
+  script:
+    - echo "Deploying skill to production..."
+    - fig deploy --env=production skill.yaml
+  environment:
+    name: production
+  when: manual
+  only:
+    - main
+    </pre>
+  </div>
+
+  <div class="section">
+    <h2>Best Practice Highlights</h2>
+    <table>
+      <tr>
+        <th>Practice</th>
+        <th>Impact</th>
+        <th>Risk if Ignored</th>
+      </tr>
+      <tr>
+        <td><strong>Retry workflow</strong></td>
+        <td>Resilient automation</td>
+        <td>Silent failures, brittle pipelines</td>
+      </tr>
+      <tr>
+        <td><strong>Credential hygiene</strong></td>
+        <td>Prevents leaks</td>
+        <td>Compromised repos, revoked tokens</td>
+      </tr>
+      <tr>
+        <td><strong>Error handling</strong></td>
+        <td>Predictable recovery</td>
+        <td>Unclear failures, wasted debugging</td>
+      </tr>
+      <tr>
+        <td><strong>Observability</strong></td>
+        <td>Measurable reliability</td>
+        <td>Blind spots in CI/CD</td>
+      </tr>
+      <tr>
+        <td><strong>Separation of concerns</strong></td>
+        <td>Easier maintenance</td>
+        <td>Coupled, fragile code</td>
+      </tr>
+    </table>
+  </div>
+</body>
+</html>
