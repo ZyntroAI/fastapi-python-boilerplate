@@ -38,6 +38,7 @@
 | `pm-backend/` | [Program Management Backend](./pm-backend/README.md) — FastAPI app 4 modules: PM CSV template, provider-neutral billing (stub/Stripe/Chargebee/Paddle), tool switcher, opt-in encryption at rest |
 | `product-crud/` | [Products CRUD](./product-crud/README.md) — Prisma `Product` + Express (Zod → service → controller → routes) และ React + TanStack Query (search/pagination state อยู่ใน query key, 30 tests) |
 | `pure-agent-dev/` | [pure-agent-dev](./pure-agent-dev/README.md) — ทิศทาง dependency ที่บังคับด้วย `tests/test_architecture.py` |
+| `workflow-repair/` | ชุดซ่อม GitHub workflow — แก้ YAML ที่พัง 4 ไฟล์ + pin action ทั้งหมดเป็น SHA เต็ม (70 refs) พร้อม patch ที่ apply ได้จริง |
 
 
 ## ไฟล์อ้างอิงที่เกี่ยวข้อง

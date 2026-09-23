@@ -24,6 +24,21 @@ Open problems and known blockers are tracked separately in
   not because the index is broken; and `similarity()` already ignores case and
   leading/trailing whitespace, so what actually moves the score is inner
   whitespace and accents.
+- **Workflow repair — SHA-pinning + YAML integrity.**
+  `deliverables/workflow-repair/` fixes the defects that make every CI run in this
+  repository fail at the `Set up job` step, before any checkout or test executes.
+  Four workflow files were not parseable YAML (a stray `;` in `secret-scan.yml`, an
+  unindented block scalar in `Auto-Index-Sync.yml`, 87 lines of GitHub docs appended to
+  `dependabot-automerge.yml`, and `test-suite.yml` wrapped in markdown); one file
+  (`github-actions-autodebug-autorerun`) was a prose spec with no `.yml` extension, so
+  GitHub never loaded it, and is renamed to `auto-debug-rerun.yml`; and 70 `uses:` refs
+  across 10 files carried literal `<commit-sha>` placeholders, SHAs that 404 upstream,
+  or floating tags, all rewritten to verified full-length commit SHAs.
+  Verified: all 11 files parse as YAML (10 declare `jobs`; `release_drafter.yaml` is an
+  autolabeler config, flagged in the README), 0 non-pinned refs remain, and the patch applies
+  cleanly to a fresh clone of `main` with all 11 files byte-identical afterwards.
+  Ships as a patch plus the fixed files, because root `.github/workflows/**` is
+  push-blocked for the Fig App.
 
 - **PR #328** — moved twelve stray markdown files to the path each one
   belonged at, and collapsed two duplicate registries. Nothing was rewritten:
