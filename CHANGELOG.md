@@ -9,7 +9,7 @@ Open problems and known blockers are tracked separately in
 
 ### Added
 
-- **PR #328 (pending)** — moved twelve stray markdown files to the path each one
+- **PR #328** — moved twelve stray markdown files to the path each one
   belonged at, and collapsed two duplicate registries. Nothing was rewritten:
   `git` records all twelve as `R100`, and the two deletions are byte-identical
   copies (`supabase.md` matched `docs/supabase.md`, `mcp-server.md` matched
