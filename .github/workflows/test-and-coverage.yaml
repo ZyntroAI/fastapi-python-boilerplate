@@ -23,20 +23,18 @@ jobs:
   test:
     name: Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
-
     strategy:
       fail-fast: false
       matrix:
         python-version:
           - "3.11"
           - "3.12"
-
     steps:
       - name: Checkout repository
-        uses: actions/checkout@<commit-sha>
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d2759713672a68dd # v4.2.2
 
       - name: Set up Python
-        uses: actions/setup-python@<commit-sha>
+        uses: actions/setup-python@0a5c61591373683505ea898fbcb3aa2a9029e7d6 # v5.1.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -60,7 +58,7 @@ jobs:
 
       - name: Upload coverage XML
         if: always()
-        uses: actions/upload-artifact@<commit-sha>
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb48e1 # v4.4.3
         with:
           name: coverage-xml-python-${{ matrix.python-version }}
           path: coverage.xml
@@ -69,7 +67,7 @@ jobs:
 
       - name: Upload HTML coverage
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb48e1 # v4.4.3
         with:
           name: coverage-html-python-${{ matrix.python-version }}
           path: htmlcov/
