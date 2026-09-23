@@ -12,6 +12,91 @@ environment) · **RESOLVED** (fixed; kept briefly for context).
 
 ---
 
+## [2026-09-23]
+
+### P-014 — `requirements.txt` pins five versions that do not exist, and lists four packages twice — OPEN
+
+**Owner:** unassigned
+
+`pip install -r requirements.txt` cannot resolve on `main`. Five floors sit above
+the newest release on PyPI:
+
+| Line | Pin | Newest on PyPI |
+| --- | --- | --- |
+| 3 | `tiktoken>=0.20.0` | 0.14.0 |
+| 4 | `python-dotenv>=2.1.0` | 1.2.3 |
+| 7 | `langgraph>=1.3.3` | 1.2.12 |
+| 8 | `langchain>=1.6.4` | 1.4.2 |
+| 9 | `langchain-openai>=1.10.3` | 1.6.5 |
+
+Four packages are also listed **twice**, the first copy carrying the higher floor:
+
+| Package | Lines 6–9 | Lines 10–13 |
+| --- | --- | --- |
+| `openai` | `>=3.14.0` | `>=3.9.0` |
+| `langgraph` | `>=1.3.3` | `>=1.2.11` |
+| `langchain` | `>=1.6.4` | `>=1.4.0` |
+| `langchain-openai` | `>=1.10.3` | `>=1.6.1` |
+
+**Evidence:** each pin cross-checked against `https://pypi.org/pypi/<pkg>/json` —
+the five above appear in no release list, while `openai>=3.14.0` (newest 3.19.0),
+`fastapi>=0.141.1`, `uvicorn>=0.53.0` and `pydantic>=2.13.5` all resolve, so the
+file is not uniformly broken. Confirmed per package with
+`python3 -m pip install --dry-run --no-deps`: `No matching distribution found`
+for the five, silent success for the rest.
+
+**Introduced by PR #225** (2026-09-17), whose body reports the change as
+"exactly the fixes we identified". The tiktoken line still carries
+`# ← Updated`; `python-dotenv` carries `# ← CRITICAL FIX — was 1.2.3`.
+
+**Not the same as P-009 or P-007.** Those are test-collection and missing-file
+failures. This one fails earlier, at install, and so takes every job that runs
+`pip install -r requirements.txt` with it.
+
+### P-015 — `.vscode/launch.json` is a .NET Core config in a Python repository — OPEN
+
+**Owner:** unassigned
+
+`.vscode/launch.json` on `main` is 1,288 bytes whose only configuration is
+`".NET Core Launch (console)"` with `"type": "coreclr"`. There is no Python
+launch configuration — no `debugpy`, no `"type": "python"`.
+
+**Evidence:** `git show main:.vscode/launch.json` — `coreclr` present, the
+string `python` absent from the file. Added by **PR #229** (2026-09-17), whose
+title is `commit` and whose body is a pull-request template left unfilled.
+
+**Impact:** low for the build, but recorded because a .NET config arriving in a
+Python repository under an empty template is a signal about how the change was
+produced, and the same PR also missed the tracker.
+
+### P-016 — PR #316's changelog entry was silently replaced by PR #318's — OPEN
+
+**Owner:** unassigned
+
+The `[2026-09-16]` section of `CHANGELOG.md` carried an entry for **PR #316**,
+the Chrome DevTools MCP production setup. **PR #318** (2026-09-17) edited that
+section as a replacement rather than an append: 17 lines removed, 12 added, the
+Cache-scan entry landing in the slot the Chrome DevTools entry had occupied.
+
+**Evidence:** `git show 45dfe44 -- CHANGELOG.md` — the removed block is the
+`- **Chrome DevTools MCP production setup**` entry; the added block is
+`- **Cache scan as an advisory CI gate**`. Section entry count is 8 immediately
+before and 8 immediately after the edit, so nothing was dropped into the section
+to replace it. `git show origin/main:CHANGELOG.md | grep -c 'Chrome DevTools'`
+returns **0** — the entry survives nowhere in the file.
+
+**What is NOT lost:** the guide itself is intact at
+`docs/Chrome-DevTools-MCP-Production-Setup.md`, and the tracker still has
+`new.inprogress.done/done/TASK-20260916-003-chrome-devtools-mcp-setup.md`. Only
+the changelog record is missing, which is why this is a low-severity finding and
+not a lost deliverable.
+
+**Related to P-013.** Worth reading together: both are cases where a tool-driven
+edit to a shared file replaced content instead of adding to it. Here the harm is
+a missing entry; in P-013 it was a workflow file whose 112 lines became 279
+unparseable ones. The shared failure mode is that the edit was treated as
+whole-file replacement when the intent was an addition.
+
 ## [2026-09-11]
 
 ### P-009 — The root `tests/` suite never collects — OPEN
@@ -429,6 +514,12 @@ codeql SHAs) are **pre-existing on `main`** — see P-007 and P-002. Only 2 of t
 ### P-013 — Three action SHAs are pinned to commits that do not exist, and `main` is red because of it — OPEN
 
 **Owner:** `TASK-20260916-001`
+
+**Re-verified 2026-09-23 — the counts below are stale.** `ci.yml` was replaced
+twice after this was written (PR #320, then follow-up `0685af6`). It now carries
+**13 fabricated refs across 6 distinct SHAs**, not 10 across 3, and it parses as
+YAML, so a parse check no longer catches it. Still **OPEN**, still the reason
+`main` is red.
 
 **Three distinct SHAs** are well-formed 40-hex strings that name no real commit
 in their action's repository. They are used across **10 refs**, all in `ci.yml`:

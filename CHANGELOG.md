@@ -51,6 +51,69 @@ Open problems and known blockers are tracked separately in
   never retag a published release, and CI on `main` is red at `Set up job`. Every
   claim was checked against the files on `main` before the branch was pushed.
 
+## [2026-09-19]
+
+### Added
+
+- **PR #322** — `billing_manager.py` at the repository root: 436 lines of client,
+  invoice and payment handling with an interactive console, optional `reportlab`
+  PDF export and JSON persistence. It imports nothing from `app/`.
+- **PRs #323–#326** — Dependabot, four bumps in one window: `vercel` 59.15.1 →
+  59.17.0 (production deps), the npm dev-deps group (3 updates), the pip
+  production-deps group (7 updates), the pip dev-deps group (4 updates).
+
+## [2026-09-18]
+
+### Changed
+
+- **PR #320** — "Update ci.yml" replaced `.github/workflows/ci.yml`, 112 → 279
+  lines. The replacement **does not parse as YAML** (`while scanning a simple
+  key`), and every SHA pin in it is a commit that does not exist. A follow-up
+  direct commit (`0685af6`) cut the file back to 87 lines; it now carries
+  **13 `uses:` refs, all 13 fabricated, across 6 distinct SHAs** — up from 10
+  refs across 3 before the change. Only that one file was touched.
+
+  This is the file P-013 documents. Its counts were measured on the 112-line
+  version and are now stale; the entry below has been refreshed.
+
+## [2026-09-17]
+
+### Added
+
+- **PR #310** — `deliverables/dev-helpers/`: four stdlib-only tools for the
+  friction points in automated GitHub work — `approval_doc`, `ci_workflow`,
+  `perm_checker`, `pr_helper` — with 199 lines of tests, a `SKILL.md`, a Thai
+  and an English guide, and a `manifest.json`. 13 files, no dependencies.
+- **PR #313** — tracker: added `TASK-20260916-003`, recording a **live defect on
+  `main`** — the tracker's own suite is red (`2 failed, 18 passed`).
+- **PR #319** — `knowledge/manifest.yml`: recorded
+  `github-actions-sha-pinning-guidelines.md`, which was already on `main` but
+  missing from the manifest (`note_count` 6 → 7, `generated` 2026-09-13 →
+  2026-09-16), and added the generated `knowledge_index.json` to `.gitignore`.
+
+### Changed
+
+- **PR #225** — `requirements.txt`, 6 lines. Two floors were raised past what
+  exists on PyPI and four packages are now listed twice, so the file no longer
+  resolves. See P-014.
+- **PR #229** — `.vscode/`: a 35-line `launch.json` plus an `extensions.json`
+  edit. The launch configuration added is .NET Core (`coreclr`), not Python.
+  See P-015.
+
+### Investigated
+
+- **PRs #303 and #318** — merged this day, but their write-ups were appended to
+  the [`[2026-09-16]`](#2026-09-16) section above rather than given a section of
+  their own, where they still are. Listed here so the merge date is not lost:
+  #303 added `eslint.config.mjs` and repaired `scripts.vite`; #318 landed
+  `deliverables/cache-reduction-skill/` and an advisory CI gate.
+
+  #318's edit to that section was a **replacement, not an append**: it removed
+  PR #316's entry — the Chrome DevTools MCP production setup — and put its own
+  in the same slot (17 lines out, 12 in). The guide it described,
+  `docs/Chrome-DevTools-MCP-Production-Setup.md`, is still on `main`; only its
+  changelog record is gone. See P-016.
+
 ## [2026-09-16]
 
 ### Added
