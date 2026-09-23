@@ -5,6 +5,52 @@ All notable changes to this repository. Dates are UTC.
 Open problems and known blockers are tracked separately in
 [`PROBLEMS.md`](./PROBLEMS.md), using the same date sections.
 
+## [2026-09-23]
+
+### Added
+
+- **PR #328** — moved twelve stray markdown files to the path each one
+  belonged at, and collapsed two duplicate registries. Nothing was rewritten:
+  `git` records all twelve as `R100`, and the two deletions are byte-identical
+  copies (`supabase.md` matched `docs/supabase.md`, `mcp-server.md` matched
+  `docs/tools/mcp-server.md`) — `README.md` already linked the `docs/` copies, so
+  the root ones were dead weight rather than a second source of truth. Landing
+  points were chosen from evidence, not resemblance: `claude-rest-api.md` went to
+  `docs/` because its own handoff document specifies that path. The larger find
+  was inside `docs/README.md`, where ~38 KB of Enterprise Feature Stack material
+  (Feature Manifest, Policy Schema, Deployment Config, README-ENTERPRISE) had been
+  pasted onto the end of the index; it is now `docs/enterprise-feature-stack.md`,
+  extracted char-exact — every payload line verified present — leaving the index
+  an index again, with the newly-moved files listed. `deliverables/README.md` was
+  a partial second copy of the list in `README.md` (15 of 19 names overlapped);
+  it is now the single authoritative table of all 31 suites A–Z, and `README.md`
+  points at it instead of repeating 27 names. Five declared counts were stale and
+  are corrected against the tree: deliverables 27→31, docs 54→78, parsing
+  workflows 6→5, skills 13→12; workflow files 11 was already right. Verified
+  after: zero byte-identical duplicates remain (was two), and broken relative
+  links are unchanged at 9 — all pre-existing, eight of them absolute GitHub web
+  paths inside an imported document and one pointing at a file that never existed.
+  Markdown only; no code or workflow file was touched.
+
+- **PR #327** — `docs/RELEASE-AND-TEMPLATE-GUIDE.md`: consolidated the release-tag
+  and template documentation that had been spread across twelve files into one
+  guide. The tag half documents four separate paths rather than pretending there
+  is one procedure: `RELEASE.md` (the official five-step annotated-tag flow),
+  `.github/DEVELOPMENT.md` (the git-flow variant, in Thai, with the hotfix
+  sequence and the merge-back step that is the one people skip),
+  `docs/github-cli-gh-reference.md` (the `gh`-driven automation path, which tags
+  the remote commit), and `deliverables/gh-devops-toolkit/pr-templates/release.md`
+  (the PR half). The template half is the first written inventory of the
+  repository's templates, including the fact that `.github/PULL_REQUEST_TEMPLATE/`
+  holds nine and that `.github/ISSUE_TEMPLATE/` does not exist on `main` — stated
+  because it had been assumed to exist. The overwrite-guard section records the
+  three rules in `kernel/policy.yaml` as the machine-checkable form of the
+  no-clobber policy, the three intents (create refused over an existing path,
+  replace requiring exact-path approval, append allowed), and the CRLF-safe
+  `appends:` settings. Two caveats are carried forward rather than smoothed over:
+  never retag a published release, and CI on `main` is red at `Set up job`. Every
+  claim was checked against the files on `main` before the branch was pushed.
+
 ## [2026-09-16]
 
 ### Added
