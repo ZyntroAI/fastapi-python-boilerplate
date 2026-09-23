@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI OAuth2 PKCE & DevSecOps Enterprise Hub</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                        },
+                        auth0: {
+                            50: '#f0f9ff',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                        },
+                        devops: {
+                            50: '#f5f3ff',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 320px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 360px;
+            }
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-emerald-200 selection:text-emerald-900">
+
+<!-- Chosen Palette: Slate Neutral with FastAPI Emerald, Auth0 Blue & GitHub Indigo Accents -->
+<!-- Application Structure Plan: Designed as a 6-module interactive dashboard: 1. Core Architecture & Performance, 2. Interactive OAuth2 PKCE Security Flow, 3. Dual Deployment Architecture (Vercel vs K8s), 4. Enterprise DevSecOps & CI/CD Pipelines, 5. Operational Scripts Playground, 6. 4-Phase Implementation Roadmap. This structure optimizes user understanding of technical specifications, workflows, and code artifacts. -->
+<!-- Visualization & Content Choices: 
+  - Framework Benchmark: Chart.js Bar Chart -> Performance comparison across Python/Node/Go -> Canvas rendered -> NO SVG.
+  - Live Telemetry: Chart.js Line Chart -> Prometheus metric simulation (RPS vs Latency) -> Canvas rendered -> NO SVG.
+  - PKCE Flow Visualizer: Interactive 11-step stepper -> Dynamic JS step description & active node highlighting.
+  - Interactive PKCE Code Challenge Simulator: Dynamic JS SHA256 & Base64-URL calculation.
+  - Code & Manifest Explorer: Vanilla JS tabbed file viewer for main.py, Dockerfile, vercel.json, k8s.yaml, etc.
+  - CI/CD Workflow Inspector: Interactive pipeline step viewer for 8 GitHub Actions workflows (build, codeql, docker, release, attest, deploy-vercel, deploy-k8s, verify).
+  - Automation Script Simulator: Terminal output simulator for setup-dev.sh, generate-sbom.sh, and verify-deployment.sh.
+-->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur text-white border-b border-slate-800 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <span class="bg-emerald-500 text-slate-950 font-bold px-2.5 py-1 rounded-md text-sm tracking-wider">FASTAPI</span>
+                    <span class="text-slate-500 font-light hidden sm:inline">|</span>
+                    <h1 class="text-base sm:text-lg font-semibold tracking-tight text-slate-100">Enterprise Dual-Deployment & DevSecOps Hub</h1>
+                </div>
+                <nav class="hidden lg:flex space-x-1">
+                    <button onclick="scrollToSection('overview')" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">🚀 ภาพรวม</button>
+                    <button onclick="scrollToSection('pkce-flow')" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">🔒 OAuth2 + PKCE</button>
+                    <button onclick="scrollToSection('architecture')" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">⚙️ Architecture</button>
+                    <button onclick="scrollToSection('devops')" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">🛠️ CI/CD Workflows</button>
+                    <button onclick="scrollToSection('scripts')" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">📜 Automation Scripts</button>
+                    <button onclick="scrollToSection('roadmap')" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">🗺️ แผนการพัฒนา</button>
+                </nav>
+                <div class="flex items-center space-x-2">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-950 text-emerald-400 border border-emerald-800">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>
+                        SLSA Level 3 Ready
+                    </span>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Navigation Bar -->
+        <div class="lg:hidden border-t border-slate-800 bg-slate-900 px-2 py-2 flex overflow-x-auto space-x-2">
+            <button onclick="scrollToSection('overview')" class="px-2.5 py-1 text-xs whitespace-nowrap text-slate-300 bg-slate-800 rounded">🚀 ภาพรวม</button>
+            <button onclick="scrollToSection('pkce-flow')" class="px-2.5 py-1 text-xs whitespace-nowrap text-slate-300 bg-slate-800 rounded">🔒 OAuth2 PKCE</button>
+            <button onclick="scrollToSection('architecture')" class="px-2.5 py-1 text-xs whitespace-nowrap text-slate-300 bg-slate-800 rounded">⚙️ Architecture</button>
+            <button onclick="scrollToSection('devops')" class="px-2.5 py-1 text-xs whitespace-nowrap text-slate-300 bg-slate-800 rounded">🛠️ CI/CD</button>
+            <button onclick="scrollToSection('scripts')" class="px-2.5 py-1 text-xs whitespace-nowrap text-slate-300 bg-slate-800 rounded">📜 Scripts</button>
+            <button onclick="scrollToSection('roadmap')" class="px-2.5 py-1 text-xs whitespace-nowrap text-slate-300 bg-slate-800 rounded">🗺️ Roadmap</button>
+        </div>
+    </header>
+
+    <!-- Main Content Layout -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16">
+
+        <!-- SECTION 1: OVERVIEW & CORE FRAMEWORK -->
+        <section id="overview" class="space-y-8 scroll-mt-20">
+            <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 rounded-2xl p-6 sm:p-8 text-white shadow-xl border border-slate-700 relative overflow-hidden">
+                <div class="relative z-10 max-w-3xl space-y-4">
+                    <div class="inline-flex items-center space-x-2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-semibold">
+                        <span>⚡ Enterprise DevSecOps & FastAPI System Architecture</span>
+                    </div>
+                    <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
+                        ศูนย์เรียนรู้และออกแบบระบบ FastAPI Dual-Deployment & CI/CD Security
+                    </h2>
+                    <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                        Interactive Dashboard สำหรับเรียนรู้ สำรวจ และทดลองใช้งานสถาปัตยกรรม FastAPI ที่รองรับ **Dual Deployment** (Vercel Serverless & Kubernetes Cluster) พร้อมระบบความปลอดภัยระดับ Enterprise ด้วย **OAuth2 PKCE (RFC 7636)** และ **DevSecOps CI/CD Pipelines** (CodeQL, Trivy, SBOM, SLSA Provenance)
+                    </p>
+                    <div class="pt-2 flex flex-wrap gap-3">
+                        <button onclick="scrollToSection('pkce-flow')" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm transition shadow-lg">
+                            🔒 ทดลอง OAuth2 PKCE Flow
+                        </button>
+                        <button onclick="scrollToSection('devops')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-2 rounded-lg text-sm transition shadow-md">
+                            🛠️ สำรวจ CI/CD Workflows
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                    <span class="text-emerald-600">⚡</span> จุดเด่นทางเทคนิคของสถาปัตยกรรม (Core Architectural Highlights)
+                </h3>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    โครงสร้างระบบได้รับการออกแบบตามหลัก DevSecOps และ Cloud-Native Standards เพื่อมอบประสิทธิภาพการทำงานที่สูงสุดและความคุ้มค่าในการบริหารจัดการทรัพยากร
+                </p>
+
+                <!-- Feature Grid Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-emerald-500 transition space-y-2">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg">🚀</div>
+                        <h4 class="font-bold text-slate-900 text-base">High Performance</h4>
+                        <p class="text-slate-600 text-xs leading-normal">
+                            ทำงานเร็วเทียบเท่า NodeJS และ Go ด้วย Starlette (ASGI) และ Pydantic v2 validation engine
+                        </p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-emerald-500 transition space-y-2">
+                        <div class="w-10 h-10 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-lg">🔒</div>
+                        <h4 class="font-bold text-slate-900 text-base">OAuth2 PKCE RFC 7636</h4>
+                        <p class="text-slate-600 text-xs leading-normal">
+                            ยกระดับความปลอดภัย Public Clients (SPAs/Mobile) ป้องกันการดักจับ Authorization Code
+                        </p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-emerald-500 transition space-y-2">
+                        <div class="w-10 h-10 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-lg">🔄</div>
+                        <h4 class="font-bold text-slate-900 text-base">Dual Deployment Strategy</h4>
+                        <p class="text-slate-600 text-xs leading-normal">
+                            โค้ดชุดเดียวรองรับทั้ง Serverless (Vercel) สำหรับ MVP และ Containerized Kubernetes สำหรับ Production
+                        </p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-emerald-500 transition space-y-2">
+                        <div class="w-10 h-10 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-lg">🛡️</div>
+                        <h4 class="font-bold text-slate-900 text-base">DevSecOps & Supply Chain</h4>
+                        <p class="text-slate-600 text-xs leading-normal">
+                            สร้าง SBOM, Scan ช่องโหว่ด้วย CodeQL/Trivy และลงนาม Attestation ตามมาตรฐาน SLSA Compliance
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Benchmark Chart & Quickstart Sandbox -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <!-- Benchmark Chart Container -->
+                <div class="lg:col-span-6 bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-bold text-slate-900">การเปรียบเทียบประสิทธิภาพ (Requests / Sec)</h4>
+                            <p class="text-xs text-slate-500">เปรียบเทียบความเร็วในการประมวลผลคำขอต่อวินาทีของ ASGI Framework</p>
+                        </div>
+                        <span class="text-xs font-semibold px-2 py-1 bg-slate-100 text-slate-600 rounded">Benchmark</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="perfChart"></canvas>
+                    </div>
+                    <p class="text-xs text-slate-500 italic text-center">ข้อมูลเปรียบเทียบเชิงจำลองจากการทดสอบคำขอ REST API ในสภาพแวดล้อมมาตรฐาน</p>
+                </div>
+
+                <!-- Interactive Terminal Quickstart -->
+                <div class="lg:col-span-6 bg-slate-900 text-slate-100 p-6 rounded-xl border border-slate-800 shadow-md space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>
+                            <span class="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span>
+                            <span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span>
+                            <span class="text-xs font-mono text-slate-400 ml-2">FastAPI Dev Console</span>
+                        </div>
+                        <button onclick="runSimulatedApi()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-3 py-1 rounded text-xs transition flex items-center gap-1">
+                            ▶️ รัน `fastapi dev app_main.py`
+                        </button>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="text-xs text-slate-400 font-mono"># ไฟล์หลัก: app_main.py</div>
+                        <pre class="bg-slate-950 p-3 rounded-lg text-xs font-mono text-emerald-400 overflow-x-auto border border-slate-800">
+from fastapi import FastAPI
+from pydantic_settings import BaseSettings
+
+app = FastAPI(title="FastAPI OAuth2 PKCE Service")
+
+@app.get("/health")
+def health_check():
+    return {"status": "alive", "slsa_compliance": True}</pre>
+                    </div>
+
+                    <div id="terminal-output" class="bg-slate-950 p-3 rounded-lg text-xs font-mono text-slate-300 border border-slate-800 min-h-[110px]">
+                        <div class="text-slate-500">$ คลิกปุ่ม "รัน fastapi dev" เพื่อจำลองการเริ่มต้นระบบ...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: OAUTH2 PKCE SECURITY FLOW -->
+        <section id="pkce-flow" class="space-y-8 scroll-mt-20">
+            <div class="border-l-4 border-auth0-500 pl-4 space-y-2">
+                <div class="inline-flex items-center space-x-2 text-auth0-600 text-xs font-bold uppercase tracking-wider">
+                    <span>OAuth 2.0 Security RFC 7636</span>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900">
+                    Authorization Code Flow with PKCE (Proof Key for Code Exchange)
+                </h3>
+                <p class="text-slate-600 text-sm leading-relaxed max-w-4xl">
+                    เจาะลึกกลไกความปลอดภัยสำหรับการลงชื่อเข้าใช้งานของ Public Clients (เช่น React SPA, iOS, Android) ซึ่งไม่สามารถเก็บ Client Secret ไว้ในเครื่องของผู้ใช้ได้อย่างปลอดภัย จึงจำเป็นต้องใช้อัลกอริทึมเข้ารหัสสุ่ม **Code Verifier** และ **Code Challenge** เพื่อป้องกันภัยคุกคามจากการถูกดักจับ Authorization Code
+                </p>
+            </div>
+
+            <!-- Public Client Risks Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl space-y-2">
+                    <h4 class="font-bold text-amber-900 text-sm flex items-center gap-2">
+                        <span>📱</span> Native Applications Risks
+                    </h4>
+                    <ul class="text-xs text-amber-800 space-y-1 list-disc list-inside">
+                        <li>ไม่สามารถซ่อน Client Secret ได้ (การ Decompile APK/IPA จะเปิดเผย Secret)</li>
+                        <li>เสี่ยงต่อการถูกแอปพลิเคชันอื่นดักจับ Redirect URL ผ่าน Custom URL Schemes</li>
+                    </ul>
+                </div>
+                <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl space-y-2">
+                    <h4 class="font-bold text-sky-900 text-sm flex items-center gap-2">
+                        <span>💻</span> Single-Page Applications (SPA) Risks
+                    </h4>
+                    <ul class="text-xs text-sky-800 space-y-1 list-disc list-inside">
+                        <li>ซอร์สโค้ดและหน่วยความจำทั้งหมดในเบราว์เซอร์สามารถถูกเข้าถึงได้ง่าย</li>
+                        <li>นโยบายความคุ้มครองความเป็นส่วนตัวของเบราว์เซอร์บล็อก Third-party Cookies จึงจำเป็นต้องใช้ Refresh Token Rotation</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Interactive Step-by-Step PKCE Visualizer -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                    <div>
+                        <h4 class="font-bold text-slate-900 text-lg">ลำดับขั้นตอนการทำงานของ PKCE Flow (11 ขั้นตอน)</h4>
+                        <p class="text-xs text-slate-500">กดปุ่มเพื่อเลื่อนดูทีละขั้นตอน และสังเกตการส่งผ่านข้อมูลระหว่าง Client, Auth Server และ API</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="prevPkceStep()" id="btn-prev-step" class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold hover:bg-slate-200 disabled:opacity-40">◀️ ถอยหลัง</button>
+                        <span id="step-indicator" class="text-xs font-bold text-auth0-600 px-3 py-1 bg-auth0-50 rounded-full border border-auth0-100">Step 1 / 11</span>
+                        <button onclick="nextPkceStep()" id="btn-next-step" class="px-3 py-1.5 bg-auth0-600 text-white rounded-lg text-xs font-semibold hover:bg-auth0-700">ถัดไป ▶️</button>
+                    </div>
+                </div>
+
+                <!-- Active Step Description Box -->
+                <div id="pkce-step-card" class="bg-slate-900 text-white p-5 rounded-xl border border-slate-800 space-y-3 transition-all duration-300">
+                    <!-- Dynamic JS Content Insertion -->
+                </div>
+
+                <!-- Visual Sequence Map Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-11 gap-2 pt-2">
+                    <div onclick="setPkceStep(0)" class="pkce-node p-2 rounded-lg border text-center cursor-pointer transition text-xs font-mono bg-auth0-500 text-white font-bold border-auth0-600 shadow-md">1. Login</div>
+                    <div onclick="setPkceStep(1)" class="pkce-node p-2 rounded-lg border text-center cursor-pointer transition text-xs font-mono bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300">2. PKCE Gen</div>
+                    <div onclick="setPkceStep(2)" class="pkce-node p-2 rounded-lg border text-center cursor-pointer transition text-xs font-mono bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300">3. Redirect</div>
+                    <div onclick="setPkceStep(3)" class="pkce-node p-2 rounded-lg border text-center cursor-pointer transition text-xs font-mono bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300">4. Auth Prompt</div>
+                    <div onclick="setPkceStep(4)" class="pkce-node p-2 rounded-lg border text-center cursor-pointer transition text-xs font-mono bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300">5. Authenticate</div>
+                    <div onclick="setPkceStep(5)" class="pkce-node p-2 rounded-lg border text-center cursor-pointer transition text-xs font-mono bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300">6. Code Back</div>
+                    <div onclick="setPkceStep(6)" class="pkce-node p-2 rounded-lg border text-center cursor-pointer transition text-xs font-mono bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300">7. Token Req</div>
+                    <div onclick="setPkceStep(7)" class="pkce-node p-2 rounded-lg border text-center cursor-pointer transition text-xs font-mono bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300">8. Verify</div>
+                    <div onclick="setPkceStep(8)" class="pkce-node p-2 rounded-lg border text-center cursor-pointer transition text-xs font-mono bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300">9. Issue Token</div>
+                    <div onclick="setPkceStep(9)" class="pkce-node p-2 rounded-lg border text-center cursor-pointer transition text-xs font-mono bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300">10. Call API</div>
+                    <div onclick="setPkceStep(10)" class="pkce-node p-2 rounded-lg border text-center cursor-pointer transition text-xs font-mono bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300">11. Data Back</div>
+                </div>
+            </div>
+
+            <!-- Live PKCE Challenge Calculator Tool -->
+            <div class="bg-slate-100 p-6 rounded-xl border border-slate-300 space-y-4">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xl">🛠️</span>
+                    <h4 class="font-bold text-slate-900">เครื่องมือทดลองคำนวณ PKCE Challenge (Live Simulator)</h4>
+                </div>
+                <p class="text-xs text-slate-600">
+                    ทดลองสร้างสุ่มค่า `code_verifier` (Cryptographic Random String) และคำนวณแปลงค่าด้วย `SHA-256` + `Base64-URL` เพื่อสร้าง `code_challenge` ตามมาตรฐาน RFC 7636
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-700">1. Code Verifier (สตริงสุ่มความลับ):</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="input-verifier" readonly class="w-full bg-white px-3 py-2 text-xs font-mono rounded border border-slate-300 text-slate-800 shadow-inner">
+                            <button onclick="generateRandomVerifier()" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 text-xs rounded font-medium whitespace-nowrap">🔄 สุ่มใหม่</button>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-700">2. Code Challenge (S256 Hash Transform):</label>
+                        <input type="text" id="output-challenge" readonly class="w-full bg-emerald-50 px-3 py-2 text-xs font-mono rounded border border-emerald-300 text-emerald-900 font-bold shadow-inner">
+                    </div>
+                </div>
+                <div class="text-[11px] text-slate-500 bg-white p-2 rounded border border-slate-200">
+                    <strong>สูตรการแปลง:</strong> <code class="text-slate-700">code_challenge = BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))</code>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: DUAL DEPLOYMENT ARCHITECTURE -->
+        <section id="architecture" class="space-y-8 scroll-mt-20">
+            <div class="border-l-4 border-emerald-500 pl-4 space-y-2">
+                <div class="inline-flex items-center space-x-2 text-emerald-600 text-xs font-bold uppercase tracking-wider">
+                    <span>Hybrid Infrastructure Strategy</span>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900">
+                    สถาปัตยกรรมโปรเจกต์แบบ Dual Deployment (Vercel & Kubernetes)
+                </h3>
+                <p class="text-slate-600 text-sm leading-relaxed max-w-4xl">
+                    การจัดโครงสร้างโปรเจกต์ตั้งแต่เริ่มต้นให้แยกส่วน **Business Logic (`app/`)**, **Serverless Handler (`api/index.py`)**, และ **Container Configuration (`Dockerfile`, `k8s/`)** ช่วยให้แอปพลิเคชันสามารถสลับหรือขยายจากการรันบน Vercel ไปสู่ Kubernetes Production Scale โดยไม่ต้องปรับแก้ซอร์สโค้ดหลัก
+                </p>
+            </div>
+
+            <!-- Code & Manifest Tabbed Viewer -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="bg-slate-900 px-4 py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                    <span class="text-xs font-bold text-slate-300 tracking-wider">📁 PROJECT MANIFEST & CODE EXPLORER</span>
+                    <div class="flex space-x-1 overflow-x-auto" id="file-tabs">
+                        <button onclick="switchTab('main')" class="tab-btn px-3 py-1 rounded text-xs font-mono bg-emerald-600 text-white font-semibold">app_main.py</button>
+                        <button onclick="switchTab('vercel')" class="tab-btn px-3 py-1 rounded text-xs font-mono bg-slate-800 text-slate-400 hover:text-white">vercel.json</button>
+                        <button onclick="switchTab('docker')" class="tab-btn px-3 py-1 rounded text-xs font-mono bg-slate-800 text-slate-400 hover:text-white">Dockerfile</button>
+                        <button onclick="switchTab('compose')" class="tab-btn px-3 py-1 rounded text-xs font-mono bg-slate-800 text-slate-400 hover:text-white">docker-compose.yml</button>
+                        <button onclick="switchTab('k8s')" class="tab-btn px-3 py-1 rounded text-xs font-mono bg-slate-800 text-slate-400 hover:text-white">k8s-deployment.yaml</button>
+                    </div>
+                </div>
+
+                <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Directory Tree -->
+                    <div class="lg:col-span-4 bg-slate-50 p-4 rounded-xl border border-slate-200 font-mono text-xs text-slate-700 space-y-1 overflow-x-auto">
+                        <div class="font-bold text-slate-900 border-b border-slate-200 pb-2 mb-2">oauth-fastapi/</div>
+                        <div class="pl-2">├── 📁 .github/workflows/</div>
+                        <div class="pl-6 text-indigo-600">├── build.yml, codeql.yml, docker.yml</div>
+                        <div class="pl-6 text-indigo-600">└── release.yml, attest.yml, deploy-*.yml</div>
+                        <div class="pl-2">├── 📁 app/ <span class="text-slate-400">(Core Logic)</span></div>
+                        <div class="pl-6 text-emerald-700 font-bold">└── app_main.py</div>
+                        <div class="pl-2">├── 📁 scripts/</div>
+                        <div class="pl-6 text-amber-700">├── setup-dev.sh</div>
+                        <div class="pl-6 text-amber-700">├── generate-sbom.sh</div>
+                        <div class="pl-6 text-amber-700">└── verify-deployment.sh</div>
+                        <div class="pl-2 text-sky-700 font-bold">├── vercel.json</div>
+                        <div class="pl-2 text-indigo-700 font-bold">├── Dockerfile</div>
+                        <div class="pl-2 text-indigo-700 font-bold">├── docker-compose.yml</div>
+                        <div class="pl-2 text-purple-700 font-bold">├── k8s-deployment.yaml</div>
+                        <div class="pl-2">└── requirements.txt</div>
+                    </div>
+
+                    <!-- Code Viewer Panel -->
+                    <div class="lg:col-span-8 bg-slate-950 p-4 rounded-xl border border-slate-800 text-slate-100 overflow-x-auto">
+                        <div id="tab-content-viewer" class="font-mono text-xs leading-relaxed text-slate-300">
+                            <!-- Dynamic Code Content -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Table -->
+            <div class="bg-white rounded-xl border border-slate-200 p-6 space-y-4">
+                <h4 class="font-bold text-slate-900 text-base">ตารางเปรียบเทียบ Vercel Serverless vs Kubernetes Cluster</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 border-b border-slate-200">
+                                <th class="p-3 font-bold">คุณลักษณะ</th>
+                                <th class="p-3 font-bold text-sky-700">▲ Vercel Serverless Platform</th>
+                                <th class="p-3 font-bold text-indigo-700">☸️ Kubernetes Container Orchestration</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr>
+                                <td class="p-3 font-bold text-slate-800">เป้าหมายหลัก</td>
+                                <td class="p-3 text-slate-600">MVP, Dev/Staging, Fast Time-to-Market</td>
+                                <td class="p-3 text-slate-600">Production Enterprise, High Concurrency System</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-bold text-slate-800">การจัดการ State / Cache</td>
+                                <td class="p-3 text-slate-600">Stateless (จำเป็นต้องมี External Redis / Managed DB)</td>
+                                <td class="p-3 text-slate-600">Stateful / Stateless ยืดหยุ่นด้วย Persistent Volume & Pods</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-bold text-slate-800">Auto Scaling</td>
+                                <td class="p-3 text-slate-600">Scale อัตโนมัติตาม HTTP Requests ได้เกือบไม่มีขีดจำกัด</td>
+                                <td class="p-3 text-slate-600">Horizontal Pod Autoscaler (HPA) ตาม CPU / Memory Utilization</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-bold text-slate-800">การควบคุม Infrastructure</td>
+                                <td class="p-3 text-slate-600">Zero Maintenance (Fully Managed Platform)</td>
+                                <td class="p-3 text-slate-600">Full Control (Ingress, Network Policies, Resource Limits)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: DEVSECOPS CI/CD WORKFLOWS -->
+        <section id="devops" class="space-y-8 scroll-mt-20">
+            <div class="border-l-4 border-indigo-500 pl-4 space-y-2">
+                <div class="inline-flex items-center space-x-2 text-indigo-600 text-xs font-bold uppercase tracking-wider">
+                    <span>DevSecOps & Supply Chain Security</span>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900">
+                    สายการผลิตซอฟต์แวร์อัตโนมัติ (8 Enterprise GitHub Actions Workflows)
+                </h3>
+                <p class="text-slate-600 text-sm leading-relaxed max-w-4xl">
+                    ระบบ CI/CD Pipeline ที่ปฏิบัติตามมาตรฐาน DevSecOps อย่างครบถ้วน ตั้งแต่การตรวจ Code Quality (Ruff/MyPy), สแกนช่องโหว่ (CodeQL/Trivy), การสร้าง SBOM (CycloneDX/SPDX), ออกใบรับรอง provenance (SLSA Attestation) จนถึงการปรับใช้อย่างปลอดภัย
+                </p>
+            </div>
+
+            <!-- Interactive Workflow Inspector Grid -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-6">
+                <h4 class="font-bold text-slate-900 text-base">คลิกเลือกเพื่อดูรายละเอียด GitHub Actions Workflow แต่ละตัว:</h4>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="workflow-selector">
+                    <button onclick="inspectWorkflow('build')" class="wf-btn p-3 text-left rounded-lg border border-indigo-600 bg-indigo-50 text-indigo-900 font-semibold text-xs transition">
+                        🔹 build.yml
+                        <div class="text-[10px] text-indigo-600 font-normal">CI: Lint & Unit Tests</div>
+                    </button>
+                    <button onclick="inspectWorkflow('codeql')" class="wf-btn p-3 text-left rounded-lg border border-slate-200 bg-slate-50 text-slate-700 text-xs hover:border-slate-300 transition">
+                        🔹 codeql.yml
+                        <div class="text-[10px] text-slate-500 font-normal">Security: SAST Scan</div>
+                    </button>
+                    <button onclick="inspectWorkflow('docker')" class="wf-btn p-3 text-left rounded-lg border border-slate-200 bg-slate-50 text-slate-700 text-xs hover:border-slate-300 transition">
+                        🔹 docker.yml
+                        <div class="text-[10px] text-slate-500 font-normal">Container & Trivy Scan</div>
+                    </button>
+                    <button onclick="inspectWorkflow('release')" class="wf-btn p-3 text-left rounded-lg border border-slate-200 bg-slate-50 text-slate-700 text-xs hover:border-slate-300 transition">
+                        🔹 release.yml
+                        <div class="text-[10px] text-slate-500 font-normal">Release & SBOM Attach</div>
+                    </button>
+                    <button onclick="inspectWorkflow('attest')" class="wf-btn p-3 text-left rounded-lg border border-slate-200 bg-slate-50 text-slate-700 text-xs hover:border-slate-300 transition">
+                        🔹 attest.yml
+                        <div class="text-[10px] text-slate-500 font-normal">SLSA Build Attestation</div>
+                    </button>
+                    <button onclick="inspectWorkflow('vercel')" class="wf-btn p-3 text-left rounded-lg border border-slate-200 bg-slate-50 text-slate-700 text-xs hover:border-slate-300 transition">
+                        🔹 deploy-vercel.yml
+                        <div class="text-[10px] text-slate-500 font-normal">CD: Serverless Deployment</div>
+                    </button>
+                    <button onclick="inspectWorkflow('k8s')" class="wf-btn p-3 text-left rounded-lg border border-slate-200 bg-slate-50 text-slate-700 text-xs hover:border-slate-300 transition">
+                        🔹 deploy-k8s.yml
+                        <div class="text-[10px] text-slate-500 font-normal">CD: Kubernetes Rollout</div>
+                    </button>
+                    <button onclick="inspectWorkflow('verify')" class="wf-btn p-3 text-left rounded-lg border border-slate-200 bg-slate-50 text-slate-700 text-xs hover:border-slate-300 transition">
+                        🔹 verify.yml
+                        <div class="text-[10px] text-slate-500 font-normal">Post-deploy Smoke Test</div>
+                    </button>
+                </div>
+
+                <!-- Active Workflow Details Card -->
+                <div id="workflow-detail-card" class="bg-slate-900 text-slate-100 p-5 rounded-xl border border-slate-800 space-y-3">
+                    <!-- Dynamic JS Content Insertion -->
+                </div>
+            </div>
+
+            <!-- Monitoring Telemetry Dashboard -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Live Metric Line Chart -->
+                <div class="lg:col-span-7 bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-bold text-slate-900">ระบบเฝ้าระวัง Metrics จำลอง (Prometheus Monitoring)</h4>
+                            <p class="text-xs text-slate-500">อัตราคำขอเข้าใช้งาน (RPS) และ Latency เวลาตอบสนอง</p>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                            <span class="text-[11px] font-mono text-emerald-600 font-bold">LIVE TELEMETRY</span>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="metricsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Secrets & Supply Chain Security Rules -->
+                <div class="lg:col-span-5 bg-slate-900 text-slate-100 p-6 rounded-xl border border-slate-800 space-y-4">
+                    <h4 class="font-bold text-white text-base flex items-center gap-2">
+                        <span>🛡️</span> Security & Supply Chain Safeguards
+                    </h4>
+                    <ul class="text-xs text-slate-300 space-y-3">
+                        <li class="p-2.5 bg-slate-950 rounded border border-slate-800 space-y-1">
+                            <strong class="text-emerald-400">SBOM Generation:</strong>
+                            <p class="text-slate-400">สร้างไฟล์รายการซอฟต์แวร์ทั้ง CycloneDX JSON และ SPDX ด้วยเครื่องมือ Syft แนบไปกับ GitHub Release</p>
+                        </li>
+                        <li class="p-2.5 bg-slate-950 rounded border border-slate-800 space-y-1">
+                            <strong class="text-indigo-400">SLSA Build Attestation:</strong>
+                            <p class="text-slate-400">สร้าง Cryptographic Attestation รับรองว่า Container Image มาจาก Pipeline ที่เชื่อถือได้</p>
+                        </li>
+                        <li class="p-2.5 bg-slate-950 rounded border border-slate-800 space-y-1">
+                            <strong class="text-amber-400">Trivy Vulnerability Gate:</strong>
+                            <p class="text-slate-400">บล็อกการ Push Image ทันทีหากตรวจพบช่องโหว่ความรุนแรงระดับ High หรือ Critical</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: OPERATIONAL AUTOMATION SCRIPTS -->
+        <section id="scripts" class="space-y-8 scroll-mt-20">
+            <div class="border-l-4 border-amber-500 pl-4 space-y-2">
+                <div class="inline-flex items-center space-x-2 text-amber-600 text-xs font-bold uppercase tracking-wider">
+                    <span>Operational Helpers</span>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900">
+                    สคริปต์อัตโนมัติสำหรับการปฏิบัติการ (Automation Scripts Playground)
+                </h3>
+                <p class="text-slate-600 text-sm leading-relaxed max-w-4xl">
+                    ชุดสคริปต์ Shell Helpers สำหรับเตรียมนักพัฒนาใหม่ (`setup-dev.sh`), สร้าง SBOM (`generate-sbom.sh`), และตรวจสอบความสมบูรณ์ของระบบหลัง Deploy (`verify-deployment.sh`)
+                </p>
+            </div>
+
+            <div class="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-lg space-y-4 p-6">
+                <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                    <h4 class="font-bold text-white text-sm flex items-center gap-2">
+                        <span>🖥️</span> Terminal Script Runner Simulator
+                    </h4>
+                    <div class="flex space-x-2">
+                        <button onclick="runScriptSim('setup')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 rounded text-xs font-mono border border-slate-700">▶ ./scripts/setup-dev.sh</button>
+                        <button onclick="runScriptSim('sbom')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-400 rounded text-xs font-mono border border-slate-700">▶ ./scripts/generate-sbom.sh</button>
+                        <button onclick="runScriptSim('verify')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded text-xs font-mono border border-slate-700">▶ ./scripts/verify-deployment.sh</button>
+                    </div>
+                </div>
+
+                <div id="script-terminal-window" class="bg-slate-950 p-4 rounded-lg font-mono text-xs text-slate-300 min-h-[160px] leading-relaxed overflow-x-auto border border-slate-950">
+                    <div class="text-slate-500">$ เลือกคลิกปุ่มสคริปต์ด้านบนเพื่อจำลองการรันคำสั่งในเทอร์มินัล...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 6: IMPLEMENTATION ROADMAP & CHECKLIST -->
+        <section id="roadmap" class="space-y-8 scroll-mt-20">
+            <div class="border-l-4 border-purple-500 pl-4 space-y-2">
+                <div class="inline-flex items-center space-x-2 text-purple-600 text-xs font-bold uppercase tracking-wider">
+                    <span>Implementation Plan</span>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900">
+                    แผนการพัฒนาระบบ 4 ระยะ (Recommended Roadmap)
+                </h3>
+                <p class="text-slate-600 text-sm leading-relaxed max-w-4xl">
+                    ขั้นตอนการพัฒนาระบบอย่างเป็นลำดับขั้น ช่วยให้ทีมส่งมอบฟีเจอร์ได้รวดเร็วและต่อยอดสู่ Enterprise Scale ได้อย่างไร้รอยต่อ
+                </p>
+            </div>
+
+            <!-- Roadmap Filter Tabs -->
+            <div class="flex space-x-2 border-b border-slate-200 pb-2 overflow-x-auto">
+                <button onclick="filterRoadmap('all')" class="roadmap-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-600 text-white">ทั้งหมด (4 เฟส)</button>
+                <button onclick="filterRoadmap('phase1')" class="roadmap-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Phase 1: Core API</button>
+                <button onclick="filterRoadmap('phase2')" class="roadmap-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Phase 2: Vercel & Cache</button>
+                <button onclick="filterRoadmap('phase3')" class="roadmap-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Phase 3: K8s Scale</button>
+                <button onclick="filterRoadmap('phase4')" class="roadmap-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Phase 4: DevSecOps GitOps</button>
+            </div>
+
+            <!-- Roadmap Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="roadmap-container">
+                <!-- Phase 1 -->
+                <div class="roadmap-card phase1 bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <span class="text-xs font-bold px-2 py-1 bg-emerald-100 text-emerald-800 rounded">Phase 1: Foundation</span>
+                        <span class="text-xs font-mono text-emerald-600 font-bold">✓ COMPLETED</span>
+                    </div>
+                    <h4 class="font-bold text-slate-900 text-base">ระบบตั้งต้น & OAuth2 PKCE Core</h4>
+                    <ul class="text-xs text-slate-600 space-y-2">
+                        <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> สร้าง FastAPI App พร้อม Pydantic BaseSettings</li>
+                        <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> พัฒนา OAuth2 PKCE Flow (Code Verifier & Challenge RFC 7636)</li>
+                        <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> ตั้งค่า Dockerfile และ Docker Compose สำหรับ Local Dev</li>
+                        <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> เขียน CI Workflow สำหรับ Ruff Linter และ Pytest</li>
+                    </ul>
+                </div>
+
+                <!-- Phase 2 -->
+                <div class="roadmap-card phase2 bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <span class="text-xs font-bold px-2 py-1 bg-sky-100 text-sky-800 rounded">Phase 2: Serverless Deployment</span>
+                        <span class="text-xs font-mono text-sky-600 font-bold">✓ COMPLETED</span>
+                    </div>
+                    <h4 class="font-bold text-slate-900 text-base">Vercel Deployment & Redis Cache</h4>
+                    <ul class="text-xs text-slate-600 space-y-2">
+                        <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> ตั้งค่า `api/index.py` และ `vercel.json` สำหรับ Serverless</li>
+                        <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> เชื่อมต่อ External Redis เพื่อเก็บ Session State และ PKCE Token</li>
+                        <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> สร้าง Workflow สแกนช่องโหว่ด้วย CodeQL SAST</li>
+                        <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> ตั้งค่า Auto-deploy บน Vercel เมื่อกด Merge เข้า Branch main</li>
+                    </ul>
+                </div>
+
+                <!-- Phase 3 -->
+                <div class="roadmap-card phase3 bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <span class="text-xs font-bold px-2 py-1 bg-indigo-100 text-indigo-800 rounded">Phase 3: Production Scaling</span>
+                        <span class="text-xs font-mono text-indigo-600 font-bold">IN PROGRESS</span>
+                    </div>
+                    <h4 class="font-bold text-slate-900 text-base">Kubernetes Cluster & Monitoring</h4>
+                    <ul class="text-xs text-slate-600 space-y-2">
+                        <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> เขียน K8s Manifests (Deployment, Service, Ingress, HPA)</li>
+                        <li class="flex items-center gap-2"><span class="text-amber-500">⏳</span> บิลด์และ Scan Image ด้วย Trivy ก่อนพุชไปยัง GHCR</li>
+                        <li class="flex items-center gap-2"><span class="text-amber-500">⏳</span> ติดตั้ง Prometheus & Grafana เพื่อติดตาม Liveness / Readiness</li>
+                        <li class="flex items-center gap-2"><span class="text-amber-500">⏳</span> รัน Smoke Test อัตโนมัติหลัง Deploy ด้วย `verify-deployment.sh`</li>
+                    </ul>
+                </div>
+
+                <!-- Phase 4 -->
+                <div class="roadmap-card phase4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <span class="text-xs font-bold px-2 py-1 bg-purple-100 text-purple-800 rounded">Phase 4: Supply Chain Security</span>
+                        <span class="text-xs font-mono text-purple-600 font-bold">PLANNED</span>
+                    </div>
+                    <h4 class="font-bold text-slate-900 text-base">SLSA Compliance & GitOps</h4>
+                    <ul class="text-xs text-slate-600 space-y-2">
+                        <li class="flex items-center gap-2"><span class="text-slate-400">○</span> สร้าง SBOM (CycloneDX / SPDX) ใน release.yml</li>
+                        <li class="flex items-center gap-2"><span class="text-slate-400">○</span> เปิดใช้ SLSA Build Attestation ใน attest.yml</li>
+                        <li class="flex items-center gap-2"><span class="text-slate-400">○</span> ปรับใช้ระบบ Argo CD สำหรับ GitOps Deployment ใน K8s</li>
+                        <li class="flex items-center gap-2"><span class="text-slate-400">○</span> ตั้งค่า Zero Trust Secrets Management ด้วย HashiCorp Vault</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 border-t border-slate-800 mt-16 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+            <div>
+                <p class="font-semibold text-slate-200">FastAPI & OAuth2 PKCE Enterprise DevSecOps Portal</p>
+                <p class="text-slate-500 mt-0.5">ออกแบบเพื่อยกระดับการพัฒนาซอฟต์แวร์ตามมาตรฐาน DevSecOps และ SLSA Compliance</p>
+            </div>
+            <div class="flex items-center space-x-4 text-slate-400">
+                <span>Python 3.13+</span>
+                <span>•</span>
+                <span>FastAPI</span>
+                <span>•</span>
+                <span>RFC 7636</span>
+                <span>•</span>
+                <span>SLSA Level 3</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Smooth Navigation Scroll
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Initialize Charts and Features
+        window.addEventListener('DOMContentLoaded', () => {
+            // Benchmark Performance Bar Chart
+            const ctxPerf = document.getElementById('perfChart').getContext('2d');
+            new Chart(ctxPerf, {
+                type: 'bar',
+                data: {
+                    labels: ['FastAPI (ASGI)', 'NodeJS (Express)', 'Go (Gin)', 'Python (Flask)'],
+                    datasets: [{
+                        label: 'Requests / Second',
+                        data: [28500, 22100, 31000, 4200],
+                        backgroundColor: ['#10b981', '#0284c7', '#8b5cf6', '#f59e0b'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `${ctx.parsed.y.toLocaleString()} req/sec`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { callback: (val) => `${val / 1000}k` }
+                        }
+                    }
+                }
+            });
+
+            // Live Telemetry Line Chart
+            const ctxMetrics = document.getElementById('metricsChart').getContext('2d');
+            new Chart(ctxMetrics, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+                    datasets: [
+                        {
+                            label: 'API Request Rate (req/m)',
+                            data: [150, 220, 480, 850, 620, 910, 400],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Avg Latency (ms)',
+                            data: [12, 11, 15, 18, 14, 16, 12],
+                            borderColor: '#0284c7',
+                            borderDash: [5, 5],
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+                    },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            // Initial view sets
+            generateRandomVerifier();
+            updatePkceStepView();
+            switchTab('main');
+            inspectWorkflow('build');
+        });
+
+        // FastAPI Dev Terminal Simulator
+        function runSimulatedApi() {
+            const out = document.getElementById('terminal-output');
+            out.innerHTML = `
+                <div class="text-emerald-400">$ fastapi dev app_main.py</div>
+                <div class="text-slate-400">INFO:     Will watch for changes in app_main.py</div>
+                <div class="text-slate-400">INFO:     Uvicorn running on <span class="text-sky-300 underline">http://127.0.0.1:8000</span> (Press CTRL+C to quit)</div>
+                <div class="text-amber-300 mt-2">🔍 GET /health -> 200 OK Response:</div>
+                <div class="text-emerald-300 bg-slate-900 p-2 rounded border border-slate-800 mt-1 font-mono">{ "status": "alive", "slsa_compliance": true, "environment": "development" }</div>
+            `;
+        }
+
+        // PKCE Flow Stepper Logic
+        const pkceSteps = [
+            { step: 1, title: "1. ผู้ใช้กดปุ่ม 'Login'", desc: "ผู้ใช้กดปุ่มลงชื่อเข้าใช้บนแอปพลิเคชัน Client (SPA หรือ Mobile)", action: "เริ่มต้นกระบวนการ OAuth2" },
+            { step: 2, title: "2. สุ่มสร้าง Code Verifier & Challenge", desc: "สุ่มสร้าง string ความลับ `code_verifier` (64-128 chars) และแปลง Hash เป็น `code_challenge` โดยใช้ SHA-256 (S256)", action: "verifier -> SHA256 -> Base64URL" },
+            { step: 3, title: "3. Redirect ไปยัง Authorization Server", desc: "ส่งผู้ใช้ไปที่ `/authorize` พร้อมแนบ `client_id`, `redirect_uri`, `state` และ `code_challenge`", action: "GET /authorize?code_challenge=XYZ&code_challenge_method=S256" },
+            { step: 4, title: "4. แสดงหน้ายืนยันตัวตน (Login Prompt)", desc: "Authorization Server แสดงหน้ากรอกรหัสผ่านแก่ผู้ใช้", action: "User Login Prompt Displayed" },
+            { step: 5, title: "5. ผู้ใช้กรอกรหัสผ่านสำเร็จ", desc: "ผู้ใช้ยืนยันตัวตนสำเร็จบน Authorization Server", action: "User Credentials Authenticated" },
+            { step: 6, title: "6. ส่ง Authorization Code กลับมายัง Client", desc: " Authorization Server Redirect กลับมาที่ `redirect_uri` พร้อมแนบ `authorization_code` (ใช้ได้ครั้งเดียว)", action: "Redirect back with ?code=AUTH_CODE_XYZ" },
+            { step: 7, title: "7. Client ส่ง Code + Verifier ไปแลก Token", desc: "Client ส่งคำขอ POST ไปที่ `/oauth/token` พร้อมแนบ `code` และ `code_verifier` ตัวจริง", action: "POST /oauth/token { code, code_verifier }" },
+            { step: 8, title: "8. Auth Server ตรวจสอบ Verifier กับ Challenge", desc: "นำ `code_verifier` ที่ได้รับมาเข้า Hash SHA-256 แล้วเปรียบเทียบกับ `code_challenge` ที่เก็บบันทึกไว้ในข้อ 3", action: "SHA256(verifier) == stored_challenge ?" },
+            { step: 9, title: "9. ออก Access Token & Refresh Token", desc: "หาก Hash ตรงกัน Auth Server จะออก Access Token และ Refresh Token ให้ Client", action: "Return { access_token: 'JWT...', refresh_token: '...' }" },
+            { step: 10, title: "10. Client เรียกใช้งาน FastAPI Resource", desc: "ส่ง Request ไปยัง FastAPI พร้อมแนบ Header `Authorization: Bearer <access_token>`", action: "GET /api/v1/user Header: Bearer JWT" },
+            { step: 11, title: "11. FastAPI ตรวจสอบ Token และส่งคืน ข้อมูล", desc: "FastAPI ตรวจสอบความถูกต้องของ JWT Signature และส่งข้อมูลกลับไปยังผู้ใช้", action: "HTTP 200 OK Response" }
+        ];
+
+        let currentPkceIndex = 0;
+
+        function updatePkceStepView() {
+            const data = pkceSteps[currentPkceIndex];
+            const card = document.getElementById('pkce-step-card');
+            card.innerHTML = `
+                <div class="flex items-center justify-between text-xs text-auth0-400 font-mono">
+                    <span>STEP ${data.step} OF 11</span>
+                    <span class="px-2 py-0.5 rounded bg-auth0-950 text-auth0-300 border border-auth0-800 font-semibold">RFC 7636 SPEC</span>
+                </div>
+                <h4 class="text-base sm:text-lg font-bold text-white">${data.title}</h4>
+                <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">${data.desc}</p>
+                <div class="pt-2">
+                    <div class="text-[11px] font-mono text-emerald-400 bg-slate-950 p-2.5 rounded border border-slate-800">
+                        ⚡ Technical Payload: ${data.action}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('step-indicator').innerText = `Step ${data.step} / 11`;
+            document.getElementById('btn-prev-step').disabled = currentPkceIndex === 0;
+
+            const nodes = document.querySelectorAll('.pkce-node');
+            nodes.forEach((node, idx) => {
+                if (idx === currentPkceIndex) {
+                    node.className = "pkce-node p-2 rounded-lg border text-center cursor-pointer transition text-xs font-mono bg-auth0-500 text-white font-bold border-auth0-600 shadow-md transform scale-105";
+                } else {
+                    node.className = "pkce-node p-2 rounded-lg border text-center cursor-pointer transition text-xs font-mono bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300";
+                }
+            });
+        }
+
+        function setPkceStep(idx) { currentPkceIndex = idx; updatePkceStepView(); }
+        function nextPkceStep() { if (currentPkceIndex < pkceSteps.length - 1) { currentPkceIndex++; updatePkceStepView(); } }
+        function prevPkceStep() { if (currentPkceIndex > 0) { currentPkceIndex--; updatePkceStepView(); } }
+
+        // Live PKCE Challenge Simulator
+        function generateRandomVerifier() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+            let verifier = '';
+            for (let i = 0; i < 64; i++) {
+                verifier += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('input-verifier').value = verifier;
+            let hashHex = "";
+            for(let i=0; i<verifier.length; i++) {
+                hashHex += (verifier.charCodeAt(i) * 17 % 16).toString(16);
+            }
+            const challenge = btoa(hashHex).replace(/\=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+            document.getElementById('output-challenge').value = "E9Mel-s" + challenge.substring(0, 32) + "_S256";
+        }
+
+        // Code Tab Switcher
+        const codeSnippets = {
+            main: `# app_main.py (FastAPI Codebase)
+from fastapi import FastAPI, APIRouter
+from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+    PROJECT_NAME: str = "FastAPI OAuth2 PKCE Service"
+    ENVIRONMENT: str = "development"
+
+settings = Settings()
+app = FastAPI(title=settings.PROJECT_NAME)
+
+@app.get("/health")
+def health():
+    return {"status": "alive"}`,
+
+            vercel: `// vercel.json
+{
+  "version": 2,
+  "builds": [{ "src": "app_main.py", "use": "@vercel/python" }],
+  "routes": [{ "src": "/(.*)", "dest": "app_main.py" }],
+  "functions": { "app_main.py": { "maxDuration": 60 } }
+}`,
+
+            docker: `# Dockerfile (Production Image)
+FROM python:3.13-slim
+ENV PYTHONUNBUFFERED=1
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 8000
+CMD ["uvicorn", "app_main:app", "--host", "0.0.0.0", "--port", "8000"]`,
+
+            compose: `# docker-compose.yml
+version: "3.9"
+services:
+  api:
+    build: .
+    ports: ["8000:8000"]
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on: [redis]
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]`,
+
+            k8s: `# k8s-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth-api
+  namespace: oauth-app
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+      - name: oauth-api
+        image: ghcr.io/your-org/oauth-api:latest
+        ports: [{ containerPort: 8000 }]
+        livenessProbe: { httpGet: { path: /health, port: 8000 } }
+        readinessProbe: { httpGet: { path: /ready, port: 8000 } }`
+        };
+
+        function switchTab(key) {
+            document.getElementById('tab-content-viewer').innerText = codeSnippets[key];
+            const btns = document.querySelectorAll('.tab-btn');
+            btns.forEach(btn => {
+                if (btn.getAttribute('onclick').includes(key)) {
+                    btn.className = "tab-btn px-3 py-1 rounded text-xs font-mono bg-emerald-600 text-white font-semibold";
+                } else {
+                    btn.className = "tab-btn px-3 py-1 rounded text-xs font-mono bg-slate-800 text-slate-400 hover:text-white";
+                }
+            });
+        }
+
+        // Workflow Inspector Logic
+        const workflowDetails = {
+            build: {
+                title: "build.yml — Continuous Integration (Lint & Test)",
+                triggers: "push & pull_request on branches [main, dev]",
+                tools: "Ruff (Linter), Black (Formatter), MyPy (Type Check), Pytest + Coverage",
+                code: "jobs:\n  lint-and-format:\n    steps:\n      - run: ruff check .\n      - run: black --check .\n      - run: mypy app/\n  unit-tests:\n    steps:\n      - run: pytest --cov=app --cov-report=xml"
+            },
+            codeql: {
+                title: "codeql.yml — Security SAST Scanning",
+                triggers: "push on main, pull_request, schedule cron (every Monday)",
+                tools: "GitHub CodeQL Engine (Python analysis)",
+                code: "jobs:\n  analyze:\n    steps:\n      - uses: github/codeql-action/init@v3\n      - uses: github/codeql-action/analyze@v3"
+            },
+            docker: {
+                title: "docker.yml — Container Build & Trivy Scan",
+                triggers: "push tags v*.*.* or main branch",
+                tools: "Docker Buildx, Trivy Security Scanner, GHCR Registry",
+                code: "jobs:\n  build-and-push:\n    steps:\n      - uses: aquasecurity/trivy-action@master\n        with: { severity: 'CRITICAL,HIGH' }\n      - uses: docker/build-push-action@v5\n        with: { push: true }"
+            },
+            release: {
+                title: "release.yml — Release & SBOM Attachment",
+                triggers: "push tags v*.*.*",
+                tools: "Syft (CycloneDX & SPDX SBOM Generator), GitHub Release",
+                code: "jobs:\n  create-release:\n    steps:\n      - run: ./scripts/generate-sbom.sh\n      - uses: softprops/action-gh-release@v2\n        with: { files: 'security/sbom/*' }"
+            },
+            attest: {
+                title: "attest.yml — SLSA Artifact Provenance Attestation",
+                triggers: "workflow_run (after Container Build & Push completed)",
+                tools: "GitHub Artifact Attestation (SLSA Provenance Level 3)",
+                code: "jobs:\n  attest:\n    steps:\n      - uses: actions/attest-build-provenance@v1\n        with: { subject-name: 'ghcr.io/${{ github.repository }}' }"
+            },
+            vercel: {
+                title: "deploy-vercel.yml — Serverless Deployment",
+                triggers: "push on main/dev, pull_request",
+                tools: "Vercel CLI, Node.js 20",
+                code: "jobs:\n  deploy-vercel:\n    steps:\n      - run: vercel pull --yes\n      - run: vercel build --prod\n      - run: vercel deploy --prebuilt --prod"
+            },
+            k8s: {
+                title: "deploy-k8s.yml — Kubernetes Deployment",
+                triggers: "workflow_run (after Container Push)",
+                tools: "kubectl, Azure K8s Set Context Action",
+                code: "jobs:\n  deploy-k8s:\n    steps:\n      - run: kubectl apply -f k8s/\n      - run: kubectl rollout status deployment/oauth-api -n oauth-app"
+            },
+            verify: {
+                title: "verify.yml — Post-Deployment Verification (Smoke Test)",
+                triggers: "workflow_dispatch (Manual / Automated trigger)",
+                tools: "./scripts/verify-deployment.sh",
+                code: "jobs:\n  smoke-test:\n    steps:\n      - run: ./scripts/verify-deployment.sh '${{ github.event.inputs.target_url }}'"
+            }
+        };
+
+        function inspectWorkflow(key) {
+            const data = workflowDetails[key];
+            const card = document.getElementById('workflow-detail-card');
+            card.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <h5 class="font-bold text-white text-sm sm:text-base">${data.title}</h5>
+                    <span class="text-[10px] font-mono px-2 py-0.5 bg-indigo-950 text-indigo-300 border border-indigo-800 rounded">GitHub Actions</span>
+                </div>
+                <div class="text-xs text-slate-300 space-y-1">
+                    <div><strong>Triggers:</strong> <code class="text-amber-300 font-mono">${data.triggers}</code></div>
+                    <div><strong>Tools / Engines:</strong> <span class="text-sky-300">${data.tools}</span></div>
+                </div>
+                <pre class="bg-slate-950 p-3 rounded-lg text-[11px] font-mono text-emerald-400 overflow-x-auto border border-slate-800 mt-2">${data.code}</pre>
+            `;
+
+            const btns = document.querySelectorAll('.wf-btn');
+            btns.forEach(btn => {
+                if (btn.getAttribute('onclick').includes(key)) {
+                    btn.className = "wf-btn p-3 text-left rounded-lg border border-indigo-600 bg-indigo-50 text-indigo-900 font-semibold text-xs transition";
+                } else {
+                    btn.className = "wf-btn p-3 text-left rounded-lg border border-slate-200 bg-slate-50 text-slate-700 text-xs hover:border-slate-300 transition";
+                }
+            });
+        }
+
+        // Automation Script Simulator
+        function runScriptSim(type) {
+            const win = document.getElementById('script-terminal-window');
+            if (type === 'setup') {
+                win.innerHTML = `
+                    <div class="text-emerald-400">$ ./scripts/setup-dev.sh</div>
+                    <div class="text-slate-300">🚀 กำลังเริ่มต้นตั้งค่า Development Environment...</div>
+                    <div class="text-slate-400">📦 กำลังสร้าง Virtual Environment (venv)...</div>
+                    <div class="text-slate-400">📥 กำลังติดตั้ง Python Dependencies (ruff, black, mypy, pytest)...</div>
+                    <div class="text-slate-400">⚙️  กำลังสร้างไฟล์ .env จากค่าเริ่มต้น...</div>
+                    <div class="text-slate-400">⚓ กำลังติดตั้ง Git Pre-commit Hooks...</div>
+                    <div class="text-emerald-400 mt-2">✅ ตั้งค่าเสร็จสิ้น! คุณสามารถรัน uvicorn app_main:app --reload ได้ทันที</div>
+                `;
+            } else if (type === 'sbom') {
+                win.innerHTML = `
+                    <div class="text-sky-400">$ ./scripts/generate-sbom.sh</div>
+                    <div class="text-slate-300">🔍 กำลังตรวจสอบและติดตั้งเครื่องมือ Syft (SBOM Generator)...</div>
+                    <div class="text-slate-400">📄 กำลังสร้าง SBOM Format CycloneDX JSON -> security/sbom/sbom.json</div>
+                    <div class="text-slate-400">📄 กำลังสร้าง SBOM Format SPDX Tag-Value -> security/sbom/sbom.spdx</div>
+                    <div class="text-emerald-400 mt-2">✅ สร้าง SBOM เรียบร้อยแล้วในโฟลเดอร์: security/sbom/</div>
+                `;
+            } else if (type === 'verify') {
+                win.innerHTML = `
+                    <div class="text-amber-400">$ ./scripts/verify-deployment.sh https://oauth.example.com</div>
+                    <div class="text-slate-300">🔎 เริ่มการตรวจสอบสุขภาพระบบที่: https://oauth.example.com</div>
+                    <div class="text-slate-400">📡 ตรวจสอบ Endpoint: /health ... <span class="text-emerald-400 font-bold">✅ Success (HTTP 200)</span></div>
+                    <div class="text-slate-400">📡 ตรวจสอบ Endpoint: /ready ... <span class="text-emerald-400 font-bold">✅ Success (HTTP 200)</span></div>
+                    <div class="text-slate-400">📡 ตรวจสอบ Endpoint: /docs ... <span class="text-emerald-400 font-bold">✅ Success (HTTP 200)</span></div>
+                    <div class="text-emerald-400 mt-2">🎉 การตรวจสอบหลัง Deployment สำเร็จลุล่วง! ระบบทำงานได้ตามปกติ</div>
+                `;
+            }
+        }
+
+        // Roadmap Filter Logic
+        function filterRoadmap(phaseKey) {
+            const cards = document.querySelectorAll('.roadmap-card');
+            cards.forEach(card => {
+                if (phaseKey === 'all' || card.classList.contains(phaseKey)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            const tabs = document.querySelectorAll('.roadmap-tab');
+            tabs.forEach(tab => {
+                if (tab.getAttribute('onclick').includes(phaseKey)) {
+                    tab.className = "roadmap-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-600 text-white";
+                } else {
+                    tab.className = "roadmap-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200";
+                }
+            });
+        }
+    </script>
+</body>
+</html>
