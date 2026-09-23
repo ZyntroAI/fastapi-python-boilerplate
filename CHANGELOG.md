@@ -9,6 +9,22 @@ Open problems and known blockers are tracked separately in
 
 ### Added
 
+- **pg_trgm typo-tolerant search — runnable SQL test script + Thai guide.**
+  `deliverables/pg-trgm-typo-tolerant-search/` adds an 8-section, re-runnable
+  SQL script covering extension config, `similarity()`, the `%` operator,
+  threshold tuning, GIN (`gin_trgm_ops`) indexing, and
+  `word_similarity`/`strict_word_similarity`, closing with 12 self-checking
+  assertions. Verified on PostgreSQL 17: 12 passed / 0 failed, and a second
+  run on the same database is clean. `README.md` explains each section in Thai.
+  Motivation: a Fig Search query on pg_trgm returned "No results captured"
+  because the Search tool hit its usage limit — not because the topic was
+  absent — so this suite tests trigram search directly in PostgreSQL instead.
+  Three findings are documented: `LOAD 'pg_trgm'` is required for a re-runnable
+  script (the GUCs are not registered otherwise); small tables Seq-Scan by cost,
+  not because the index is broken; and `similarity()` already ignores case and
+  leading/trailing whitespace, so what actually moves the score is inner
+  whitespace and accents.
+
 - **PR #328** — moved twelve stray markdown files to the path each one
   belonged at, and collapsed two duplicate registries. Nothing was rewritten:
   `git` records all twelve as `R100`, and the two deletions are byte-identical

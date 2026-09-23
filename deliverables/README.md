@@ -2,7 +2,7 @@
 
 โฟลเดอร์ `deliverables/` เก็บ deliverable/ชุดส่งมอบแบบ self-contained แต่ละชุดแยกจากโครงสร้างหลักของโปรเจกต์
 
-มีทั้งหมด **31 ชุด** เรียงตามตัวอักษร:
+มีทั้งหมด **32 ชุด** เรียงตามตัวอักษร:
 
 | โฟลเดอร์ | คำอธิบาย |
 |----------|----------|
@@ -34,6 +34,7 @@
 | `official-docs/` | [Official Documentation](./official-docs/README.md) — registry, components และการตรวจลิงก์ ของ official docs ที่ใช้ทั่วทั้ง repo |
 | `onspace-ai/` | [OnSpaceAI](./onspace-ai/README.md) — AI reliability engine (cache, circuit breaker, fallback router, context compiler, token budget, Prometheus) เป็น standalone FastAPI app (31 tests) |
 | `onspace-platform-integration/` | [OnSpace Platform Integration](./onspace-platform-integration/README.md) — ดึง OnSpaceAI engine ออกมาเป็น reusable AI infrastructure service (`OnSpaceAIService`, ไม่มี FastAPI import) + provider chain (OpenAI/Anthropic/Google/mock) + [ADR-001](./onspace-platform-integration/ADR-001-onspace-as-platform-service.md) และ [Migration Plan](./onspace-platform-integration/MIGRATION.md) (58 tests) |
+| `pg-trgm-typo-tolerant-search/` | [pg_trgm Typo-Tolerant Search](./pg-trgm-typo-tolerant-search/README.md) — สคริปต์ SQL 8 ส่วนสำหรับทดสอบ trigram similarity (% operator, threshold, GIN, word_similarity) พร้อม 12 assertions — รันซ้ำได้ |
 | `pm-backend/` | [Program Management Backend](./pm-backend/README.md) — FastAPI app 4 modules: PM CSV template, provider-neutral billing (stub/Stripe/Chargebee/Paddle), tool switcher, opt-in encryption at rest |
 | `product-crud/` | [Products CRUD](./product-crud/README.md) — Prisma `Product` + Express (Zod → service → controller → routes) และ React + TanStack Query (search/pagination state อยู่ใน query key, 30 tests) |
 | `pure-agent-dev/` | [pure-agent-dev](./pure-agent-dev/README.md) — ทิศทาง dependency ที่บังคับด้วย `tests/test_architecture.py` |
