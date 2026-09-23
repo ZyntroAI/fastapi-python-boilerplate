@@ -22,12 +22,12 @@ self-contained deliverable suites, and a reference docs library.
 | `app/core/main.py` | A second, fuller FastAPI app (items/users routers, DB session, origin middleware) |
 | `graphql_api/` | Standalone GraphQL service — Strawberry + async SQLAlchemy + JWT + Alembic, own `requirements.txt`, `docker-compose.yml`, tests |
 | `frontend/` | React 18 + Vite + TypeScript frontend (own `package.json`, `Dockerfile`, `tsconfig.json`) |
-| `skills/` | 13 reusable AI-agent skill definitions — `fetching`, `research`, `patch`, `credential-management`, `changelog-auto-update`, `pr-triage-automove`, `ci-workflow-authoring`, `auto-label`, … |
-| `deliverables/` | 27 self-contained feature suites, each with its own README and tests — see [`deliverables/README.md`](./deliverables/README.md) |
-| `docs/` | Reference library (54 files): GraphQL, FireCrawl, Google Chat, GitHub Actions, MCP, environment configuration, incident drills, release notes, FIG architecture |
+| `skills/` | 12 reusable AI-agent skill definitions — `fetching`, `research`, `patch`, `credential-management`, `changelog-auto-update`, `pr-triage-automove`, `ci-workflow-authoring`, `auto-label`, … |
+| `deliverables/` | 31 self-contained feature suites, each with its own README and tests — see [`deliverables/README.md`](./deliverables/README.md) |
+| `docs/` | Reference library (78 files): GraphQL, FireCrawl, Google Chat, GitHub Actions, MCP, environment configuration, incident drills, release notes, FIG architecture |
 | `tests/` | Test suite — `unit/`, `e2e/`, plus repo-level tests (`tests/conftest.py`, `pytest.ini` at root) |
 | `helm/`, `k8s/` | Deployment — Helm chart (`oauth-app`) and Kubernetes manifests (deployment, HPA, ingress, monitoring) |
-| `.github/workflows/` | 11 workflow files — only 6 of which parse, so the rest never run; see [CI/CD](#cicd--supply-chain-integrity) |
+| `.github/workflows/` | 11 workflow files — only 5 of which parse, so the rest never run; see [CI/CD](#cicd--supply-chain-integrity) |
 | `docker-compose.yml` | Local platform stack: Postgres 16, Redis 7, MinIO, Gitea, Prometheus, Grafana, Traefik, stripe-mock |
 
 ---
@@ -146,19 +146,13 @@ deliverable suites. Run a suite's own tests from its directory.
 
 ## Deliverables
 
-`deliverables/` holds 27 self-contained suites. Each is a complete piece of work —
-code, tests, and its own README — rather than a fragment of the main app:
+`deliverables/` holds 31 self-contained suites. Each is a complete piece of work — code,
+tests, and its own README — rather than a fragment of the main app.
 
-`agent-core` · `agent-security-suite` · `agent-skill-template` · `ai-agent-skills` ·
-`ai-agents-decision-pack` · `ai-gateway-architecture-review` · `azure-cli-2026` · `ci` ·
-`copilot-free-actions-playbook` ·
-`ci-workflow-sha-pin` · `cwe1321-protection-suite` · `docs-verify` · `fastapi-obsidian-backend` ·
-`fig-best-practices` · `firecrawl-fastapi` · `full-cicd-pipeline` · `gemini-cli-skills` ·
-`gh-devops-toolkit` · `manus-client` · `notebooklm-access-suite` · `notebooklm-link-share` ·
-`official-docs` · `onspace-ai` · `onspace-platform-integration` · `pm-backend` ·
-`product-crud` · `pure-agent-dev`
+The full list, A–Z with a one-line description of each, is in the index:
 
-See [`deliverables/README.md`](./deliverables/README.md) for one-line descriptions and
+**[deliverables/README.md](./deliverables/README.md)** — all 31 suites
+
 links into each suite.
 
 ---
