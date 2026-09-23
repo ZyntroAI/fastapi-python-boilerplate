@@ -1,0 +1,161 @@
+{
+  "extracted": [
+    "test-suite.yml <- ```yaml fence, lines 8-133",
+    "auto-debug-rerun.yml <- github-actions-autodebug-autorerun, lines 29-288 (source file had no .yml extension, so GitHub never loaded it)"
+  ],
+  "yaml_fixed": [
+    "Auto-Index-Sync.yml: re-indented embedded python placeholder into the run block",
+    "dependabot-automerge.yml: truncated 87 lines of appended documentation at line 36",
+    "secret-scan.yml: fixed stray semicolon: 'workflow_dispatch;' -> 'workflow_dispatch:'"
+  ],
+  "pins": {
+    "Auto-Index-Sync.yml": [
+      "actions/checkout@11bd71901bbe5b1630ceea73d275971dd864cf32 -> @11d5960a3267\u2026",
+      "actions/checkout@11bd71901bbe5b1630ceea73d275971dd864cf32 -> @11d5960a3267\u2026",
+      "actions/checkout@11bd71901bbe5b1630ceea73d275971dd864cf32 -> @11d5960a3267\u2026"
+    ],
+    "auto-debug-rerun.yml": [
+      "actions/checkout@v7 -> @11d5960a3267\u2026",
+      "actions/upload-artifact@v4 -> @ea165f8d65b6\u2026"
+    ],
+    "build-compress-all-platforms.yml": [
+      "actions/checkout@v4 -> @11d5960a3267\u2026",
+      "actions/checkout@v4 -> @11d5960a3267\u2026",
+      "actions/setup-java@v4 -> @cf277c60eb25\u2026",
+      "subosito/flutter-action@v2 -> @1a449444c387\u2026",
+      "somaz94/compress-decompress@v1 -> @4aa7a81b5e2c\u2026",
+      "r0adkll/sign-android-release@v1 -> @349ebdef5877\u2026",
+      "actions/upload-artifact@v4 -> @ea165f8d65b6\u2026",
+      "wzieba/Firebase-Distribution-Github-Action@v1 -> @bd494989dd4b\u2026",
+      "actions/checkout@v4 -> @11d5960a3267\u2026",
+      "subosito/flutter-action@v2 -> @1a449444c387\u2026",
+      "apple-actions/import-codesign-certs@v3 -> @63fff01cd422\u2026",
+      "apple-actions/download-provisioning-profiles@v1 -> @3167792207a5\u2026",
+      "somaz94/compress-decompress@v1 -> @4aa7a81b5e2c\u2026",
+      "actions/upload-artifact@v4 -> @ea165f8d65b6\u2026",
+      "apple-actions/upload-testflight-build@v1 -> @54dc215b4cd5\u2026",
+      "actions/checkout@v4 -> @11d5960a3267\u2026",
+      "subosito/flutter-action@v2 -> @1a449444c387\u2026",
+      "somaz94/compress-decompress@v1 -> @4aa7a81b5e2c\u2026",
+      "actions/upload-artifact@v4 -> @ea165f8d65b6\u2026",
+      "actions/checkout@v4 -> @11d5960a3267\u2026",
+      "subosito/flutter-action@v2 -> @1a449444c387\u2026",
+      "somaz94/compress-decompress@v1 -> @4aa7a81b5e2c\u2026",
+      "actions/upload-artifact@v4 -> @ea165f8d65b6\u2026",
+      "actions/checkout@v4 -> @11d5960a3267\u2026",
+      "subosito/flutter-action@v2 -> @1a449444c387\u2026",
+      "somaz94/compress-decompress@v1 -> @4aa7a81b5e2c\u2026",
+      "actions/upload-artifact@v4 -> @ea165f8d65b6\u2026",
+      "actions/download-artifact@v4 -> @d3f86a106a0b\u2026",
+      "softprops/action-gh-release@v2 -> @3bb12739c298\u2026"
+    ],
+    "ci.yml": [
+      "actions/checkout@f548e57c3d3c42e288026812cd22362661c4e8d4 -> @11d5960a3267\u2026",
+      "actions/setup-python@5fda3b9c709277f8cf4290f3a0094ab7e95c1338 -> @a26af69be951\u2026",
+      "actions/checkout@f548e57c3d3c42e288026812cd22362661c4e8d4 -> @11d5960a3267\u2026",
+      "actions/setup-python@5fda3b9c709277f8cf4290f3a0094ab7e95c1338 -> @a26af69be951\u2026",
+      "codecov/codecov-action@eaaf46c7cd7896392741f9d0acf77d8b12592391 -> @b9fd7d16f6d7\u2026",
+      "actions/checkout@f548e57c3d3c42e288026812cd22362661c4e8d4 -> @11d5960a3267\u2026",
+      "actions/setup-python@5fda3b9c709277f8cf4290f3a0094ab7e95c1338 -> @a26af69be951\u2026",
+      "github/codeql-action/init@977e6ce40888f41234c9b3252437dcf2331daaa2 -> @3ea06614dafe\u2026",
+      "github/codeql-action/autobuild@977e6ce40888f41234c9b3252437dcf2331daaa2 -> @3ea06614dafe\u2026",
+      "github/codeql-action/analyze@977e6ce40888f41234c9b3252437dcf2331daaa2 -> @3ea06614dafe\u2026",
+      "actions/checkout@f548e57c3d3c42e288026812cd22362661c4e8d4 -> @11d5960a3267\u2026",
+      "docker/login-action@74a5d146c4c96f6db1f1a614812d3d27e93654e7 -> @c94ce9fb4685\u2026",
+      "docker/build-push-action@4a13b6b08c6420d408f900f841204c8c413bdd32 -> @10e90e3645ea\u2026"
+    ],
+    "dependabot-automerge.yml": [
+      "dependabot/fetch-metadata@v2 -> @21025c705c08\u2026",
+      "pascalgn/automerge-action@v0.16.4 -> @7961b8b5eec5\u2026"
+    ],
+    "live-task.yml": [
+      "actions/checkout@v4 -> @11d5960a3267\u2026",
+      "actions/setup-python@v5 -> @a26af69be951\u2026",
+      "actions/checkout@v4 -> @11d5960a3267\u2026",
+      "actions/setup-python@v5 -> @a26af69be951\u2026",
+      "actions/upload-artifact@v4 -> @ea165f8d65b6\u2026",
+      "actions/checkout@v4 -> @11d5960a3267\u2026",
+      "actions/setup-python@v5 -> @a26af69be951\u2026"
+    ],
+    "secret-scan.yml": [
+      "actions/checkout@v4 -> @11d5960a3267\u2026",
+      "gitleaks/gitleaks-action@v2 -> @ff98106e4c7b\u2026",
+      "github/codeql-action/upload-sarif@v3 -> @3ea06614dafe\u2026"
+    ],
+    "static.yml": [
+      "actions/checkout@v4 -> @11d5960a3267\u2026",
+      "actions/configure-pages@v5 -> @983d7736d9b0\u2026",
+      "actions/upload-pages-artifact@v3 -> @56afc609e742\u2026",
+      "actions/deploy-pages@v5 -> @368f82528645\u2026"
+    ],
+    "test-and-coverage.yaml": [
+      "actions/checkout@<commit-sha> -> @11d5960a3267\u2026",
+      "actions/setup-python@<commit-sha> -> @a26af69be951\u2026",
+      "actions/upload-artifact@<commit-sha> -> @ea165f8d65b6\u2026",
+      "actions/upload-artifact@v4 -> @ea165f8d65b6\u2026"
+    ],
+    "test-suite.yml": [
+      "actions/checkout@v4 -> @11d5960a3267\u2026",
+      "actions/setup-python@v5 -> @a26af69be951\u2026",
+      "codecov/codecov-action@v4 -> @b9fd7d16f6d7\u2026"
+    ]
+  },
+  "unresolved": {},
+  "files": {
+    "Auto-Index-Sync.yml": {
+      "parses": true,
+      "why": "ok",
+      "lines": 106
+    },
+    "auto-debug-rerun.yml": {
+      "parses": true,
+      "why": "ok",
+      "lines": 261
+    },
+    "build-compress-all-platforms.yml": {
+      "parses": true,
+      "why": "ok",
+      "lines": 461
+    },
+    "ci.yml": {
+      "parses": true,
+      "why": "ok",
+      "lines": 87
+    },
+    "dependabot-automerge.yml": {
+      "parses": true,
+      "why": "ok",
+      "lines": 35
+    },
+    "live-task.yml": {
+      "parses": true,
+      "why": "ok",
+      "lines": 115
+    },
+    "release_drafter.yaml": {
+      "parses": true,
+      "why": "ok",
+      "lines": 17
+    },
+    "secret-scan.yml": {
+      "parses": true,
+      "why": "ok",
+      "lines": 32
+    },
+    "static.yml": {
+      "parses": true,
+      "why": "ok",
+      "lines": 44
+    },
+    "test-and-coverage.yaml": {
+      "parses": true,
+      "why": "ok",
+      "lines": 78
+    },
+    "test-suite.yml": {
+      "parses": true,
+      "why": "ok",
+      "lines": 127
+    }
+  }
+}
