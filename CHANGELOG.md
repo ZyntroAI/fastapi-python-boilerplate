@@ -19,7 +19,8 @@ Open problems and known blockers are tracked separately in
   GitHub never loaded it, and is renamed to `auto-debug-rerun.yml`; and 70 `uses:` refs
   across 10 files carried literal `<commit-sha>` placeholders, SHAs that 404 upstream,
   or floating tags, all rewritten to verified full-length commit SHAs.
-  Verified: 11/11 workflows parse, 0 non-pinned refs remain, and the patch applies
+  Verified: all 11 files parse as YAML (10 declare `jobs`; `release_drafter.yaml` is an
+  autolabeler config, flagged in the README), 0 non-pinned refs remain, and the patch applies
   cleanly to a fresh clone of `main` with all 11 files byte-identical afterwards.
   Ships as a patch plus the fixed files, because root `.github/workflows/**` is
   push-blocked for the Fig App.

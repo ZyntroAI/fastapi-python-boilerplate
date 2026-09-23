@@ -71,7 +71,8 @@ bumped to a newer major.
 
 | Check | Result |
 | --- | --- |
-| All 11 workflows parse as a single YAML document with `jobs` | **11 / 11 pass** |
+| All 11 files parse as a single YAML document | **11 / 11 pass** |
+| Of those, files that declare `jobs` (i.e. are workflows) | **10 / 11** — `release_drafter.yaml` has none |
 | Non-pinned action refs remaining | **0** |
 | Patch applies to fresh clone of `main` | clean, no conflicts |
 | Fixed tree vs patched clone, byte-for-byte | **11 / 11 identical** |
