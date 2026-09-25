@@ -1,0 +1,63 @@
+# ══════════════════════════════════════════════════════
+# ZyntroAI/fastapi-boilerplate — EditorConfig v1.0
+# Applies to: All editors, IDEs, contributors
+# ══════════════════════════════════════════════════════
+root = true
+
+[*]
+# ── Universal Standards ──
+charset                    = utf-8
+end_of_line                = lf
+insert_final_newline       = true
+trim_trailing_whitespace   = true
+indent_style               = space
+indent_size                = 2
+tab_width                  = 2
+max_line_length            = 120
+
+# ── Python (FastAPI, Backend) ──
+[*.{py,py3}]
+indent_size                = 4
+max_line_length            = 88        # Match Black formatter default
+
+# ── JavaScript/TypeScript/Frontend ──
+[*.{js,jsx,ts,tsx,mjs,cjs}]
+indent_size                = 2
+
+# ── Markdown & Documentation ──
+[*.md]
+trim_trailing_whitespace   = false     # Allow line-break intentional spaces
+max_line_length            = off
+
+# ── YAML / YML ──
+[*.{yaml,yml}]
+indent_size                = 2
+
+# ── JSON ──
+[*.json]
+indent_size                = 2
+
+# ── Shell / Bash ──
+[*.{sh,bash,zsh}]
+indent_size                = 4
+
+# ── Docker & Make ──
+[{Dockerfile,Makefile}]
+indent_style               = tab
+indent_size                = 4
+
+# ── HTML / CSS ──
+[*.{html,css,scss,sass}]
+indent_size                = 2
+
+# ── TOML / INI ──
+[*.{toml,ini,cfg}]
+indent_size                = 2
+
+# ── SQL ──
+[*.sql]
+indent_size                = 4
+
+# ── License ──
+[LICENSE]
+trim_trailing_whitespace   = false
