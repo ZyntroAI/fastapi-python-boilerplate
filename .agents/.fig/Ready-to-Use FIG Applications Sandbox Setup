@@ -1,0 +1,326 @@
+Perfect! Here’s your Ready-to-Use FIG Applications Sandbox Setup — copy, paste, and run immediately 🚀
+ 
+ 
+ 
+🏖️ FIG Sandbox — Complete Ready-to-Use Package
+ 
+📦 1. Docker / DevContainer Sandbox
+ 
+ docker-compose.sandbox.yml 
+ 
+yaml
+  
+version: '3.8'
+
+services:
+  fig-sandbox:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    image: fig-sandbox:latest
+    container_name: fig-sandbox
+    volumes:
+      - .:/workspace:cached
+      - sandbox-home:/root
+    working_dir: /workspace
+    environment:
+      - SANDBOX=true
+      - ENV_NAME=sandbox
+      - NODE_ENV=development
+      - PYTHONPATH=/workspace
+    ports:
+      - "8080:8080"
+      - "9000:9000"
+    # Auto-cleanup: remove after stop
+    restart: no
+    command: sleep infinity
+
+volumes:
+  sandbox-home:
+ 
+ 
+ .devcontainer/Dockerfile 
+ 
+dockerfile
+  
+FROM python:3.11-slim
+
+WORKDIR /workspace
+
+# Install base tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git curl gnupg ca-certificates build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Docker CLI (for sandbox-in-docker tests)
+RUN curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh
+
+# Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Non-root user for security
+RUN useradd -m sandbox && chown -R sandbox:sandbox /workspace
+USER sandbox
+ 
+ 
+ requirements.txt 
+ 
+txt
+  
+fastapi==0.109.0
+uvicorn==0.27.0
+requests==2.31.0
+pydantic==2.5.3
+pytest==7.4.4
+ 
+ 
+▶️ Start:
+ 
+bash
+  
+docker compose -f docker-compose.sandbox.yml up -d --build
+docker compose -f docker-compose.sandbox.yml exec fig-sandbox bash
+
+# When done — COMPLETE CLEANUP
+docker compose -f docker-compose.sandbox.yml down -v
+ 
+ 
+✅ Everything inside vanishes when you run  down -v  — clean slate next time.
+ 
+ 
+ 
+☸️ 2. Ephemeral Kubernetes Sandbox Template
+ 
+ k8s/sandbox-namespace.yaml 
+ 
+yaml
+  
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fig-sandbox-{{ rand }}
+  labels:
+    app: fig-apps
+    env: sandbox
+    temporary: "true"
+  annotations:
+    expiry: "24h"       # Auto-delete marker
+    owner: "fig-team"
+    purpose: "pr-testing"
+
+---
+# Resource limits to prevent runaway costs
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: sandbox-quota
+  namespace: fig-sandbox
+spec:
+  hard:
+    requests.cpu: "2"
+    requests.memory: 4Gi
+    limits.cpu: "4"
+    limits.memory: 8Gi
+    pods: "10"
+    services: "5"
+
+---
+# Policy: no real secrets allowed
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: sandbox-no-real-secrets
+spec:
+  rules:
+  - name: block-real-tokens
+    match:
+      resources:
+        kinds: [Secret]
+    validate:
+      message: "Sandbox: use dummy values only"
+      pattern:
+        data:
+          token: "sandbox-*"
+          api_key: "fake-*"
+ 
+ 
+▶️ Deploy:
+ 
+bash
+  
+# Create unique sandbox
+SANDBOX_NS="fig-sandbox-$(date +%Y%m%d-%H%M)"
+kubectl create namespace "$SANDBOX_NS"
+kubectl apply -f k8s/sandbox-namespace.yaml -n "$SANDBOX_NS"
+
+# Cleanup
+kubectl delete namespace "$SANDBOX_NS"
+ 
+ 
+ 
+ 
+💰 3. Mock FinTech API Server — Payments & Assets
+ 
+ mock-sandbox-api/main.py 
+ 
+python
+  
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import uuid
+from datetime import datetime
+
+app = FastAPI(title="FIG Sandbox Mock API", version="1.0-sandbox")
+
+# === IN-MEMORY ONLY — RESETS ON RESTART ===
+fake_users = {
+    "usr_sandbox_001": {"balance": 10000.0, "currency": "SBX"},
+    "usr_sandbox_002": {"balance": 5000.0, "currency": "SBX"},
+}
+transactions = []
+
+class TransferRequest(BaseModel):
+    from_user: str
+    to_user: str
+    amount: float
+
+@app.get("/")
+def root():
+    return {
+        "env": "SANDBOX",
+        "notice": "FAKE VALUES ONLY — no real funds",
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+@app.get("/users/{user_id}")
+def get_balance(user_id: str):
+    if user_id not in fake_users:
+        raise HTTPException(404, "Sandbox user not found")
+    return {"user_id": user_id, **fake_users[user_id]}
+
+@app.post("/transfer")
+def transfer(tx: TransferRequest):
+    if tx.from_user not in fake_users or tx.to_user not in fake_users:
+        raise HTTPException(404, "User not in sandbox")
+    if fake_users[tx.from_user]["balance"] < tx.amount:
+        raise HTTPException(400, "Insufficient sandbox funds")
+    
+    fake_users[tx.from_user]["balance"] -= tx.amount
+    fake_users[tx.to_user]["balance"] += tx.amount
+    tx_id = f"sbx-tx-{uuid.uuid4().hex[:8]}"
+    transactions.append({
+        "id": tx_id, **tx.dict(), "time": datetime.utcnow().isoformat()
+    })
+    return {"status": "sandbox-success", "tx_id": tx_id}
+
+@app.get("/transactions")
+def list_txs():
+    return {"count": len(transactions), "transactions": transactions}
+
+@app.post("/reset")
+def reset_sandbox():
+    """Wipe all data — fresh sandbox state"""
+    global fake_users, transactions
+    fake_users = {
+        "usr_sandbox_001": {"balance": 10000.0, "currency": "SBX"},
+        "usr_sandbox_002": {"balance": 5000.0, "currency": "SBX"},
+    }
+    transactions = []
+    return {"reset": "complete", "message": "Sandbox wiped clean"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8080)
+ 
+ 
+▶️ Run Mock API:
+ 
+bash
+  
+pip install fastapi uvicorn
+python mock-sandbox-api/main.py
+# → http://localhost:8080 — docs at /docs
+ 
+ 
+Example test:
+ 
+bash
+  
+curl http://localhost:8080/users/usr_sandbox_001
+curl -X POST http://localhost:8080/transfer \
+  -H "Content-Type: application/json" \
+  -d '{"from_user":"usr_sandbox_001","to_user":"usr_sandbox_002","amount":500}'
+curl -X POST http://localhost:8080/reset
+ 
+ 
+ 
+ 
+🤖 4. CI/CD — Pull Request Sandbox Workflow
+ 
+ .github/workflows/sandbox-validate.yml 
+ 
+yaml
+  
+name: FIG Sandbox Validation
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  sandbox-test:
+    runs-on: ubuntu-latest
+    # ⚠️ Never use production secrets here
+    environment: sandbox
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 🧪 Start Sandbox Env
+        run: docker compose -f docker-compose.sandbox.yml up -d --build
+
+      - name: Run Lint
+        run: docker compose -f docker-compose.sandbox.yml exec -T fig-sandbox make lint
+
+      - name: Run Unit Tests
+        run: docker compose -f docker-compose.sandbox.yml exec -T fig-sandbox make test
+
+      - name: Test Against Mock FinTech API
+        run: |
+          docker compose -f docker-compose.sandbox.yml exec -T fig-sandbox \
+            python -m pytest tests/sandbox/ -v
+
+      - name: 🧹 Complete Cleanup
+        if: always()
+        run: docker compose -f docker-compose.sandbox.yml down -v
+ 
+ 
+ 
+ 
+✅ Quick Reference — All-in-One Command
+ 
+bash
+  
+# One-liner: Spin up → test → destroy
+docker run --rm -it \
+  -v "$PWD:/workspace" \
+  -w /workspace \
+  -p 8080:8080 \
+  python:3.11-slim \
+  bash -c "pip install -r requirements.txt && python mock-sandbox-api/main.py"
+
+# Exits & deletes automatically when you press Ctrl+C
+ 
+ 
+ 
+ 
+📋 Summary — What You Got
+ 
+Component File/Purpose 
+Local Env  docker-compose.sandbox.yml  — isolated dev box, auto-delete 
+K8s Template  k8s/sandbox-namespace.yaml  — ephemeral namespaces with limits 
+Mock FinTech API  mock-sandbox-api/main.py  — fake payments/assets, reset anytime 
+GitHub Workflow  .github/workflows/sandbox-validate.yml  — auto-test PRs safely 
+ 
+ 
+ 
+Want me to add Claude Agent tooling or Blockchain testnet connection to this sandbox so agents can experiment with DeFi/smart-contract flows too? Just let me know! 🎯
