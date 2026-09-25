@@ -3,6 +3,7 @@
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
     "ms-python.python",
-    "rakshex.rakshex-vscode"
+    "rakshex.rakshex-vscode",
+    "MD041": false
   ]
 }
