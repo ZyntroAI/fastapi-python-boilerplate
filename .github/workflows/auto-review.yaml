@@ -1,0 +1,82 @@
+name: Auto Review & Feedback
+
+on:
+pull_request:
+types: [opened, synchronize, reopened]
+
+permissions:
+contents: read
+pull-requests: write
+checks: read
+
+jobs:
+auto-review:
+runs-on: ubuntu-latest
+name: AI Review
+steps:
+- name: Review Logic
+uses: actions/github-script@60a0d83039c74a4aee54decba64dc91c9d73c101 # v7.0.1
+with:
+script: |
+const pr = context.payload.pull_request;
+const files = await github.rest.pulls.listFiles({
+owner: context.repo.owner,
+repo: context.repo.repo,
+pull_number: pr.number,
+});
+
+let reviewEvent = 'COMMENT';
+let reviewBody = '';
+let issues = [];
+let highlights = [];
+
+// Rule 1: Check for large files
+const largeFiles = files.data.filter(f => f.changes > 500);
+if (largeFiles.length > 0) {
+issues.push(⚠️ Large changes detected:\n${largeFiles.map(f => '- ' + f.filename + ': ' + f.changes + ' lines').join('\n')}`);
+}
+
+// Rule 2: Workflow changes
+const workflowChanges = files.data.filter(f => f.filename.startsWith('.github/workflows/'));
+if (workflowChanges.length > 0) {
+highlights.push('🛡️ Workflow changes detected — security review recommended');
+}
+
+// Rule 3: README/docs
+const docChanges = files.data.filter(f => f.filename.endsWith('.md') || f.filename.startsWith('docs/'));
+if (docChanges.length > 0) {
+highlights.push('📚 Documentation updated — great!');
+}
+
+// Rule 4: PR too short / missing description
+if (!pr.body || pr.body.length < 30) {
+issues.push('📝 PR description appears brief — please add more details about what changed and why.');
+}
+
+// Rule 5: Conventional commit check
+const titlePattern = /^(feat|fix|docs|chore|refactor|test|style)\b/i;
+if (!titlePattern.test(pr.title)) {
+issues.push('🏷️ Consider using conventional commit format: feat:, fix:, docs:, etc.');
+} else {
+highlights.push('✅ Conventional format used — thank you!');
+}
+
+// Determine review outcome
+if (issues.length === 0) {
+reviewEvent = 'APPROVE';
+reviewBody = ## ✅ Approval — Ready to Merge\n\n${highlights.join('\n') || 'Everything looks good!'}\n\n---\nAuto-review passed — all checks cleared.; } else { reviewEvent = 'REQUEST_CHANGES'; reviewBody =## 🔍 Review — Changes Requested\n\n### ⚠️ Items to address:\nlatex
+{issues.join('\n')}\n
+
+{highlights.length > 0 ? \n### ✅ Positives:\n${highlights.join('\n')}: ''};
+}
+
+await github.rest.pulls.createReview({
+owner: context.repo.owner,
+repo: context.repo.repo,
+pull_number: pr.number,
+event: reviewEvent,
+body: reviewBody,
+});
+
+console.log(✅ Review sent:${reviewEvent}`);
+
