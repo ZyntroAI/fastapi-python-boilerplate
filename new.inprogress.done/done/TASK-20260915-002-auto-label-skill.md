@@ -4,11 +4,11 @@ title: Add auto-label skill (conventional-commit type + changed paths)
 status: done
 priority: normal
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-26
 owner: fig-ai-agent
 repo: ZyntroAI/fastapi-python-boilerplate
 issue:
-prs: []
+prs: [295]
 blocked_by:
 tokens: 0
 ---

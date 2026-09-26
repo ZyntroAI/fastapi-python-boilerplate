@@ -1,10 +1,10 @@
 ---
-id: TASK-20260916-001
+id: TASK-20260916-005
 title: High-priority FIG-TASK batch — vite script, ESLint config, .env tracking, workflow repair
 status: inprogress
 priority: high
 created: 2026-09-16
-updated: 2026-09-16
+updated: 2026-09-26
 owner: fig-ai-agent
 repo: ZyntroAI/fastapi-python-boilerplate
 issue:
@@ -13,7 +13,7 @@ blocked_by: write access to .github/workflows/ for the workflow half — PROBLEM
 tokens: 0
 ---
 
-# TASK-20260916-001 — High-priority FIG-TASK batch (items 1–4)
+# TASK-20260916-005 — High-priority FIG-TASK batch (items 1–4)
 
 ## Goal
 
@@ -104,7 +104,7 @@ executes the pin, fails them.
 | `package.json` | `scripts.vite` → `"vite"`; three devDeps added |
 | `package-lock.json` | regenerated for the new devDeps |
 | `eslint.config.mjs` | added — flat config |
-| `new.inprogress.done/inprogress/TASK-20260916-001-*.md` | added — this record |
+| `new.inprogress.done/inprogress/TASK-20260916-005-*.md` | added — this record |
 | `CHANGELOG.md` | added entry for the above |
 | `.github/workflows/**` | **not changed here** — cannot push; install kit applies from `deliverables/` |
 

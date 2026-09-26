@@ -1,10 +1,10 @@
 ---
 id: TASK-20260916-004
 title: Install repaired workflows — handoff PR (App lacks workflows permission)
-status: done
+status: inprogress
 priority: high
 created: 2026-09-16
-updated: 2026-09-16
+updated: 2026-09-26
 owner: fig-ai-agent
 repo: ZyntroAI/fastapi-python-boilerplate
 issue:
