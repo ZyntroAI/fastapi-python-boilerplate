@@ -1,10 +1,10 @@
 ---
-id: TASK-20260915-001
+id: TASK-20260915-004
 title: Dev-helpers suite for GitHub automation friction
 status: inprogress
 priority: normal
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-26
 owner: fig-agent
 repo: ZyntroAI/fastapi-python-boilerplate
 issue:
@@ -13,7 +13,7 @@ blocked_by:
 tokens: 4412
 ---
 
-# TASK-20260915-001 — Dev-helpers suite for GitHub automation friction
+# TASK-20260915-004 — Dev-helpers suite for GitHub automation friction
 
 ## Goal
 

@@ -1,19 +1,19 @@
 ---
-id: TASK-20260916-003
+id: TASK-20260916-007
 title: Chrome DevTools MCP production setup guide, with verified flags
 status: done
 priority: medium
 created: 2026-09-16
-updated: 2026-09-16
+updated: 2026-09-26
 owner: fig-ai-agent
 repo: ZyntroAI/fastapi-python-boilerplate
 issue:
-prs: []
+prs: [316]
 blocked_by:
 tokens: 0
 ---
 
-# TASK-20260916-003 — Chrome DevTools MCP production setup guide
+# TASK-20260916-007 — Chrome DevTools MCP production setup guide
 
 ## Goal
 

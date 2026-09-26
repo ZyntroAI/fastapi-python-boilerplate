@@ -5,6 +5,27 @@ All notable changes to this repository. Dates are UTC.
 Open problems and known blockers are tracked separately in
 [`PROBLEMS.md`](./PROBLEMS.md), using the same date sections.
 
+## [2026-09-26]
+
+### Fixed
+
+- **Task tracker integrity — every check in `new.inprogress.done/tests/` now passes
+  (4 failed -> 0).** Four defects had accumulated, and one masked the rest:
+  `cmd_list` exits non-zero when any task's `status:` disagrees with its folder,
+  so the `list` failure was a symptom, not a separate bug.
+
+  - **Status drift.** `inprogress/TASK-20260916-004-workflow-repair-install-handoff.md`
+    declared `status: done` while sitting in `inprogress/`. Front matter reverted
+    to `inprogress`, matching both the folder and the task's own `blocked_by`.
+  - **Duplicate IDs.** `TASK-20260915-001` x3, `TASK-20260916-001` x2,
+    `TASK-20260916-003` x3 — twice inside `done/` itself. The active copy was
+    renumbered; a completed task is a historical record and kept its number.
+  - **Missing PR evidence.** Four `done/` tasks cited `prs: []`. Each now cites
+    the PR its work shipped in, read from merge history (#293, #295, #332, #316).
+  - **No guard against recurrence.** `RENUMBER-MAP.md` records every old -> new
+    ID permanently, so a number that once meant one task never silently means
+    another. `TASK-20260916-006` tracks the underlying guard.
+
 ## [2026-09-23]
 
 ### Added

@@ -1,10 +1,10 @@
 ---
-id: TASK-20260915-001
+id: TASK-20260915-005
 title: Per-component env templates and environment documentation
 status: inprogress
 priority: normal
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-26
 owner: fig-agent
 repo: ZyntroAI/fastapi-python-boilerplate
 issue:
@@ -13,7 +13,7 @@ blocked_by:
 tokens: 6827
 ---
 
-# TASK-20260915-001 — Per-component env templates and environment documentation
+# TASK-20260915-005 — Per-component env templates and environment documentation
 
 ## Goal
 

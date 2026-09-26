@@ -4,11 +4,11 @@ title: Repair the 6 broken workflows in ZyntroAI/fastapi-python-boilerplate
 status: done
 priority: high
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-26
 owner: fig-ai-agent
 repo: ZyntroAI/fastapi-python-boilerplate
 issue:
-prs: []
+prs: [332]
 blocked_by:
 tokens: 0
 ---
