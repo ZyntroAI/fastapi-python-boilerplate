@@ -1,4 +1,3 @@
-Here's the clean, standalone entry point — ready to drop in and run 👇
 
 
 
