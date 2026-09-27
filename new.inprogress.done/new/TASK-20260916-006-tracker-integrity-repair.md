@@ -1,10 +1,10 @@
 ---
-id: TASK-20260916-003
+id: TASK-20260916-006
 title: Repair the task tracker's own integrity failures and stop id collisions at the source
 status: new
 priority: high
 created: 2026-09-16
-updated: 2026-09-16
+updated: 2026-09-26
 owner: fig-ai-agent
 repo: ZyntroAI/fastapi-python-boilerplate
 issue:
@@ -13,7 +13,7 @@ blocked_by:
 tokens: 0
 ---
 
-# TASK-20260916-003 — Repair the task tracker's own integrity failures
+# TASK-20260916-006 — Repair the task tracker's own integrity failures
 
 ## Goal
 
@@ -86,7 +86,7 @@ None. Both defects are reproducible on `main` today from a clean clone.
 
 | File | Change |
 | --- | --- |
-| `new.inprogress.done/new/TASK-20260916-003-tracker-integrity-repair.md` | Added |
+| `new.inprogress.done/new/TASK-20260916-006-tracker-integrity-repair.md` | Added |
 | `new.inprogress.done/inprogress/TASK-20260915-001-per-component-env-templates.md` | Renamed / renumbered (not yet done) |
 | `new.inprogress.done/done/TASK-20260915-001-fig-v4-docs.md` | PR evidence added, or moved back to `inprogress/` (not yet done) |
 | `new.inprogress.done/tools/tasks.py` | Duplicate-id refusal (not yet done) |
