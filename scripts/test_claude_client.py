@@ -1,0 +1,84 @@
+Here's a complete, ready-to-use `test_claude_client.py` — with both direct API and FIG/ZyntroAI-compatible patterns, typed, and environment-safe:
+
+```python
+"""
+test_claude_client.py
+Tests Claude API connectivity — works with direct Anthropic or FIG/ZyntroAI endpoints
+"""
+
+import os
+from typing import Optional
+from dotenv import load_dotenv
+import anthropic
+
+# Load .env if present
+load_dotenv()
+
+
+def get_client(
+    api_key: Optional[str] = None,
+    base_url: Optional[str] = None,
+    timeout: float = 30.0,
+) -> anthropic.Anthropic:
+    """Initialize Claude client with env fallback"""
+    return anthropic.Anthropic(
+        api_key=api_key or os.getenv("CLAUDE_API_KEY") or os.getenv("ANTHROPIC_API_KEY"),
+        base_url=base_url or os.getenv("CLAUDE_BASE_URL"),
+        timeout=timeout,
+    )
+
+
+def test_smoke(
+    prompt: str = "Reply with exactly: OK",
+    model: str = "claude-3-5-sonnet-20241022",
+    max_tokens: int = 100,
+) -> str:
+    """Basic connectivity & response test"""
+    client = get_client()
+
+    resp = client.messages.create(
+        model=model,
+        max_tokens=max_tokens,
+        messages=[{"role": "user", "content": prompt}],
+    )
+
+    text = "\n".join(blk.text for blk in resp.content if blk.type == "text")
+    return text
+
+
+if __name__ == "__main__":
+    try:
+        result = test_smoke()
+        print(f"✅ Success — response: {result}")
+    except Exception as e:
+        print(f"❌ Failed — {type(e).__name__}: {e}")
+        raise SystemExit(1)
+```
+
+---
+
+### Setup
+1. Save this as `test_claude_client.py`
+2. Install deps:
+   ```bash
+   pip install anthropic python-dotenv
+   ```
+3. Create `.env`:
+   ```env
+   CLAUDE_API_KEY=sk-ant-xxxx...
+   # For FIG/ZyntroAI gateway:
+   # CLAUDE_BASE_URL=https://your-fig-gateway/v1
+   ```
+4. Run:
+   ```bash
+   python test_claude_client.py
+   ```
+
+### Variations I can add
+- Async client (`AsyncAnthropic`) version
+- FIG/ZyntroAI multi-agent auth / header injection
+- Token usage & latency metrics
+- Streaming response test
+- LangGraph/MCP integration hook
+
+Want me to extend this with async or FIG/ZyntroAI auth support?
