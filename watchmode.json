@@ -1,4 +1,3 @@
-```json
 {
   "title": "👁️ Watch Mode — Auto-Fix เมื่อไฟล์เปลี่ยน",
   "description": "เพิ่ม watch mode ให้สคริปต์ — เฝ้าโฟลเดอร์ .github/workflows/ และซ่อมทันทีที่ไฟล์ถูกบันทึก",
@@ -142,4 +141,3 @@
     "integration กับ VS Code task"
   ]
 }
-```
