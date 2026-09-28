@@ -4,8 +4,6 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/**'
-      - 'requirements.txt'
       - '.github/workflows/cd.yml'
 
 permissions:
