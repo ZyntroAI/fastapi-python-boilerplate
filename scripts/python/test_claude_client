@@ -1,6 +1,3 @@
-Here's a complete, ready-to-use `test_claude_client.py` — with both direct API and FIG/ZyntroAI-compatible patterns, typed, and environment-safe:
-
-```python
 """
 test_claude_client.py
 Tests Claude API connectivity — works with direct Anthropic or FIG/ZyntroAI endpoints
