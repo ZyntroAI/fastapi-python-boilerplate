@@ -536,3 +536,268 @@ export class LogViewerComponent implements OnDestroy {
 จุดสำคัญที่ควรรู้
  * Unbuffered Output: ใน FastAPI Subprocess เมื่อรันคำสั่ง Python ให้ใส่ flag -u (Unbuffered) เพื่อให้ Python ส่ง output ออกมาทาง stdout ทันทีโดยไม่ต้องรอให้ buffer เต็ม
  * Auto Auto-Scroll: ใน Angular component มีการใช้ scrollToBottom() เพื่อให้หน้าจอ Terminal เลื่อนลงอัตโนมัติเมื่อมี Log บรรทัดใหม่เข้ามา
+
+# FastAPI WebSocket + Angular: Real-Time Log Streaming
+
+นี่คือคำอธิบายเชิงลึกของโค้ดที่คุณแชร์มา — อธิบายว่าแต่ละส่วนทำงานยังไง ทำไมต้องเขียนแบบนั้น และจุดที่มักพลาด
+
+## 1. ภาพรวมสถาปัตยกรรม
+
+ระบบนี้แก้ปัญหาคลาสสิกของงาน automation: **HTTP request/response ไม่เหมาะกับงานที่ใช้เวลานาน**
+
+ถ้าใช้ `POST /api/jobs/{id}/execute` แบบปกติ ปัญหาคือ:
+- ต้องรอจน script รันจบ (อาจนานหลายนาที) ถึงจะได้ response
+- ไม่เห็น log ระหว่างทาง — ถ้า script ค้าง ผู้ใช้ไม่รู้ว่าเกิดอะไรขึ้น
+- Timeout ของ proxy/browser อาจตัดการเชื่อมต่อก่อนงานเสร็จ
+
+WebSocket แก้ทั้งหมดนี้ด้วย **full-duplex connection เดียว** ที่เปิดค้างไว้: server push log ได้ทันทีที่ subprocess เปล่ง output ออกมา
+
+```
+Angular                    FastAPI                    Subprocess
+   │                          │                            │
+   │── WS connect ──────────► │                            │
+   │                          │── spawn ─────────────────► │
+   │                          │                            │
+   │ ◄── {type:"stdout"} ──── │ ◄── readline() ─────────── │
+   │ ◄── {type:"stdout"} ──── │ ◄── readline() ─────────── │
+   │ ◄── {type:"stderr"} ──── │ ◄── readline() ─────────── │
+   │ ◄── {type:"status"} ──── │ ◄── exit code ──────────── │
+```
+
+## 2. ฝั่ง Backend — เจาะลึกทีละบรรทัด
+
+### 2.1 `asyncio.create_subprocess_exec` ไม่ใช่ `subprocess.run`
+
+```python
+process = await asyncio.create_subprocess_exec(
+    *command,
+    stdout=asyncio.subprocess.PIPE,
+    stderr=asyncio.subprocess.PIPE
+)
+```
+
+**หัวใจของเรื่องนี้คือ `await`** — ถ้าใช้ `subprocess.run()` (blocking) มันจะ **บล็อก event loop ทั้งตัว** ระหว่างที่ script รัน ทำให้ WebSocket อื่นๆ ที่เชื่อมต่ออยู่ทั้งหมดหยุดชะงักไปด้วย นี่คือบั๊กที่เจอบ่อยที่สุดใน FastAPI เมื่อมีคนย้ายโค้ดจาก Flask/Script ธรรมดามา
+
+`create_subprocess_exec` คืนค่าเป็น `Process` object ที่ pipe เป็น async stream — อ่านด้วย `await stream.readline()` ได้โดยไม่บล็อก loop
+
+> **หมายเหตุ:** `create_subprocess_exec` รับ argument เป็น list โดยตรง **ไม่ผ่าน shell** ซึ่งปลอดภัยกว่า `create_subprocess_shell` เพราะไม่เสี่ยง command injection ถ้า `job_id` มาจาก user input
+
+### 2.2 ทำไมต้อง `asyncio.gather` สอง stream
+
+```python
+await asyncio.gather(
+    stream_reader(process.stdout, "stdout"),
+    stream_reader(process.stderr, "stderr")
+)
+```
+
+จุดนี้สำคัญมากและเป็น **deadlock ที่คนมักเจอ**: ถ้าอ่าน stdout จนจบก่อน แล้วค่อยอ่าน stderr — เมื่อ script เขียน stderr จน pipe buffer เต็ม (ปกติ 64KB บน Linux) process จะ **ค้าง** เพราะไม่มีใครอ่าน stderr ขณะเดียวกันฝั่งเราก็รอ stdout ที่ script ยังเขียนไม่จบ → **ตายทั้งคู่**
+
+`gather` รันสอง coroutine พร้อมกัน จึงดูดทั้งสอง pipe ตลอดเวลา
+
+### 2.3 `stream_reader` — จุดที่ต้องระวัง
+
+```python
+async def stream_reader(stream, log_type: str):
+    while True:
+        line = await stream.readline()
+        if not line:
+            break
+        text = line.decode("utf-8", errors="replace").rstrip()
+        await websocket.send_json({"type": log_type, "message": text})
+```
+
+- `readline()` จะ return `b""` (falsy) เมื่อ stream ปิด — เป็นสัญญาณจบ loop ที่ถูกต้อง
+- `errors="replace"` จำเป็น เพราะ output จาก script อาจไม่ใช่ UTF-8 (เช่น locale ผิด หรือ binary ปนออกมา) ถ้าไม่ใส่จะ `UnicodeDecodeError` แล้ว WebSocket ตายกลางทาง
+- `rstrip()` ตัด `\n` ออก เพราะ JSON message ไม่ต้องมี newline
+
+### 2.4 การจัดการข้อผิดพลาด — จุดที่โค้ดตัวอย่างมักละเลย
+
+```python
+except WebSocketDisconnect:
+    ...
+except Exception as e:
+    try:
+        await websocket.send_json({"type": "error", "message": str(e)})
+    except Exception:
+        pass
+finally:
+    try:
+        await websocket.close()
+    except Exception:
+        pass
+```
+
+**ปัญหาที่โค้ดนี้ยังไม่แก้:** ถ้า client ปิดเบราว์เซอร์กลางทาง `WebSocketDisconnect` จะถูก raise — แต่ **subprocess ยังรันต่อ** กลายเป็น zombie process สะสม วิธีแก้ที่ควรเพิ่ม:
+
+```python
+finally:
+    if process.returncode is None:
+        process.terminate()          # SIGTERM
+        try:
+            await asyncio.wait_for(process.wait(), timeout=5)
+        except asyncio.TimeoutError:
+            process.kill()           # SIGKILL ถ้าไม่ยอมตาย
+```
+
+นอกจากนี้ `try/except Exception: pass` ที่ห่อ `send_json` เป็นการกลืน error ที่อันตราย — ควร log ไว้อย่างน้อย
+
+### 2.5 CORS กับ WebSocket
+
+```python
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:4200"],
+    ...
+)
+```
+
+**ข้อควรรู้:** CORS middleware **ไม่ครอบคลุม WebSocket handshake** — การตรวจ `Origin` ของ WS ต้องทำเองใน endpoint ถ้าจะ deploy จริงควรเพิ่ม:
+
+```python
+origin = websocket.headers.get("origin")
+if origin not in ALLOWED_ORIGINS:
+    await websocket.close(code=1008)  # Policy Violation
+    return
+```
+
+ไม่งั้นเว็บอื่นสามารถเปิด WS มาที่ server คุณได้ (Cross-Site WebSocket Hijacking)
+
+## 3. ฝั่ง Angular — เจาะลึก
+
+### 3.1 ปัญหาใหญ่ที่สุดของ `WebSocketService`: `Subject` ที่ไม่ reset
+
+```typescript
+private logSubject = new Subject<LogMessage>();
+
+public connectJobLogs(jobId: string): Observable<LogMessage> {
+  this.socket = new WebSocket(wsUrl);
+  ...
+  return this.logSubject.asObservable();
+}
+```
+
+`logSubject` เป็น **singleton ของ service** (เพราะ `providedIn: 'root'`) ผลคือ:
+
+- เรียก `connectJobLogs("job-1")` แล้วต่อด้วย `connectJobLogs("job-2")` → ทั้งสอง subscription จะได้ log **ปนกัน**
+- หลัง `disconnect()` แล้ว reconnect → subscriber เก่าที่ยังไม่ unsubscribe จะได้ข้อความซ้ำ
+
+**แก้ได้สองทาง:**
+
+```typescript
+// ทางที่ 1: สร้าง Subject ใหม่ทุกครั้ง
+public connectJobLogs(jobId: string): Observable<LogMessage> {
+  const subject = new Subject<LogMessage>();
+  const socket = new WebSocket(`ws://localhost:8000/ws/execution/${jobId}`);
+  socket.onmessage = (e) => subject.next(JSON.parse(e.data));
+  socket.onclose = () => { subject.next({type:'status', message:'Closed'}); subject.complete(); };
+  return subject.asObservable();
+}
+
+// ทางที่ 2: ใช้ ReplaySubject เพื่อให้ subscriber ใหม่ได้ log ย้อนหลัง
+```
+
+ทางที่ 1 สะอาดกว่าและทำให้ `disconnect()` ไม่จำเป็นต้องเป็น state ของ service
+
+### 3.2 Memory leak ใน `LogViewerComponent`
+
+```typescript
+this.sub = this.wsService.connectJobLogs(jobId).subscribe({...});
+```
+
+`startStreaming` เรียก `stopStreaming()` ก่อน — ดี แต่ `stopStreaming` ทำแค่ `unsubscribe()` + `socket.close()` **ไม่ได้ set `this.sub = undefined`** ทำให้ `ngOnDestroy` เรียก `unsubscribe()` ซ้ำบน subscription ที่ปิดแล้ว (ไม่พัง แต่ไม่สะอาด)
+
+**สำคัญกว่านั้น:** `onmessage` handler ของ WebSocket ยังอ้าง `logSubject` ของ service อยู่ ถ้า service ไม่ clear handler เมื่อ close จะเกิด leak สะสมทุกครั้งที่เปิด/ปิด
+
+### 3.3 Auto-scroll — `setTimeout` ไม่ใช่คำตอบที่ดีที่สุด
+
+```typescript
+private scrollToBottom(): void {
+  setTimeout(() => {
+    this.terminalContainer.nativeElement.scrollTop = ...;
+  }, 50);
+}
+```
+
+`setTimeout(50)` เป็น **race condition แบบสุ่ม**: ถ้า Angular ยัง render DOM ไม่เสร็จใน 50ms (เช่น log เข้ามาเร็วมาก) scroll จะคำนวณ `scrollHeight` เก่า → ไม่เลื่อนลง วิธีที่ถูกต้องคือรอ render จริง:
+
+```typescript
+// Angular 17+
+import { afterNextRender } from '@angular/core';
+afterNextRender(() => this.scrollToBottom());
+```
+
+หรือใช้ `ChangeDetectorRef.detectChanges()` แล้ว scroll ทันที
+
+**อีกจุด:** ควรเช็คว่า user เลื่อนขึ้นไปอ่าน log เก่าอยู่หรือเปล่า — ถ้าใช่ อย่า auto-scroll ไปขัดจังหวะ:
+
+```typescript
+const el = this.terminalContainer.nativeElement;
+const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 30;
+if (isAtBottom) el.scrollTop = el.scrollHeight;
+```
+
+### 3.4 `getTimestamp()` ใน template — performance bug
+
+```html
+<span class="timestamp">[{{ getTimestamp() }}]</span>
+```
+
+**นี่คือบั๊กที่ร้ายกว่าที่คิด** — Angular เรียก `getTimestamp()` ในทุก change detection cycle ของทุกบรรทัด log ผลคือ:
+- timestamp เปลี่ยนตามเวลาปัจจุบัน ไม่ใช่เวลาที่ log เข้ามาจริง (ผิด semantically)
+- เมื่อมี log 500 บรรทัด Angular จะเรียกฟังก์ชันนี้ 500 ครั้งต่อ CD cycle
+
+**แก้:** เก็บ timestamp ตอนรับ message:
+
+```typescript
+this.logs.push({ ...log, timestamp: new Date() });
+```
+
+แล้ว template ใช้ `{{ log.timestamp | date:'HH:mm:ss' }}`
+
+### 3.5 ยังขาด: การ reconnect อัตโนมัติ
+
+ถ้า network กระตุก WebSocket ปิด — โค้ดนี้แค่แจ้ง "Connection Closed" แล้วจบ ควรมี exponential backoff:
+
+```typescript
+private reconnectAttempts = 0;
+onclose = () => {
+  if (this.reconnectAttempts < 5) {
+    const delay = Math.min(1000 * 2 ** this.reconnectAttempts, 30000);
+    setTimeout(() => this.connectJobLogs(jobId), delay);
+    this.reconnectAttempts++;
+  }
+};
+```
+
+## 4. จุดที่ต้องระวังด้านความปลอดภัย
+
+โค้ดตัวอย่างนี้ **ไม่ปลอดภัยสำหรับ production** ด้วยเหตุผลหลัก:
+
+| ประเด็น | ปัญหา | แนวทางแก้ |
+|---|---|---|
+| **ไม่มี Authentication** | ใครก็เปิด `/ws/execution/anything` ได้ | ตรวจ JWT ใน handshake (`websocket.query_params` หรือ subprotocol) |
+| **`job_id` ใช้สร้าง command ตรงๆ** | ถ้า script path มาจาก DB ที่ user ควบคุม → RCE | validate `job_id` เป็น UUID, ดึง command จาก DB ที่ trusted เท่านั้น |
+| **ไม่มี Rate Limit** | เปิด WS รัวๆ จน server ล่ม | จำกัด concurrent connections ต่อ user |
+| **ไม่มี Timeout** | script รันไม่จบ → connection ค้างตลอด | `asyncio.wait_for(process.wait(), timeout=N)` |
+| **`errors="replace"`** | output อาจมี ANSI escape codes ที่ทำ UI เพี้ยน | strip ANSI หรือใช้ library อย่าง `ansi2html` |
+
+## 5. สรุปสิ่งที่ควรปรับก่อนใช้จริง
+
+**Backend:**
+1. เพิ่ม `process.terminate()` ใน `finally` กัน zombie
+2. ตรวจ `Origin` header เอง (CORS middleware ไม่ครอบคลุม WS)
+3. เพิ่ม authentication ใน handshake
+4. ใส่ timeout ให้ subprocess
+5. อย่ากลืน exception เงียบๆ — log ไว้
+
+**Frontend:**
+6. สร้าง `Subject` ใหม่ต่อ connection (อย่าใช้ singleton)
+7. เก็บ timestamp ตอนรับ message ไม่ใช่ใน template
+8. ใช้ `afterNextRender` แทน `setTimeout`
+9. เพิ่ม reconnect logic
+10. อย่า auto-scroll ถ้า user เลื่อนขึ้นไปอ่านอยู่
+
+---
+
+ถ้าต้องการ ผมเขียน **เวอร์ชัน production-ready** ของทั้งสองฝั่งให้ได้เลย — พร้อม auth, reconnect, timeout, และการจัดการ process ที่ถูกต้อง
