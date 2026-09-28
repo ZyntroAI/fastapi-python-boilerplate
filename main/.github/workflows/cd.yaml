@@ -1,0 +1,39 @@
+name: FastAPI — CD
+
+on:
+  workflow_run:
+    workflows: ["FastAPI — CI"]
+    branches: [main]
+    types:
+      - completed
+
+permissions:
+  contents: read
+  deployments: write
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  deploy:
+    name: 🚀 Deploy to Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d275971364c9af68 # v4.2.2
+
+      - uses: actions/setup-python@0a5c61591373683505ea898e09a731b4d133a39d # v5.2.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 📦 Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: ✅ CI Passed — Ready to Deploy
+        run: |
+          echo "✅ Deploy pipeline triggered — CI verified successfully"
