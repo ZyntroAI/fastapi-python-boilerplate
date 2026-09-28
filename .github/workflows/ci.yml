@@ -1,4 +1,4 @@
-name: FastAPI — CI (Lint & Test)
+name: FastAPI — CI
 
 on:
   push:
@@ -77,4 +77,4 @@ jobs:
 
       - run: |
           pip install -r requirements.txt
-          python -c "from src.main import app; print('✅ App loaded')"
+          python -c "from src.main import app; print('✅ App loaded successfully')"
