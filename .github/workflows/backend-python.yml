@@ -1,0 +1,101 @@
+name: Backend Python Syntax
+
+# Gate: backend/ must contain Python that actually parses.
+#
+# This exists because backend/main.py was once committed as a chat message —
+# 243 lines of Thai prose, emoji and Markdown with the code buried inside it.
+# Nothing checked it, so it merged, and every import of backend.main has failed
+# since. py_compile would have caught it on the first PR.
+#
+# See the guard step below: a bare `*.py` in .gitignore means this gate can be
+# silently checking an empty directory, which is worse than no gate at all.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-python.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-python.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: '3.13'
+  BACKEND_DIR: backend
+  # Below this many tracked .py files, assume .gitignore is eating the rest.
+  MIN_PY_FILES: '10'
+
+jobs:
+  py-compile:
+    name: py_compile backend
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Guard — no bare '*.py' rule in .gitignore
+        run: |
+          set -euo pipefail
+          if grep -qE '^[[:space:]]*\*\.py[[:space:]]*$' .gitignore; then
+            echo "::error::.gitignore contains a bare '*.py' rule. That excludes EVERY Python source file from git, so this gate would only ever check the few files that slipped through before the rule was added. Remove that line (use __pycache__/, *.py[cod], .venv/ instead) before relying on this check."
+            exit 1
+          fi
+          echo "OK: .gitignore does not blanket-ignore *.py"
+
+      - name: Guard — enough Python files are tracked
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(
+            find "$BACKEND_DIR" -type f -name '*.py' \
+              -not -path '*/__pycache__/*' | sort
+          )
+          count=${#files[@]}
+          echo "Tracked Python files under $BACKEND_DIR/: $count (minimum $MIN_PY_FILES)"
+          printf '  %s\n' "${files[@]}"
+          if [ "$count" -eq 0 ]; then
+            echo "::error::No Python files found under $BACKEND_DIR/. Either the directory moved or it is being excluded by .gitignore."
+            exit 1
+          fi
+          if [ "$count" -lt "$MIN_PY_FILES" ]; then
+            echo "::error::Only $count Python file(s) tracked under $BACKEND_DIR/ — expected at least $MIN_PY_FILES. This usually means .gitignore is excluding the backend source. A green check here would be meaningless."
+            exit 1
+          fi
+
+      - name: py_compile every backend file
+        run: |
+          set -uo pipefail
+          mapfile -t files < <(
+            find "$BACKEND_DIR" -type f -name '*.py' \
+              -not -path '*/__pycache__/*' 2>/dev/null | sort
+          )
+          # Zero files must FAIL, not pass silently. An empty glob used to
+          # exit 0, which is the exact blind spot this gate exists to close.
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "::error::No Python files found under $BACKEND_DIR/ — nothing was checked, so this job proves nothing."
+            exit 1
+          fi
+          fail=0
+          for f in "${files[@]}"; do
+            if python -m py_compile "$f" 2>/tmp/err; then
+              echo "  ok   $f"
+            else
+              echo "::error file=$f::$f is not valid Python"
+              sed 's/^/       /' /tmp/err >&2
+              fail=1
+            fi
+          done
+          if [ "$fail" -ne 0 ]; then
+            echo ""
+            echo "::error::One or more files under $BACKEND_DIR/ failed to parse. Every import of backend.main fails until this is fixed."
+          fi
+          exit "$fail"
