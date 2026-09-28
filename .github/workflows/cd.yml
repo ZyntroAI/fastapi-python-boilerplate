@@ -1,4 +1,4 @@
-name: FastAPI — CD (Deploy)
+name: FastAPI — CD
 
 on:
   push:
@@ -21,11 +21,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: production
-    # รอ CI ผ่านก่อนเสมอ
+
+    # รอ CI ผ่านก่อนเสมอ — ป้องกันโค้ดเสียไป production
     needs:
       - lint
       - test
       - validate
+
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d275971364c9af68 # v4.2.2
 
@@ -38,30 +40,8 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      # ==============================================
-      # 🚀 ปรับแต่งขั้นตอนปรับใช้ตามแพลตฟอร์มของคุณ
-      # ==============================================
-
-      - name: 🐳 Build & Push Docker
-        if: false # เปลี่ยนเป็น true เมื่อพร้อม
+      # 🚀 ปรับแต่งส่วนนี้ตามแพลตฟอร์มจริงของคุณ
+      - name: ✅ Deployment Placeholder
         run: |
-          docker build -t ghcr.io/ZyntroAI/fastapi-python-boilerplate:latest .
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker push ghcr.io/ZyntroAI/fastapi-python-boilerplate:latest
-
-      - name: 📤 Deploy via SSH
-        if: false # เปลี่ยนเป็น true เมื่อพร้อม
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script: |
-            cd /opt/app
-            git pull origin main
-            pip install -r requirements.txt
-            systemctl restart fastapi
-
-      - name: ✅ Deployment Complete
-        run: |
-          echo "✅ Deployed successfully — $(date)"
+          echo "✅ CI passed — ready to deploy"
+          echo "👉 Edit .github/workflows/cd.yml to add your deployment steps"
