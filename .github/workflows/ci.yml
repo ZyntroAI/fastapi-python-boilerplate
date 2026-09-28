@@ -3,9 +3,7 @@ name: FastAPI — CI
 on:
   push:
     branches: [main]
-    paths:
-      - 'src/**'
-      - 'tests/**'
+    paths :
       - '.github/workflows/ci.yml'
   pull_request:
     branches: [main]
