@@ -1,9 +1,12 @@
+<!-- http-forge-agents-md-version: 1 -->
 # HTTP Forge — AI Agent Guide
 
 This folder is already the **HTTP Forge workspace root**. Do not create a second nested `.http-forge/` directory inside it.
 
 > **GitHub Copilot tip:** To keep this guide in every Copilot conversation, add one line to
 > `.github/copilot-instructions.md`: `See .http-forge/AGENTS.md for the HTTP Forge AI guide.`
+
+> **Keep this guide fresh:** if it looks outdated, run the **HTTP Forge: Refresh AI Agent Guide** command (VS Code) or `http-forge refresh-agents-md --apply` (CLI). Your current file is backed up to `AGENTS.md.bak` before replacement.
 
 ---
 
@@ -116,6 +119,36 @@ no need to paste Confluence/Jira content into collection files themselves.
 Per-request business docs can also live next to a request as `doc.md`
 (alongside `request.json`) — HTTP Forge loads it and passes it to AI features
 automatically.
+
+---
+
+## Same-Workspace Code and Docs — Read Before Generating
+
+In most workspaces the HTTP Forge tests (requests, suites, environments) live
+**in the same repo as the API code and product docs** — `.http-forge/` is just
+one folder among them. Before generating or editing requests, suites,
+environments, or assertions, look outside `.http-forge/` at the workspace
+root so the tests reflect real requirements and cover edge cases:
+
+1. **Find the sources** (cheapest first — stop when you have the requirement):
+   - `README.md`, `AGENTS.md`, `docs/**`, `openapi.*.{json,yaml,yml}`,
+     `*.openapi.*` — stated contracts and acceptance criteria (ACs).
+   - `.http-forge/knowledge/**/*.md` + per-request `doc.md` — Confluence
+     exports, Jira ticket summaries / ACs, ADRs, field glossaries.
+   - API implementation next to the tests: route/controller/handler files
+     (e.g. `src/routes/**`, `src/controllers/**`, `apps/**/views.py`,
+     `@RestController` classes), DTO/schema validators, auth middleware —
+     the ground truth for paths, methods, status codes, validation rules,
+     and error shapes.
+2. **Derive tests from what you read** — every documented AC and every
+   validation branch / error path in the implementation deserves a request
+   or assertion (happy path + 400/401/403/404/boundary cases). Name the
+   source (file + ticket/AC id) in the request `description` or `doc.md`
+   so reviewers can trace coverage.
+3. **When code and docs disagree**, prefer the implementation for behavior,
+   but flag the drift to the user instead of silently picking one.
+4. **Do not paste large source files into tests** — reference paths and
+   AC ids; keep request bodies/assertions minimal and deterministic.
 
 ---
 
