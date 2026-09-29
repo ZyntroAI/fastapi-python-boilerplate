@@ -1,0 +1,52 @@
+
+name: Package Monitor
+
+on:
+  push:
+    branches: [main, dev]
+    paths: ["package.json", "package-lock.json"]
+  pull_request:
+    paths: ["package.json", "package-lock.json"]
+  schedule:
+    - cron: '0 0 * * *'  # Daily @ 07:00 ICT
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with: { node-version: "22", cache: "npm" }
+
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+
+      - run: npm install
+
+      - name: Run PackageMonitor
+        id: scan
+        run: python scripts/python/PackageMonitor/package_monitor.py
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: package-reports
+          path: reports/package-monitor/
+
+      - name: Auto-Create Issue on Critical
+        if: failure() && steps.scan.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('reports/package-monitor/latest.json'));
+            const critical = report.issues.filter(i => i.severity === 'critical');
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo.repo,
+              title: "🚨 Critical Dependency Issues",
+              body: critical.map(i => `- **${i.package}**: ${i.message}`).join('\n'),
+              labels: ["priority:critical", "deps:security", "automated"]
+            })
