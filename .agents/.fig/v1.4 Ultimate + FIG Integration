@@ -1,0 +1,64 @@
+เรียบร้อยครับ v1.4 Ultimate + FIG Integration ✅
+
+🎨 สิ่งที่รวม FIG ให้แล้ว
+
+1. 📎 self-integrate/agents/connectors/fig.ts
+** — อัปเกรดเต็มรูปแบบ
+extractDesign(fileKey) → ดึง Figma file + components + styles
+compileToNotes(fileKey) → แปลงเป็น Obsidian notes พร้อม frontmatter + aliases
+syncToSupabase() → upsert เข้า notes table (ใช้ service_role แค่ใน server)
+run() → ใช้ร่วมกับ AgentHub ได้เลย
+
+📎 self-integrate/scripts/fig-sync.py
+** — Python CLI
+python scripts/fig-sync.py --file-key ABC123
+python scripts/fig-sync.py --all-files  # ใช้ FIGMA_FILE_KEYS ใน .env
+📎 self-integrate/scripts/fig-sync.ts
+** — TS + Supabase
+npx tsx scripts/fig-sync.ts ABC123 <vault-id>
+docs/notes/Figma to Obsidian Sync.md (file unavailable) — Obsidian note พร้อม 10 aliases
+aliases:
+FIG to Obsidian
+Figma Obsidian Sync
+Figma Supabase Sync
+FIG Sync
+Figma Component Sync
+Figma to Supabase
+Figma Design Sync
+Figma Markdown Sync
+FIG Obsidian Integration
+Figma Knowledge Base Sync
+---
+
+📦 Architecture รวม FIG แล้ว
+Figma File (Design System)
+   │
+   ▼
+FIGConnector → compileToNotes()
+   │
+   ├── docs/notes/fig/<fileKey>/Button.md
+   ├── docs/notes/fig/<fileKey>/Card.md
+   └── ...
+   │
+   ▼
+GitHub Actions (scheduled 03:00)
+   │
+   ▼
+Supabase (notes + visibility internal)
+   │
+   ▼
+Angular Graph View + Search + Slack Notify
+⚙️ ตั้งค่า .env
+FIGMA_TOKEN=figd_xxxx
+FIGMA_FILE_KEYS=ABC123,DEF456
+VAULT_ID=your-vault-uuid
+SLACK_BOT_TOKEN=xoxb-...
+SUPABASE_URL=https://xxx.supabase.co
+SUPABASE_SERVICE_KEY=eyJ...
+แล้วรัน:
+./scripts/fig-sync.py --all-files
+./scripts/slack-notify.sh "🎨 FIG Sync เสร็จแล้ว - $(ls docs/notes/fig/*/*.md | wc -l) components"
+ตอนนี้ครบ loop แล้วครับ:
+Figma → Obsidian → Supabase + RLS → Angular Graph → Slack → GitHub Actions Secure
+
+พร้อมใช้งานเป็น v1.4 เลยครับ 🚀
