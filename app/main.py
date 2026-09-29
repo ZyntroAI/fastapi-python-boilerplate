@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import auth, callback, health
 from app.core.config import settings
+from scripts.python.PackageMonitor.package_api import router as package_router
+app.include_router(package_router)
 
 app = FastAPI(
     title="OAuth2 PKCE API",
