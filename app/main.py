@@ -1,33 +1,18 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import auth, callback, health
 from app.core.config import settings
-from scripts.python.PackageMonitor.package_api import router as package_router
-app.include_router(package_router)
+from app.routers import health, items, bridge
 
-app = FastAPI(
-    title="OAuth2 PKCE API",
-    version="1.0.0",
-    docs_url="/docs" if not settings.ENV == "production" else None,
-)
+app = FastAPI(title=settings.PROJECT_NAME, version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=settings.ALLOWED_HOSTS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(auth.router, prefix="/auth", tags=["Auth"])
-app.include_router(callback.router, prefix="/auth", tags=["Auth"])
-app.include_router(health.router, prefix="/health", tags=["Health"])
-
-
-@app.get("/")
-async def root():
-    return {
-        "message": "FastAPI OAuth2 PKCE",
-        "environment": settings.ENV,
-        "callback_url": settings.OAUTH_CALLBACK_URL,
-    }
+app.include_router(health.router, prefix="/api/v1")
+app.include_router(items.router, prefix="/api/v1/items")
+app.include_router(bridge.router, prefix="/api/v1/bridge")
