@@ -1,4 +1,4 @@
-fastapi-python-boilerplate/
+c0-fastapi-python-boilerplate/
 │
 ├── app/
 │   ├── api/
