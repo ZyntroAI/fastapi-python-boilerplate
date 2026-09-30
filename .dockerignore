@@ -8,3 +8,5 @@ logs
 .env
 **/*.log
 **/dist
+k8s
+node*

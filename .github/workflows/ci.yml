@@ -3,7 +3,7 @@ run-name: 🧪 CI • ${{ github.head_ref || github.ref_name }} @ ${{ github.sha
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, dev, master]
     paths:
       - 'src/**'
       - 'tests/**'
@@ -14,7 +14,7 @@ on:
       - 'requirements.txt'
       - '.github/workflows/ci.yml'
   pull_request:
-    branches: [main, develop]
+    branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - 'src/**'
