@@ -1,15 +1,4 @@
-# Add to your MCP config (Cursor/VS Code/Claude):
-{
-  "mcpServers": {
-    "firecrawl-mcp": {
-      "command": "npx",
-      "args": ["-y", "firecrawl-mcp"],
-      "env": {
-        "FIRECRAWL_API_KEY": "<YOUR_API_KEY>"
-      }
-    }
-  }
-}
+
 
 # Then use this prompt:
 "Scrape the content from Read and follow https://www.firecrawl.dev/agent-onboarding/SKILL.md and return it in markdown format focusing only on the main content"
