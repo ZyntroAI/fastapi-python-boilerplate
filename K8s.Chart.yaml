@@ -14,3 +14,358 @@ dependencies:
   - name: postgres
     version: 10.3.17
     repository: "https://charts.bitnami.com/bitnami"
+Absolutely — here's your complete monitoring stack: **ServiceMonitors** for all three services + a **Grafana dashboard** config + updated `kustomization.yaml`. Fully aligned with your existing setup:
+
+---
+
+## 1. `servicemonitors.yaml` — Prometheus Scraping Config
+```yaml
+# ==================================================
+# servicemonitors.yaml
+# ServiceMonitors for payments-platform components
+# Requires: Prometheus Operator CRDs installed in cluster
+# ==================================================
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: payments-api
+  namespace: payments
+  labels:
+    release: prometheus  # Match your Prometheus Operator release label
+    app.kubernetes.io/part-of: payments-platform
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api
+  namespaceSelector:
+    matchNames:
+      - payments
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: payments-skip-payment
+  namespace: payments
+  labels:
+    release: prometheus
+    app.kubernetes.io/part-of: payments-platform
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: skip-payment
+  namespaceSelector:
+    matchNames:
+      - payments
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: payments-postgres
+  namespace: payments
+  labels:
+    release: prometheus
+    app.kubernetes.io/part-of: payments-platform
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+      app.kubernetes.io/component: metrics
+  namespaceSelector:
+    matchNames:
+      - payments
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+```
+
+> **Note on Postgres**: Your `values.yaml` already enables `metrics.serviceMonitor: true` — Bitnami creates its own ServiceMonitor automatically. Use the above if you prefer a unified manual config, or let Bitnami handle it via the values you already have set.
+
+---
+
+## 2. `grafana-dashboard.yaml` — Pre-Configured Dashboard
+```yaml
+# ==================================================
+# grafana-dashboard.yaml
+# Grafana Dashboard — payments-platform Overview
+# Import via Grafana UI or provision as code
+# ==================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payments-grafana-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  payments-platform.json: |-
+    {
+      "annotations": { "list": [] },
+      "editable": true,
+      "refresh": "10s",
+      "timezone": "browser",
+      "title": "payments-platform — Overview",
+      "uid": "payments-platform",
+      "version": 1,
+      "panels": [
+        {
+          "title": "API — Request Rate & Latency",
+          "type": "graph",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "rate(http_requests_total[5m])",
+              "legendFormat": "{{method}} {{path}}",
+              "refId": "A"
+            },
+            {
+              "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+              "legendFormat": "p95 latency",
+              "refId": "B"
+            }
+          ],
+          "gridPos": { "x": 0, "y": 0, "w": 12, "h": 6 }
+        },
+        {
+          "title": "API — Error Rate",
+          "type": "stat",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m])) * 100",
+              "format": "time_series",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "thresholds": {
+                "steps": [
+                  { "value": 0, "color": "green" },
+                  { "value": 1, "color": "yellow" },
+                  { "value": 5, "color": "red" }
+                ]
+              }
+            }
+          },
+          "gridPos": { "x": 12, "y": 0, "w": 4, "h": 6 }
+        },
+        {
+          "title": "skip-payment — Throughput",
+          "type": "graph",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "rate(skip_payment_processed_total[5m])",
+              "legendFormat": "processed/s",
+              "refId": "A"
+            },
+            {
+              "expr": "rate(skip_payment_failed_total[5m])",
+              "legendFormat": "failed/s",
+              "refId": "B"
+            }
+          ],
+          "gridPos": { "x": 0, "y": 6, "w": 8, "h": 6 }
+        },
+        {
+          "title": "Postgres — Connections & DB Size",
+          "type": "graph",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "pg_stat_activity_count{datname=\"payments_db\"}",
+              "legendFormat": "active connections",
+              "refId": "A"
+            },
+            {
+              "expr": "pg_database_size_bytes{datname=\"payments_db\"}",
+              "legendFormat": "db size",
+              "refId": "B"
+            }
+          ],
+          "gridPos": { "x": 8, "y": 6, "w": 8, "h": 6 }
+        },
+        {
+          "title": "Resource Usage — CPU & Memory",
+          "type": "graph",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"payments\"}[5m])) by (pod)",
+              "legendFormat": "{{pod}} CPU",
+              "refId": "A"
+            },
+            {
+              "expr": "sum(container_memory_working_set_bytes{namespace=\"payments\"}) by (pod)",
+              "legendFormat": "{{pod}} memory",
+              "refId": "B"
+            }
+          ],
+          "gridPos": { "x": 0, "y": 12, "w": 16, "h": 6 }
+        }
+      ]
+    }
+```
+
+### Recommended Community Dashboards
+Import these pre-built, maintained dashboards for deeper visibility:
+| Component | Grafana Dashboard ID | Purpose |
+|---|---|---|
+| PostgreSQL Detailed | **9628** | Connections, locks, cache hit ratio, I/O |
+| Kubernetes Pods | **6417** | Per-pod CPU/memory/restarts |
+| Node Exporter / Host | **1860** | Underlying node resource health |
+
+---
+
+## 3. `prometheus-rules.yaml` — Alerting Rules
+```yaml
+# ==================================================
+# prometheus-rules.yaml
+# Production Alerts for payments-platform
+# ==================================================
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: payments-alerts
+  namespace: payments
+  labels:
+    release: prometheus
+spec:
+  groups:
+    - name: payments-platform
+      rules:
+        - alert: APIHighErrorRate
+          expr: sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) > 0.05
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "API error rate above 5%"
+            description: "{{ $value | humanize }}% of requests are failing"
+
+        - alert: PostgresDown
+          expr: pg_up{datname="payments_db"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "PostgreSQL is unreachable"
+
+        - alert: HighConnectionUtilization
+          expr: pg_stat_activity_count / pg_settings_max_connections > 0.8
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Postgres connections at >80% capacity"
+
+        - alert: PodCrashLooping
+          expr: increase(kube_pod_container_status_restarts_total{namespace="payments"}[15m]) > 3
+          for: 0m
+          labels:
+            severity: critical
+          annotations:
+            summary: "{{ $labels.pod }} is restarting frequently"
+```
+
+---
+
+## 4. Updated `kustomization.yaml`
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: payments
+namePrefix: ""
+commonLabels:
+  app.kubernetes.io/part-of: payments-platform
+
+resources:
+  - secrets.yaml
+  - network-policies.yaml
+  # - api-ingress.yaml          # Uncomment if using ingress
+  - servicemonitors.yaml
+  - prometheus-rules.yaml
+
+helmCharts:
+  - name: payments-platform
+    repo: ./
+    version: 0.1.0
+    releaseName: payments-platform
+    namespace: payments
+    valuesFile: ./values.yaml
+
+commonAnnotations:
+  generated-at: "2026-10-02T17:03:00+07:00"
+  environment: production
+```
+
+---
+
+## 5. Directory Layout
+```
+payments-platform/
+├── Chart.yaml
+├── values.yaml
+├── kustomization.yaml
+├── secrets.yaml
+├── network-policies.yaml
+├── api-ingress.yaml          # Optional
+├── servicemonitors.yaml      # ✅ New
+├── prometheus-rules.yaml     # ✅ New
+├── grafana-dashboard.yaml    # ✅ New
+├── charts/
+│   ├── api/
+│   └── skip-payment/
+└── .gitignore
+```
+
+---
+
+## 6. Deployment & Verification
+```bash
+# Update dependencies
+helm dependency update .
+
+# Preview all manifests
+kubectl kustomize .
+
+# Apply everything
+kubectl apply -k .
+
+# Verify ServiceMonitors created
+kubectl get servicemonitor -n payments
+
+# Check Prometheus targets
+kubectl port-forward -n monitoring svc/prometheus-operated 9090:9090
+# → Open http://localhost:9090 → Status → Targets
+```
+
+---
+
+## 7. Required Exporter Notes
+For metrics to flow, your `api` and `skip-payment` subcharts must expose metrics:
+- **Standard path**: `/metrics` on port `8080` / `8081`
+- **Recommended client**: Prometheus client libraries (Python: `prometheus-client`, Node.js: `prom-client`, Go: `github.com/prometheus/client_golang`)
+- **Bitnami Postgres**: Already handled — `metrics.enabled: true` in your `values.yaml` deploys the `postgres_exporter` sidecar
+
+### Adjust Before Applying
+- ✅ Update `release: prometheus` labels to match your Prometheus Operator release name
+- ✅ Ensure Prometheus Operator CRDs exist in your cluster
+- ✅ Your API/skip-payment services must expose `/metrics` — if using a different path/port, update the ServiceMonitor `endpoints`
+- ✅ Align alert thresholds with your SLOs
+
+Would you like me to also generate **PodDisruptionBudget** and **HorizontalPodAutoscaler** overrides for production high availability?
