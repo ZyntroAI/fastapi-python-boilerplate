@@ -1,159 +1,82 @@
 """
-Claude endpoints — Streaming SSE and Tool-calling.
-
-Mounted under /claude. Two routes:
-  - POST /claude/chat/stream   server-sent events from the streaming API
-  - POST /claude/chat/tools    tool/function-calling, returns parsed tool_calls
+🤖 Claude API Endpoints — FastAPI Router
+Path: app/api/v1/endpoints/claude.py
 """
-from __future__ import annotations
-
-import json
-from typing import Any, Dict, List, Optional
-
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
-
-from app.services.claude_client import ClaudeClient, get_claude_client
-
-router = APIRouter(prefix="/claude", tags=["Claude"])
-
-
-# ── models ─────────────────────────────────────────────────────────────────
-
-class ToolDefinition(BaseModel):
-    name: str
-    description: Optional[str] = None
-    input_schema: Dict[str, Any] = Field(
-        ..., description="JSON Schema describing the tool's parameters"
-    )
-
-
+from typing import List, Optional
+from app.claude_client import ClaudeClient
+from app.core.config import settings
+router = APIRouter(prefix="/claude", tags=["claude"])
+# ─── Request/Response Schemas ───
+class MessageItem(BaseModel):
+    role: str = Field(..., pattern="^(user|assistant)$")
+    content: str
 class ClaudeRequest(BaseModel):
-    messages: List[Dict[str, Any]] = Field(..., description="Conversation history")
-    model: Optional[str] = Field(None, description="Model override")
-    max_tokens: int = Field(1024, gt=0)
-    tools: Optional[List[ToolDefinition]] = None
-
-
-class ClaudeToolsResponse(BaseModel):
+    messages: List[MessageItem]
+    model: str = Field(default="claude-sonnet-4-6")
+    max_tokens: int = Field(default=1024, ge=1, le=200000)
+    system: Optional[str] = None
+    temperature: float = Field(default=0.0, ge=0.0, le=1.0)
+    stream: bool = False
+class ClaudeUsage(BaseModel):
+    input_tokens: int = 0
+    output_tokens: int = 0
+class ClaudeResponse(BaseModel):
     success: bool
-    model: Optional[str] = None
+    model: str
+    text: str
+    usage: ClaudeUsage
     stop_reason: Optional[str] = None
-    tool_calls: List[Dict[str, Any]] = Field(default_factory=list)
-    content: List[Dict[str, Any]] = Field(default_factory=list)
-    usage: Dict[str, Any] = Field(default_factory=dict)
-    error: Optional[str] = None
-
-
-# ── helpers ────────────────────────────────────────────────────────────────
-
-def _sse(payload: Any) -> str:
-    """Encode one server-sent event."""
-    return f"data: {json.dumps(payload)}\n\n"
-
-
-def _sse_done() -> str:
-    """
-    The terminal frame.
-
-    `[DONE]` is a bare SSE sentinel, not JSON — passing it through `_sse()`
-    would emit `data: "[DONE]"` (a JSON string) and clients waiting on the
-    sentinel would never see it.
-    """
-    return "data: [DONE]\n\n"
-
-
-def _extract_tool_calls(content: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Pull tool_use blocks out of an Anthropic `content` array."""
-    calls = []
-    for block in content or []:
-        if isinstance(block, dict) and block.get("type") == "tool_use":
-            calls.append(
-                {
-                    "id": block.get("id"),
-                    "name": block.get("name"),
-                    "input": block.get("input", {}),
-                }
-            )
-    return calls
-
-
-# ── routes ─────────────────────────────────────────────────────────────────
-
-@router.post("/chat/stream")
-async def claude_chat_stream(
-    request: ClaudeRequest,
-    client: ClaudeClient = Depends(get_claude_client),
-):
-    """
-    Stream a Claude response as server-sent events.
-
-    Each upstream SSE frame is re-emitted verbatim as `data: {...}`, and the
-    stream is closed with a terminal `data: [DONE]`.
-    """
-    async def event_stream():
-        try:
-            async for event in client.stream_message(
-                messages=request.messages,
-                model=request.model,
-                max_tokens=request.max_tokens,
-                tools=[t.model_dump() for t in request.tools] if request.tools else None,
-            ):
-                yield _sse(event)
-        except Exception as exc:  # surface upstream failure in-band, then close
-            yield _sse({"type": "error", "error": str(exc)})
-        finally:
-            yield _sse_done()
-
-    return StreamingResponse(
-        event_stream(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    message_id: Optional[str] = None
+# ─── Dependency ───
+def get_claude_client() -> ClaudeClient:
+    return ClaudeClient(
+        api_key=settings.ANTHROPIC_API_KEY,
+        base_url=settings.ANTHROPIC_BASE_URL,
+        timeout=settings.HTTP_TIMEOUT,
+        anthropic_version=settings.ANTHROPIC_VERSION
     )
-
-
-@router.post("/chat/tools", response_model=ClaudeToolsResponse)
-async def claude_chat_with_tools(
-    request: ClaudeRequest,
-    client: ClaudeClient = Depends(get_claude_client),
+# ─── Endpoints ───
+@router.post("/chat", response_model=ClaudeResponse, summary="Send message to Claude")
+async def claude_chat(
+    req: ClaudeRequest,
+    client: ClaudeClient = Depends(get_claude_client)
 ):
     """
-    Tool/function-calling endpoint.
-
-    Requires at least one tool definition — a call with none cannot produce a
-    meaningful tool-use decision, so it is a client error rather than a silent
-    no-op.
+    Send a conversation to Claude and receive a response.
+    - **messages**: Conversation history alternating user ↔ assistant
+    - **model**: claude-opus-4-6 / claude-sonnet-4-6 / claude-haiku-4-5
+    - **system**: Optional instruction to guide behavior
+    - **temperature**: 0 = factual/deterministic → 1 = creative/random
     """
-    if not request.tools:
-        raise HTTPException(status_code=400, detail="No tools provided")
-
     try:
-        result = await client.send_message(
-            messages=request.messages,
-            model=request.model,
-            max_tokens=request.max_tokens,
-            tools=[t.model_dump() for t in request.tools],
+        response = await client.send_message(
+            messages=[{"role": m.role, "content": m.content} for m in req.messages],
+            model=req.model,
+            max_tokens=req.max_tokens,
+            system=req.system,
+            temperature=req.temperature,
+            stream=req.stream
         )
-    except Exception as exc:
-        raise HTTPException(status_code=502, detail=str(exc))
-
-    content = result.get("content") or []
-    return ClaudeToolsResponse(
-        success=True,
-        model=result.get("model"),
-        stop_reason=result.get("stop_reason"),
-        tool_calls=_extract_tool_calls(content),
-        content=content,
-        usage=result.get("usage") or {},
-    )
-
-
-@router.get("/status")
-async def claude_status(client: ClaudeClient = Depends(get_claude_client)):
-    """Report whether the client is configured, without calling upstream."""
+        return ClaudeResponse(
+            success=True,
+            model=response.get("model", req.model),
+            text=client.extract_text(response),
+            usage=ClaudeUsage(**response.get("usage", {})),
+            stop_reason=response.get("stop_reason"),
+            message_id=response.get("id")
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Claude API Error: {str(e)}")
+@router.get("/models", summary="List supported models")
+async def list_models():
+    """Get available Claude models with capabilities"""
     return {
-        "configured": bool(client.api_key),
-        "model": client.default_model,
-        "base_url": client.base_url,
+        "models": [
+            {"id": "claude-opus-4-6", "tier": "most-capable", "context_window": "200K+"},
+            {"id": "claude-sonnet-4-6", "tier": "balanced", "context_window": "200K+"},
+            {"id": "claude-haiku-4-5", "tier": "fastest", "context_window": "200K+"}
+        ],
+        "recommended": "claude-sonnet-4-6"
     }
