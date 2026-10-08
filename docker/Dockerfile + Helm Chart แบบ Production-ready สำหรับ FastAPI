@@ -650,3 +650,191 @@ ArgoCD
 ✅ Enterprise Security Baseline
 
 ซึ่งถือเป็น baseline ที่ดีสำหรับ FastAPI หรือ GraphQL API ขนาด production ระดับองค์กรครับ।
+
+สำหรับ Production จริง ผมแนะนำใช้ **TopologySpreadConstraints + PodAntiAffinity** ร่วมกัน
+
+- **TopologySpreadConstraints** = พยายามกระจาย Pods ให้สมดุล
+- **PodAntiAffinity** = หลีกเลี่ยงการวาง Pods ของ Service เดียวกันบน Node เดียวกัน
+
+แนวทางนี้ทำให้ Scheduler ยืดหยุ่นกว่าใช้ AntiAffinity แบบ Hard อย่างเดียว
+
+## values.yaml
+
+```yaml
+affinity:
+  enabled: true
+
+  podAntiAffinity:
+    enabled: true
+
+    type: preferred
+
+    weight: 100
+
+    topologyKey: kubernetes.io/hostname
+```
+
+---
+
+## Preferred Anti-Affinity (แนะนำ)
+
+กรณี Cluster มี Node ไม่มาก Kubernetes ยังสามารถ Schedule ได้
+
+```yaml
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+
+      podAffinityTerm:
+        topologyKey: kubernetes.io/hostname
+
+        labelSelector:
+          matchLabels:
+            app: {{ include "fastapi.name" . }}
+```
+
+ผลลัพธ์
+
+```text
+Node-1 : pod-1
+Node-2 : pod-2
+Node-3 : pod-3
+```
+
+หาก Node ไม่พอ
+
+```text
+Node-1 : pod-1 pod-4
+Node-2 : pod-2
+Node-3 : pod-3
+```
+
+ยัง Deploy ได้
+
+---
+
+# Required Anti-Affinity
+
+ใช้เมื่อ Cluster มี Capacity มากพอแน่นอน
+
+```yaml
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+    - topologyKey: kubernetes.io/hostname
+
+      labelSelector:
+        matchLabels:
+          app: {{ include "fastapi.name" . }}
+```
+
+ข้อดี
+
+```text
+Node-1 : pod-1
+Node-2 : pod-2
+Node-3 : pod-3
+```
+
+ข้อเสีย
+
+```text
+Replica = 4
+Node = 3
+```
+
+Pod ที่ 4 จะ Pending ทันที
+
+---
+
+# รองรับ Multi-AZ
+
+ถ้ารันบน EKS / AKS / GKE
+
+```yaml
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+
+      podAffinityTerm:
+        topologyKey: topology.kubernetes.io/zone
+
+        labelSelector:
+          matchLabels:
+            app: {{ include "fastapi.name" . }}
+```
+
+Scheduler จะพยายามแยก Pod ไปคนละ AZ
+
+---
+
+# Helm Template
+
+```yaml
+{{- if .Values.affinity.enabled }}
+affinity:
+
+  podAntiAffinity:
+
+  {{- if eq .Values.affinity.podAntiAffinity.type "required" }}
+
+    requiredDuringSchedulingIgnoredDuringExecution:
+
+    - topologyKey: {{ .Values.affinity.podAntiAffinity.topologyKey }}
+
+      labelSelector:
+        matchLabels:
+          app: {{ include "fastapi.name" . }}
+
+  {{- else }}
+
+    preferredDuringSchedulingIgnoredDuringExecution:
+
+    - weight: {{ .Values.affinity.podAntiAffinity.weight }}
+
+      podAffinityTerm:
+        topologyKey: {{ .Values.affinity.podAntiAffinity.topologyKey }}
+
+        labelSelector:
+          matchLabels:
+            app: {{ include "fastapi.name" . }}
+
+  {{- end }}
+
+{{- end }}
+```
+
+---
+
+# Enterprise Pattern ที่นิยม
+
+```yaml
+topologySpreadConstraints:
+- topologyKey: topology.kubernetes.io/zone
+  maxSkew: 1
+  whenUnsatisfiable: DoNotSchedule
+
+- topologyKey: kubernetes.io/hostname
+  maxSkew: 1
+  whenUnsatisfiable: ScheduleAnyway
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        topologyKey: kubernetes.io/hostname
+```
+
+ชุดนี้ให้ผลลัพธ์ที่ดีมาก:
+
+✅ กระจายข้าม AZ  
+✅ กระจายข้าม Node  
+✅ รองรับ Rolling Update  
+✅ รองรับ Node Drain  
+✅ ลด Blast Radius เมื่อ Node ล่ม  
+✅ ไม่เสี่ยง Pending Pod แบบ Required AntiAffinity
+
+สำหรับ FastAPI/GraphQL API บน EKS หรือ AKS ผมมักใช้ Pattern นี้ร่วมกับ **PDB + HPA + TopologySpread + NetworkPolicy + ExternalSecrets + ArgoCD** เป็น baseline production deployment ครับ.
