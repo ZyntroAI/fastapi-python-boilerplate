@@ -1,24 +1,24 @@
 {
-  // GitHub Copilot / ChatGPT
-  "github.copilot.enable": {
+    "github.copilot.enable": {
     "*": true,
     "plaintext": false,
-    "markdown": true
-  },
-
-  // Continue
-  "continue.enableTabAutocomplete": true,
-  "continue.telemetryEnabled": false,
-
-  // Cline / Roo Code (OpenAI-compatible)
-  "cline.apiProvider": "openai",
-  "cline.openAiBaseUrl": "https://api.openai.com/v1",
+    "markdown": true,
+    "continue.enableTabAutocomplete": true,
+    "continue.telemetryEnabled": false,
+    "cline.apiProvider": "openai",
+    "cline.openAiBaseUrl": "https://api.openai.com/v1",
   "cline.openAiApiKey": "${env:OPENAI_API_KEY}",
-
   "roo-cline.apiProvider": "openai",
   "roo-cline.openAiBaseUrl": "https://api.openai.com/v1",
   "roo-cline.openAiApiKey": "${env:OPENAI_API_KEY}",
-
-  // Gemini Code Assist
-  "geminiCodeAssist.enable": true
+  "geminiCodeAssist.enable": true,
+  "npm.packageManager": "pnpm",
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "files.eol": "\n",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/pnpm-lock.yaml": false
 }
