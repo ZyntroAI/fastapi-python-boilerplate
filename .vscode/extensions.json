@@ -6,6 +6,13 @@
     "Continue.continue",
     "saoudrizwan.claude-dev",
     "rooveterinaryinc.roo-cline",
-    "ms-python.python"
+    "ms-python.python",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "ms-vscode.vscode-typescript-next",
+    "christian-kohler.npm-intellisense",
+    "GitHub.vscode-pull-request-github"
   ]
+}
+  
 }
