@@ -1,0 +1,227 @@
+ได้ครับ ถ้าคุณต้องการ **Dockerfile + Helm Chart แบบ Production-ready สำหรับ FastAPI** ผมแนะนำโครงสร้างมาตรฐานดังนี้
+
+### Dockerfile
+
+```dockerfile
+# Build Stage
+FROM python:3.12-slim AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+
+RUN pip install --upgrade pip && \
+    pip install --prefix=/install -r requirements.txt
+
+# Runtime Stage
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+RUN useradd -m appuser
+
+WORKDIR /app
+
+COPY --from=builder /install /usr/local
+COPY . .
+
+RUN chown -R appuser:appuser /app
+
+USER appuser
+
+EXPOSE 8000
+
+CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", \
+     "-w", "4", "-b", "0.0.0.0:8000", "app.main:app"]
+```
+
+---
+
+### values.yaml
+
+```yaml
+replicaCount: 3
+
+image:
+  repository: registry.example.com/fastapi-app
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+ingress:
+  enabled: true
+  className: nginx
+  host: api.example.com
+  tls:
+    enabled: true
+    secretName: api-tls
+
+env:
+  APP_ENV: production
+
+secretEnv:
+  DATABASE_URL: ""
+```
+
+---
+
+### templates/deployment.yaml
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "fastapi.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "fastapi.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "fastapi.name" . }}
+    spec:
+      containers:
+      - name: fastapi
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+        ports:
+        - containerPort: 8000
+
+        env:
+        - name: APP_ENV
+          value: {{ .Values.env.APP_ENV | quote }}
+
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 20
+          periodSeconds: 10
+
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+```
+
+---
+
+### templates/service.yaml
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "fastapi.fullname" . }}
+spec:
+  selector:
+    app: {{ include "fastapi.name" . }}
+  ports:
+  - port: {{ .Values.service.port }}
+    targetPort: {{ .Values.service.targetPort }}
+  type: {{ .Values.service.type }}
+```
+
+---
+
+### templates/hpa.yaml
+
+```yaml
+{{- if .Values.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "fastapi.fullname" . }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "fastapi.fullname" . }}
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}
+```
+
+---
+
+### templates/ingress.yaml
+
+```yaml
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "fastapi.fullname" . }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+  - host: {{ .Values.ingress.host }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "fastapi.fullname" . }}
+            port:
+              number: 80
+
+  tls:
+  - hosts:
+    - {{ .Values.ingress.host }}
+    secretName: {{ .Values.ingress.tls.secretName }}
+{{- end }}
+```
+
+---
+
+สำหรับสาย DevOps อย่างคุณ ผมแนะนำเพิ่มอีก 4 อย่างใน production:
+
+1. **PodDisruptionBudget**
+2. **NetworkPolicy**
+3. **External Secrets Operator**
+4. **ArgoCD + Helm + GitOps**
+
+ซึ่งจะได้ Kubernetes deployment ระดับ production enterprise พร้อม rolling deployment, autoscaling, secret management และ GitOps workflow ครบชุด.
