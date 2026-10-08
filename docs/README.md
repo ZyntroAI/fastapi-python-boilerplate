@@ -1,8 +1,4 @@
-ได้เลยครับ ✅ สร้าง README.md ฉบับสมบูรณ์สำหรับ  fastapi-python-boilerplate  — ครอบคลุมทุกส่วน พร้อมใช้งานจริง 👇
- 
- 
- 
-markdown  
+```  
 # ⚡ FastAPI Python Boilerplate
 
 > Production-ready FastAPI starter template — secure, structured, and batteries-included
