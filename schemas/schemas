@@ -1,0 +1,364 @@
+In FastAPI, schemas are Python classes defined using Pydantic. They serve as data contracts to validate request payloads, format and filter response data, and automatically generate OpenAPI / Swagger documentation.
+1. Defining Request & Response Schemas
+To define a schema, create a class that inherits from pydantic.BaseModel.
+from datetime import datetime
+from pydantic import BaseModel, EmailStr, Field
+
+# Base schema with shared attributes
+class UserBase(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50)
+    email: EmailStr
+
+# Schema for incoming request data (CREATE)
+class UserCreate(UserBase):
+    password: str = Field(..., min_length=8)
+
+# Schema for outgoing response data (READ)
+class UserResponse(UserBase):
+    id: int
+    created_at: datetime
+    is_active: bool = True
+
+    class Config:
+        # Pydantic v2 option to allow mapping from ORM objects (e.g., SQLAlchemy models)
+        from_attributes = True 
+
+2. Using Schemas in FastAPI Endpoints
+Use request schemas as path parameters or request bodies, and pass response schemas into response_model.
+from fastapi import FastAPI, status
+
+app = FastAPI()
+
+@app.post("/users/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+def create_user(user: UserCreate):
+    # FastAPI automatically validates incoming body against UserCreate schema
+    # Sensitve data like `user.password` will be excluded from UserResponse
+    
+    db_user = {
+        "id": 1,
+        "username": user.username,
+        "email": user.email,
+        "created_at": "2026-03-30T10:00:00",
+        "is_active": True
+    }
+    return db_user
+
+3. Schema Separation vs. Database Models
+It is best practice to separate Pydantic Schemas from Database Models (e.g., SQLAlchemy or SQLModel):
+| Type | Library | Purpose |
+|---|---|---|
+| Pydantic Schema | pydantic | Validates API inputs, formats API outputs, generates OpenAPI docs. |
+| Database Model | sqlalchemy, tortoise, etc. | Defines database tables, relationships, and queries data. |
+4. OpenAPI Specification
+FastAPI automatically converts your Pydantic schemas into JSON Schema under the hood. You can view the raw schema at:
+ * [http://127.0.0.1:8000/openapi.json](http://127.0.0.1:8000/openapi.json)
+ * Interactive docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) (Swagger UI) or /redoc
+Here is a complete, working example demonstrating how to integrate FastAPI, Pydantic schemas, and a SQLAlchemy ORM model with a SQLite database session.
+1. Directory Structure
+app/
+├── database.py   # Database engine and session setup
+├── models.py     # SQLAlchemy ORM database models
+├── schemas.py    # Pydantic data validation schemas
+├── crud.py       # Database CRUD operations
+└── main.py       # FastAPI application and routes
+
+2. Implementation Code
+database.py (Database Connection)
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
+
+SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
+
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+Base = declarative_base()
+
+# Dependency to get DB session for each request
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+models.py (SQLAlchemy ORM Model)
+from database import Base
+from sqlalchemy import Boolean, Column, Integer, String
+
+class DBUser(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    is_active = Column(Boolean, default=True)
+
+schemas.py (Pydantic Schemas)
+from pydantic import BaseModel, ConfigDict, EmailStr
+
+# Base shared fields
+class UserBase(BaseModel):
+    username: str
+    email: EmailStr
+
+# Input schema (Request body)
+class UserCreate(UserBase):
+    password: str
+
+# Output schema (Response model)
+class UserResponse(UserBase):
+    id: int
+    is_active: bool
+
+    # Enables Pydantic to read ORM models automatically
+    model_config = ConfigDict(from_attributes=True)
+
+crud.py (Database Helper Functions)
+from models import DBUser
+from schemas import UserCreate
+from sqlalchemy.orm import Session
+
+def get_user_by_email(db: Session, email: str):
+    return db.query(DBUser).filter(DBUser.email == email).first()
+
+def create_user(db: Session, user: UserCreate):
+    # Hash password in a real app (e.g., passlib / bcrypt)
+    fake_hashed_password = f"hashed_{user.password}"
+    
+    db_user = DBUser(
+        username=user.username,
+        email=user.email,
+        hashed_password=fake_hashed_password,
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+main.py (FastAPI Endpoints)
+import crud
+from database import Base, engine, get_db
+from fastapi import Depends, FastAPI, HTTPException, status
+import schemas
+from sqlalchemy.orm import Session
+
+# Create DB tables on startup
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI()
+
+@app.post(
+    "/users/",
+    response_model=schemas.UserResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    # 1. Check if user already exists
+    db_user = crud.get_user_by_email(db, email=user.email)
+    if db_user:
+        raise HTTPException(
+            status_code=400, detail="Email already registered"
+        )
+    
+    # 2. Save user to DB & return ORM instance
+    # FastAPI automatically serializes DBUser into UserResponse using `from_attributes=True`
+    return crud.create_user(db=db, user=user)
+
+Key Flow Highlights
+ * Request Validation: Incoming JSON is validated against UserCreate (ensuring valid email format and required password field).
+ * Session Dependency: Depends(get_db) injects an isolated SQLAlchemy session into the route and ensures it is safely closed after the response completes.
+ * ORM Conversion: Returning the SQLAlchemy DBUser instance directly from the route automatically strips the sensitive hashed_password because the endpoint uses response_model=UserResponse with from_attributes=True.
+
+
+To add secure password hashing and JWT (JSON Web Token) authentication to your FastAPI and SQLAlchemy setup, follow this clean modular structure.
+1. Dependencies
+Install pwdlib (the modern successor to passlib for hashing with argon2 or bcrypt), pyjwt for handling tokens, and python-multipart for handling OAuth2 form logins:
+pip install "pwdlib[argon2]" pyjwt python-multipart
+
+
+2. Authentication Utilities (auth.py)
+Create a helper module to manage password verification, hashing, and token creation/decoding using OAuth2PasswordBearer.
+from datetime import datetime, timedelta, timezone
+import jwt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from pwdlib import PasswordHash
+from pwdlib.hashers.argon2 import Argon2Hasher
+
+# Security settings
+SECRET_KEY = "CHANGE_THIS_TO_A_SECURE_RANDOM_SECRET_KEY"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+# Password hasher configuration
+pwd_context = PasswordHash((Argon2Hasher(),))
+
+# OAuth2 scheme extracts token from Authorization: Bearer <token>
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password: str) -> str:
+    return pwd_context.hash(password)
+
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + (
+        expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+def decode_access_token(token: str) -> dict:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except jwt.PyJWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+3. Token Schemas (schemas.py)
+Add response and payload schemas for JWT handling:
+from pydantic import BaseModel, ConfigDict, EmailStr
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: str | None = None
+
+class UserBase(BaseModel):
+    username: str
+    email: EmailStr
+
+class UserCreate(UserBase):
+    password: str
+
+class UserResponse(UserBase):
+    id: int
+    is_active: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+4. Updated CRUD Helpers (crud.py)
+Hash the raw password before saving to the database, and add a lookup by username:
+from auth import get_password_hash
+from models import DBUser
+from schemas import UserCreate
+from sqlalchemy.orm import Session
+
+def get_user_by_username(db: Session, username: str):
+    return db.query(DBUser).filter(DBUser.username == username).first()
+
+def get_user_by_email(db: Session, email: str):
+    return db.query(DBUser).filter(DBUser.email == email).first()
+
+def create_user(db: Session, user: UserCreate):
+    hashed_pwd = get_password_hash(user.password)
+    db_user = DBUser(
+        username=user.username,
+        email=user.email,
+        hashed_password=hashed_pwd,
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
+5. Protected Routes & Login Endpoint (main.py)
+Define the /login route that returns tokens and create a current user dependency to protect endpoints:
+import crud
+from database import Base, engine, get_db
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
+from models import DBUser
+import schemas
+from sqlalchemy.orm import Session
+
+from auth import (
+    create_access_token,
+    decode_access_token,
+    oauth2_scheme,
+    verify_password,
+)
+
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI()
+
+# Dependency: Retrieve current user from incoming JWT token
+def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> DBUser:
+    payload = decode_access_token(token)
+    username: str = payload.get("sub")
+    if username is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication token",
+        )
+    
+    user = crud.get_user_by_username(db, username=username)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
+    return user
+
+
+@app.post(
+    "/register",
+    response_model=schemas.UserResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    if crud.get_user_by_email(db, email=user.email):
+        raise HTTPException(status_code=400, detail="Email already registered")
+    if crud.get_user_by_username(db, username=user.username):
+        raise HTTPException(status_code=400, detail="Username already taken")
+    return crud.create_user(db=db, user=user)
+
+
+@app.post("/login", response_model=schemas.Token)
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
+):
+    # Authenticate user credentials
+    user = crud.get_user_by_username(db, username=form_data.username)
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Issue JWT access token
+    access_token = create_access_token(data={"sub": user.username})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.get("/users/me", response_model=schemas.UserResponse)
+def read_current_user(current_user: DBUser = Depends(get_current_user)):
+    # Protected endpoint - only accessible with a valid JWT
+    return current_user
+
+
+Verification Flow
+Register: Send a POST request to /register with username, email, and password.
+Login: Send a POST request to /login with username and password as form-data. Receive the access_token.
+Access Protected Route: Request GET /users/me with the header Authorization: Bearer <your_access_token>.
