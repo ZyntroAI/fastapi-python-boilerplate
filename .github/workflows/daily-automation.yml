@@ -1,0 +1,45 @@
+---
+name: Daily — ตรวจสอบประจำวัน
+on:
+  schedule:
+    - cron: "0 9 * * *"    # ทุกวัน 09:00 น.
+  workflow_dispatch:
+
+jobs:
+  coverage-check:
+    name: 📊 ตรวจสอบ Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      
+      - run: pip install pytest pytest-cov
+      - name: ตรวจสอบ & แจ้งเตือน
+        run: python scripts/daily_coverage_check.py
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+      
+      - name: อัปเดตสถานะใน Obsidian
+        run: python scripts/update_obsidian_status.py
+
+  vault-sync:
+    name: 📤 ซิงค์โน้ต
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ดึงการเปลี่ยนแปลง
+        run: |
+          git pull origin main --rebase
+          python scripts/sync_obsidian_to_github.py
+          git add .
+          git diff --quiet || (git commit -m "🤖 sync: ซิงค์โน้ตประจำวัน" && git push)
+
+  weekly-report:
+    name: 📈 รายงานประจำสัปดาห์
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 9 * * 0'  # ทุกอาทิตย์
+    steps:
+      - uses: actions/checkout@v4
+      - run: python scripts/generate_weekly_report.py
