@@ -16,6 +16,8 @@ env/
 venv/
 ENV/
 env.bak/
+.env
+.env.local
 
 # Build & packaging
 build/
