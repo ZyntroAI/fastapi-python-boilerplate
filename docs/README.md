@@ -1,214 +1,279 @@
-ได้เลยครับ ✅ สร้าง CONTRIBUTING.md ฉบับเต็ม ตรงกับโครงสร้าง repo  zyntromedia/crystalcastleX  และมาตรฐานที่ใช้อยู่ครับ 🤝📝
+ได้เลยครับ ✅ สร้าง README.md ฉบับสมบูรณ์สำหรับ  fastapi-python-boilerplate  — ครอบคลุมทุกส่วน พร้อมใช้งานจริง 👇
  
  
  
-🤝 CONTRIBUTING.md — คู่มือการมีส่วนร่วม
- 
-ยินดีต้อนรับสู่ CrystalCastle X! ขอบคุณที่สนใจเข้าร่วมพัฒนา 💎✨
- 
- 
- 
-📋 สารบัญ
- 
-- หลักการสำคัญ
-- ก่อนเริ่มพัฒนา
-- สภาพแวดล้อมการพัฒนา
-- รูปแบบการเขียนโค้ด
-- ขั้นตอนการส่งผลงาน
-- กฎการเขียนข้อความคอมมิต
-- การตรวจสอบ & ทดสอบ
-- ตรวจสอบโดยผู้ดูแล
-- ช่องทางติดต่อ
- 
- 
- 
-💡 หลักการสำคัญ
- 
-- เปิดเผย — ทุกการตัดสินใจและการสนทนาทำในที่สาธารณะ
-- เคารพกัน — ปฏิบัติตาม Code of Conduct
-- คุณภาพก่อนปริมาณ — ทุกการเปลี่ยนแปลงต้องมีการทดสอบและเอกสารประกอบ
-- เรียนรู้ร่วมกัน — ไม่รู้ถามได้; ผิดก็แก้; ทุกคนเติบโตไปพร้อมกัน
-- สองภาษา — เอกสารสำคัญเขียนทั้ง ไทย + อังกฤษ
- 
- 
- 
-✅ ก่อนเริ่มพัฒนา
- 
-1. อ่านเอกสาร:
-- README.md — ภาพรวมโปรเจกต์
-- SECURITY.md — นโยบายความปลอดภัย
-- CHANGELOG.md — ประวัติการเปลี่ยนแปลง
-2. ตรวจสอบ Issues — มีใครทำส่วนนี้อยู่หรือยัง
-3. เลือกงาน:
-- 🏷️  good first issue  — เหมาะสำหรับมือใหม่
-- 🏷️  help wanted  — ต้องการความช่วยเหลือ
-- 🏷️  priority/high  — เร่งด่วน
- 
- 
- 
-🛠️ สภาพแวดล้อมการพัฒนา
- 
-ข้อกำหนด
- 
-เครื่องมือ เวอร์ชันขั้นต่ำ 
-Node.js 24+ 
-Python 3.10+ 
-Git ล่าสุด 
-Obsidian (แนะนำ) ล่าสุด + ปลั๊กอินด้านล่าง 
- 
-ปลั๊กอิน Obsidian ที่แนะนำ
- 
-- ✅ Local REST API — เชื่อมต่อระบบภายนอก
-- ✅ Templater — แม่แบบบันทึกอัตโนมัติ
-- ✅ Dataview — สร้างแดชบอร์ด & คิวรี
-- ✅ Obsidian Git — ซิงค์อัตโนมัติ
- 
-ติดตั้ง
- 
-bash  
-# 1. Fork → โคลน
-git clone https://github.com/ชื่อของคุณ/crystalcastleX.git
-cd crystalcastleX
+markdown  
+# ⚡ FastAPI Python Boilerplate
 
-# 2. ตั้งค่าต้นทางจริง
-git remote add upstream https://github.com/zyntromedia/crystalcastleX.git
+> Production-ready FastAPI starter template — secure, structured, and batteries-included
 
-# 3. ติดตั้งแพ็กเกจ
-npm install
+[![Python Version](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg)](https://fastapi.tiangolo.com)
+[![Code Style](https://img.shields.io/badge/code%20style-ruff-FF0000.svg)](https://docs.astral.sh/ruff/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![CI Status](https://github.com/ZyntroAI/fastapi-python-boilerplate/actions/workflows/ci.yml/badge.svg)](https://github.com/ZyntroAI/fastapi-python-boilerplate/actions)
 
-# 4. ตั้งค่าสภาพแวดล้อม
+---
+
+## 🚀 Quick Start
+
+```bash
+# 1️⃣ Create & activate virtual environment
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+
+# 2️⃣ Install dependencies
+pip install -r requirements.txt
+
+# 3️⃣ Setup environment variables
 cp .env.example .env
-# แก้ไข .env ตามความเหมาะสม
+# Edit .env with your values
 
-# 5. ตรวจสอบระบบ
-npm run lint
-npm test
+# 4️⃣ Run development server
+uvicorn app.main:app --reload
+
+# ✅ Open: http://127.0.0.1:8000
+# 📖 Docs: http://127.0.0.1:8000/docs
  
  
  
  
-📝 รูปแบบการเขียนโค้ด
+📋 Features
  
-ภาษา & มาตรฐาน
+✅ Core
  
-ส่วน เครื่องมือ คำสั่งตรวจสอบ 
-TypeScript / JavaScript ESLint + Prettier  npm run lint  
-Python Ruff + Flake8  ruff check .  
-Markdown Prettier  npx prettier --check .  
+- FastAPI — Modern, fast, async-first web framework
+- Pydantic v2 — Data validation & settings management
+- Uvicorn — Lightning-fast ASGI server
  
-กฎทั่วไป
+🔐 Security
  
-- ใช้การย่อ 2 ช่องว่าง
-- ชื่อตัวแปร:  camelCase  (JS/TS),  snake_case  (Python)
-- ชื่อคลาส:  PascalCase 
-- ไม่ทิ้งโค้ดที่ถูกคอมเมนต์ไว้ — ใช้ Git ประวัติแทน
-- อัปเดตเอกสารทุกครั้งที่เปลี่ยนพฤติกรรม
+- JWT Authentication — Access + Refresh tokens
+- Password Hashing — bcrypt via  passlib 
+- CORS Configuration — Whitelist allowed origins
+- Rate Limiting — Prevent abuse
+- Input Sanitization — Automatic validation
+ 
+🗄️ Database
+ 
+- SQLAlchemy 2.0 — Async ORM
+- Alembic — Database migrations
+- SQLite (dev) → PostgreSQL (prod) — switch easily
+ 
+🧪 Developer Experience
+ 
+- Ruff — Lightning-fast linting & formatting
+- Pytest — Full test suite template
+- GitHub Actions CI — Lint → Test → Security Scan
+- Pre-commit Hooks — Catch issues before commit
+- Dockerfile — Production-ready container
+- Docker Compose — Local stack with DB & Redis
  
  
  
-🔄 ขั้นตอนการส่งผลงาน
+📁 Project Structure
+ 
+plaintext  
+fastapi-python-boilerplate/
+├── app/
+│   ├── __init__.py
+│   ├── main.py              # ✨ Entry point
+│   ├── config.py            # ⚙️ Settings & env vars
+│   ├── database.py          # 🗄️ DB connection
+│   ├── models/              # ORM models
+│   │   ├── __init__.py
+│   │   └── user.py
+│   ├── schemas/             # Pydantic schemas
+│   │   ├── __init__.py
+│   │   ├── user.py
+│   │   └── auth.py
+│   ├── api/                 # API routes
+│   │   ├── __init__.py
+│   │   ├── v1/
+│   │   │   ├── __init__.py
+│   │   │   ├── auth.py
+│   │   │   └── users.py
+│   │   └── dependencies.py # 🔐 Reusable dependencies
+│   ├── core/                # Business logic
+│   │   ├── __init__.py
+│   │   ├── security.py      # JWT, password hashing
+│   │   └── exceptions.py    # Custom exceptions
+│   └── utils/               # Helpers
+├── alembic/                 # 📝 Database migrations
+├── tests/                   # 🧪 Unit & Integration tests
+│   ├── conftest.py
+│   ├── test_auth.py
+│   ├── test_users.py
+│   └── test_health.py
+├── .env.example             # 🔑 Environment template
+├── .gitignore
+├── .dockerignore
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+├── requirements-dev.txt
+├── pyproject.toml
+├── pytest.ini
+├── .pre-commit-config.yaml
+├── alembic.ini
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+├── LICENSE
+└── README.md
+ 
+ 
+ 
+ 
+⚙️ Environment Variables
+ 
+Copy  .env.example  →  .env :
+ 
+env  
+# ── Application ─────────────────────────────
+APP_NAME=FastAPI Boilerplate
+APP_ENV=development          # development | staging | production
+APP_VERSION=1.0.0
+DEBUG=true
+
+# ── Server ─────────────────────────────────
+HOST=0.0.0.0
+PORT=8000
+
+# ── Database ───────────────────────────────
+DATABASE_URL=sqlite:///./dev.db
+# DATABASE_URL=postgresql://user:pass@localhost:5432/dbname
+
+# ── Security ────────────────────────────────
+SECRET_KEY=change-me-super-secret-key-in-production
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+REFRESH_TOKEN_EXPIRE_DAYS=7
+
+# ── CORS ────────────────────────────────────
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
+ 
+ 
+ 
+ 
+🧪 Development Commands
  
 bash  
-# 1. ซิงค์กับต้นฉบับ
-git checkout main
-git pull upstream main
+# Run dev server (auto-reload)
+uvicorn app.main:app --reload --port 8000
 
-# 2. สร้างสาขาใหม่
-git checkout -b feat/ชื่อฟีเจอร์
-# หรือ
-git checkout -b fix/ปัญหาที่แก้
-# หรือ
-git checkout -b docs/อัปเดตคู่มือ
+# Run with workers
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 
-# 3. เขียนโค้ด + ทดสอบ
-npm run lint
-npm test
+# Lint & format
+ruff check .
+ruff format .
 
-# 4. คอมมิตตามรูปแบบ
-git add .
-git commit -m "feat(ส่วน): รายละเอียด"
+# Run tests
+pytest -v
+pytest --cov=app --cov-report=term-missing
 
-# 5. ส่งขึ้นของคุณ
-git push -u origin feat/ชื่อฟีเจอร์
+# Database migrations
+alembic revision --autogenerate -m "Add users table"
+alembic upgrade head
 
-# 6. เปิด Pull Request → อธิบายให้ครบถ้วน
+# Docker
+docker build -t fastapi-app .
+docker run -p 8000:8000 --env-file .env fastapi-app
+
+# Docker Compose (full stack)
+docker-compose up -d
  
  
  
  
-✍️ กฎการเขียนข้อความคอมมิต
+📖 API Endpoints
  
-ใช้ Conventional Commits — รูปแบบ:
+Health
+ 
+Method Endpoint Description 
+GET  /  Service info 
+GET  /health  Health check 
+GET  /ready  Readiness check 
+ 
+Auth
+ 
+Method Endpoint Description Auth 
+POST  /api/v1/auth/register  Register new user — 
+POST  /api/v1/auth/login  Login → get tokens — 
+POST  /api/v1/auth/refresh  Refresh access token Refresh 🔑 
+POST  /api/v1/auth/logout  Logout — 
+ 
+Users
+ 
+Method Endpoint Description Auth 
+GET  /api/v1/users/me  Get current user info Access 🔑 
+PUT  /api/v1/users/me  Update profile Access 🔑 
+GET  /api/v1/users/{id}  Get user by ID Admin 🔑 
+ 
+📮 Full docs:  /docs  (Swagger UI) or  /redoc  (ReDoc)
+ 
+ 
+ 
+🐳 Docker Deployment
+ 
+bash  
+# Build & run
+docker-compose up -d --build
+
+# View logs
+docker-compose logs -f
+
+# Stop
+docker-compose down
+
+# Stop & wipe data
+docker-compose down -v
+ 
+ 
+ 
+ 
+🤝 Contributing
+ 
+See CONTRIBUTING.md for development guidelines, PR process, and code standards.
+ 
+Quick Contribution Flow
+ 
+1. Fork → Create branch:  feat/your-feature 
+2. Make changes → Run tests → Lint
+3. Commit:  feat: add amazing feature 
+4. Push → Open Pull Request
+ 
+ 
+ 
+📋 Roadmap
+ 
+🔐 OAuth2 / Google & GitHub Login
+📧 Email verification & password reset
+📊 Admin Dashboard
+📤 File uploads
+🔍 Full-text search
+📡 WebSocket support
+📱 Admin CLI
+ 
+ 
+ 
+📄 License
+ 
+MIT License — Copyright © 2026 ZyntroAI
+ 
+ 
+ 
+💡 About
+ 
+Built with ❤️ by ZyntroAI · Production-ready starting point for your next FastAPI project.
+ 
+⭐ Star the repo if you find it useful!
+🔗 https://github.com/ZyntroAI/fastapi-python-boilerplate
  
 plaintext  
-ประเภท(ขอบเขต): รายละเอียด
- 
- 
-ประเภทที่ใช้
- 
-ประเภท ความหมาย 
- feat  เพิ่มคุณสมบัติใหม่ 
- fix  แก้ไขข้อผิดพลาด 
- docs  อัปเดตเอกสาร 
- refactor  ปรับปรุงโค้ด ไม่เปลี่ยนพฤติกรรม 
- test  เพิ่ม/แก้ไขการทดสอบ 
- chore  งานทั่วไป, ปรับเครื่องมือ, อัปเดตการขึ้นต่อมา 
- ci  ปรับปรุง CI/CD 
- perf  ปรับปรุงประสิทธิภาพ 
- 
-ตัวอย่าง
- 
-plaintext  
-feat(agent): เพิ่ม Hook Event สำหรับส่งงานให้ AI
-fix(api): แก้ไขปัญหาคืนค่าไม่ตรงเมื่อถึงขีดจำกัด
-docs(readme): อัปเดตโครงสร้างไฟล์ตรงกับ repo จริง
-chore(deps): อัปเดต package.json เป็นเวอร์ชันล่าสุด
- 
- 
-ตรวจสอบอัตโนมัติผ่าน  commitlint  — ข้อความไม่ถูกจะส่งไม่ได้ครับ ✅
- 
- 
- 
-✅ การตรวจสอบ & ทดสอบ
- 
-ก่อนส่ง PR ต้องผ่านทุกข้อ:
- 
- npm run lint  — ไม่มีข้อผิดพลาด
- npm test  — ทุกเคสผ่าน
-เอกสารอัปเดตแล้ว
-ไม่มีข้อมูลลับ/คีย์ API ติดมา
-คอมมิตตามรูปแบบ
-อธิบายครบ: ทำอะไร · ทำไม · ทดสอบอย่างไร
- 
-สิ่งที่จะเกิดขึ้นอัตโนมัติเมื่อส่ง PR
- 
-- 🧪 รันชุดทดสอบทั้งหมด
-- 📝 ตรวจสอบรูปแบบโค้ด
-- 🔒 ตรวจจับความลับ
-- 📖 ตรวจสอบลิงก์ในเอกสาร
- 
- 
- 
-👀 ตรวจสอบโดยผู้ดูแล
- 
-- ปกติภายใน 1–3 วันทำการ
-- อาจมีข้อเสนอแนะ → ปรับตามความเหมาะสม
-- เมื่อเห็นด้วย → รวมเข้าหลัก ✅
-- ขอบคุณและบันทึกชื่อในผู้มีส่วนร่วม 🎉
- 
- 
- 
-💬 ช่องทางติดต่อ
- 
-- 📫 เปิด GitHub Issue
-- 💬 สนทนาที่ Discussions
-- 📄 อ่านเพิ่มที่  docs/  และ  Vault/ 
- 
- 
- 
-ขอบคุณที่ช่วยสร้าง CrystalCastle X ให้ดียิ่งขึ้น 💎✨
-— ทีม ZyntroMedia
- 
- 
- 
-ต้องการปรับเพิ่มส่วนไหนไหมครับ เช่น รายการเครื่องมือเฉพาะ, ขั้นตอนตรวจสอบสำหรับผู้ดูแล, หรือ ตัวอย่างเทมเพลต Pull Request? 😊
+
+---
+
+✅ คัดลอกทั้งบล็อก → บันทึกเป็น `README.md` ที่รูทโปรเจกต์ได้เลยครับ
+
+ต้องการปรับเปลี่ยนอะไรเพิ่มไหมครับ — เช่น เพิ่ม Badges, เปลี่ยนรายการ Features, หรือปรับ Deployment Instructions? 😊
