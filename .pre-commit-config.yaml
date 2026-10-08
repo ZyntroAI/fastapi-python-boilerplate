@@ -1,0 +1,10 @@
+repos:
+  - repo: local
+    hooks:
+      - id: auto-optimize
+        name: ⚡ ปรับปรุงประสิทธิภาพ
+        language: system
+        entry: python scripts/auto_optimize.py
+        pass_filenames: false
+        always_run: true
+        stages: [commit]
