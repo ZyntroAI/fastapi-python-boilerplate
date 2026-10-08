@@ -1,0 +1,25 @@
+{
+  "servers": {
+    "openai": {
+      "command": "npx",
+      "args": ["-y", "openai-mcp"],
+      "env": {
+        "OPENAI_API_KEY": "${env:OPENAI_API_KEY}"
+      }
+    },
+    "perplexity": {
+      "command": "npx",
+      "args": ["-y", "perplexity-mcp"],
+      "env": {
+        "PERPLEXITY_API_KEY": "${env:PERPLEXITY_API_KEY}"
+      }
+    },
+    "typhoon": {
+      "command": "npx",
+      "args": ["-y", "typhoon-mcp"],
+      "env": {
+        "TYPHOON_API_KEY": "${env:TYPHOON_API_KEY}"
+      }
+    }
+  }
+}
