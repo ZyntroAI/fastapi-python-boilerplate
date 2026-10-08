@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: code-server-netpol
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: code-server
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow incoming HTTP traffic from the Ingress controller
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    # Allow DNS resolution
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow Outbound Internet access (Git, Package Registries)
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+              - 169.254.169.254/32 # Block AWS/Cloud Metadata endpoints
