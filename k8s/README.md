@@ -838,3 +838,217 @@ GitHub PR
 สรุป: โครงสร้างนี้เหมาะกับการต่อยอดไปเป็น production-grade AI platform มากกว่าการมีแค่ deployment.yaml กับ docker-compose.yml เพราะ infrastructure, runtime, security, deployment และ observability ถูกแยกเป็น layer แต่ยังเชื่อมกันผ่าน CI/CD อย่างชัดเจน
 
 English: This structure gives you a clean path from local Docker Compose → Kubernetes → cloud infrastructure → secure CI/CD → observability → AI cost/routing control, without turning the repository into a YAML archaeological site.
+
+Here is a complete, production-ready Kubernetes setup for deploying code-server (VS Code in the browser).
+This configuration uses a StatefulSet (ensuring persistent storage for extensions, settings, and code workspaces), runs strictly as a non-root user with dropped privileges, and includes a TLS-enabled Ingress configured with WebSocket support (which is required by the VS Code web UI).
+Architecture Components
+ * Secret: Stores your hashed password or password token securely.
+ * StatefulSet: Manages the code-server container, resource allocations, probes, and dynamically provisions storage via a volumeClaimTemplate.
+ * Service: Exposes port 8080 internally within the cluster.
+ * Ingress: Routes external HTTPS traffic with NGINX annotations optimized for WebSocket communication.
+ * NetworkPolicy (Optional/Recommended): Secures the pod from sniffing unintended cluster traffic.
+1. code-server-secret.yaml
+Stores your environment authentication token.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: code-server-secret
+  namespace: default
+type: Opaque
+stringData:
+  # Change this to a strong password/passphrase
+  PASSWORD: "ChangeMeToAStrongDevPassword123!"
+
+2. code-server-statefulset.yaml
+Uses official codercom/code-server, enforces non-root execution (uid: 1000), sets resource limits, configures readiness/liveness probes, and attaches persistent storage to /home/coder.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: code-server
+  namespace: default
+  labels:
+    app.kubernetes.io/name: code-server
+spec:
+  serviceName: code-server-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: code-server
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: code-server
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        runAsNonRoot: true
+      containers:
+        - name: code-server
+          image: codercom/code-server:latest
+          imagePullPolicy: IfNotPresent
+          args:
+            - --auth
+            - password
+            - --bind-addr
+            - 0.0.0.0:8080
+            - /home/coder/project
+          env:
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: code-server-secret
+                  key: PASSWORD
+            # Enables telemetry disabling if required for security/compliance
+            - name: DISABLE_TELEMETRY
+              value: "true"
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "2000m"
+              memory: "4Gi"
+          volumeMounts:
+            - name: coder-storage
+              mountPath: /home/coder
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 5
+  volumeClaimTemplates:
+    - metadata:
+        name: coder-storage
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        # Specify your cluster's StorageClass if needed (e.g., gp3, standard, local-path)
+        # storageClassName: "standard"
+        resources:
+          requests:
+            storage: 20Gi
+
+3. code-server-service.yaml
+Exposes the pod internally.
+apiVersion: v1
+kind: Service
+metadata:
+  name: code-server-service
+  namespace: default
+  labels:
+    app.kubernetes.io/name: code-server
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: code-server
+
+4. code-server-ingress.yaml
+Configured for Ingress-NGINX and cert-manager (Let's Encrypt). VS Code web interfaces require WebSockets; the annotations ensure proper proxy tunneling and buffer sizes.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: code-server-ingress
+  namespace: default
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # Essential NGINX annotations for VS Code WebSockets and large file uploads
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/websocket-services: "code-server-service"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - vscode.yourdomain.com
+      secretName: code-server-tls
+  rules:
+    - host: vscode.yourdomain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: code-server-service
+                port:
+                  number: 8080
+
+5. code-server-networkpolicy.yaml (Security Hardening)
+Prevents the IDE container from being used to scan or attack internal cluster endpoints, while allowing internet egress (for git clone, npm install, etc.) and DNS queries.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: code-server-netpol
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: code-server
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow incoming HTTP traffic from the Ingress controller
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    # Allow DNS resolution
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow Outbound Internet access (Git, Package Registries)
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+              - 169.254.169.254/32 # Block AWS/Cloud Metadata endpoints
+
+Deployment & Verification
+Apply the manifests sequentially or together:
+kubectl apply -f code-server-secret.yaml
+kubectl apply -f code-server-statefulset.yaml
+kubectl apply -f code-server-service.yaml
+kubectl apply -f code-server-ingress.yaml
+kubectl apply -f code-server-networkpolicy.yaml
+
+Check the rollout status:
+kubectl get pods -l app.kubernetes.io/name=code-server -w
+
+Once running, navigate to [https://vscode.yourdomain.com](https://vscode.yourdomain.com), enter the secret password, and your workspace will persist inside the persistent volume across pod updates and restarts.
