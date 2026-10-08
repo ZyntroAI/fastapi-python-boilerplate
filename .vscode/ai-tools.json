@@ -1,0 +1,60 @@
+{
+  "tools": [
+    {
+      "name": "ChatGPT",
+      "provider": "OpenAI",
+      "vscode": ["GitHub Copilot", "Continue", "Cline"],
+      "api": "OpenAI-compatible",
+      "bestFor": ["coding", "creative", "general"],
+      "pricing": "free / Go $8 / Plus $20"
+    },
+    {
+      "name": "Gemini",
+      "provider": "Google",
+      "vscode": ["Gemini Code Assist", "Continue"],
+      "api": "Google AI API",
+      "bestFor": ["Google Workspace", "Colab", "Android"],
+      "pricing": "free / Pro $20 / Ultra $100"
+    },
+    {
+      "name": "Perplexity",
+      "provider": "Perplexity AI",
+      "vscode": ["Continue", "MCP"],
+      "api": "Perplexity API",
+      "bestFor": ["research", "debug", "docs"],
+      "pricing": "free / Pro $20"
+    },
+    {
+      "name": "Dola",
+      "provider": "Larus Node / ByteDance?",
+      "vscode": [],
+      "api": "ไม่มี public API ชัดเจน",
+      "bestFor": ["scheduling", "todo", "calendar"],
+      "pricing": "free"
+    },
+    {
+      "name": "Doubao",
+      "provider": "ByteDance",
+      "vscode": ["Continue (ถ้ามี API)"],
+      "api": "ByteDance API",
+      "bestFor": ["office automation", "agentic"],
+      "pricing": "free / paid in China"
+    },
+    {
+      "name": "Brave Leo",
+      "provider": "Brave",
+      "vscode": [],
+      "api": "ไม่มี API สำหรับ VS Code",
+      "bestFor": ["privacy", "browser assistant"],
+      "pricing": "free / Premium $14.99"
+    },
+    {
+      "name": "AI ไทย",
+      "provider": "Typhoon, OpenThai ฯลฯ",
+      "vscode": ["Continue", "Cline", "MCP"],
+      "api": "OpenAI-compatible / Hugging Face",
+      "bestFor": ["Thai NLP", "ราชการ", "การเงินไทย"],
+      "pricing": "API ถูกมาก เช่น $0.10/ล้านโทเค็น"
+    }
+  ]
+}
