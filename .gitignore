@@ -1,235 +1,69 @@
-# Python artifacts
+# === Python ===
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
-*.pdb
-*.egg-info/
-.eggs/
-*.egg
-*.manifest
-*.spec
-.env
-# Virtual environments
-.venv/
-env/
-venv/
-ENV/
-env.bak/
-.env
-.env.local
-
-# Build & packaging
+*$py.class
+*.so
+.Python
 build/
+develop-eggs/
 dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
 wheels/
-*.whl
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# Testing & coverage
-.coverage
-coverage.xml
-htmlcov/
-.tox/
+# === Virtual Environments ===
+venv/
+env/
+.venv/
+.env/
+.venv
+.env
+
+# === FastAPI / Uvicorn / Pytest ===
 .pytest_cache/
-.mypy_cache/
-.dmypy.json
-.pyre/
-
-# Logs & temp files
+.coverage
+htmlcov/
 *.log
-*.tmp
-*.swp
+uvicorn.pid
+*.pid
 
-# IDE & OS artifacts
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
-
-# Environment & secrets
+# === Environment & Secrets ===
 .env
 .env.*
-# ...but env TEMPLATES are tracked on purpose — they are documentation, not
-# secrets. Without these negations `.env.*` above silently swallows every
-# per-component `.env.example` (git check-ignore -v <path> confirms it).
 !.env.example
-!.env.local.example
-!.env.sample
-!.env.template
-!**/.env.example
-*.pem
-*.key
-*.csv
-# Node
-node_modules/
-coverage/
-.vercel/
-*.tsbuildinfo
 
-# Deployment & containers
-docker-compose.override.yml
-*.pid
-*.sock
+# === IDE & Editors ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
 
-# FastAPI specific
-uvicorn.log
+# === Database / Data / Media ===
+*.db
+*.sqlite3
+*.sqlite
+data/
+uploads/
+media/
+static/media/
 
-# Generated search index (built from knowledge/ notes; see sync_knowledge_index.py)
-knowledge_index.json
+# === Documentation & Build Artifacts ===
+docs/_build/
+site/
+*.spec
 
-# Secrets — NEVER commit
-**/*secrets*.yaml
-**/.env
-**/*.key
-vault-values.yaml
-{
-    "excluded_patterns": [
-        ".git",
-        ".gitignore",
-        "gradle",
-        "gradlew",
-        "gradlew.*",
-        "node_modules",
-        ".snapshots",
-        ".idea",
-        ".vscode",
-        "*.log",
-        "*.tmp",
-        "target",
-        "dist",
-        "build",
-        ".DS_Store",
-        "*.bak",
-        "*.swp",
-        "*.swo",
-        "*.lock",
-        "*.iml",
-        "coverage",
-        "*.min.js",
-        "*.min.css",
-        "__pycache__",
-        ".marketing",
-        ".env",
-        ".env.*",
-        "*.jpg",
-        "*.jpeg",
-        "*.png",
-        "*.gif",
-        "*.bmp",
-        "*.tiff",
-        "*.ico",
-        "*.svg",
-        "*.webp",
-        "*.psd",
-        "*.ai",
-        "*.eps",
-        "*.indd",
-        "*.raw",
-        "*.cr2",
-        "*.nef",
-        "*.mp4",
-        "*.mov",
-        "*.avi",
-        "*.wmv",
-        "*.flv",
-        "*.mkv",
-        "*.webm",
-        "*.m4v",
-        "*.wfp",
-        "*.prproj",
-        "*.aep",
-        "*.psb",
-        "*.xcf",
-        "*.sketch",
-        "*.fig",
-        "*.xd",
-        "*.db",
-        "*.sqlite",
-        "*.sqlite3",
-        "*.mdb",
-        "*.accdb",
-        "*.frm",
-        "*.myd",
-        "*.myi",
-        "*.ibd",
-        "*.dbf",
-        "*.rdb",
-        "*.aof",
-        "*.pdb",
-        "*.sdb",
-        "*.s3db",
-        "*.ddb",
-        "*.db-shm",
-        "*.db-wal",
-        "*.sqlitedb",
-        "*.sql.gz",
-        "*.bak.sql",
-        "dump.sql",
-        "dump.rdb",
-        "*.vsix",
-        "*.jar",
-        "*.war",
-        "*.ear",
-        "*.zip",
-        "*.tar",
-        "*.tar.gz",
-        "*.tgz",
-        "*.rar",
-        "*.7z",
-        "*.exe",
-        "*.dll",
-        "*.so",
-        "*.dylib",
-        "*.app",
-        "*.dmg",
-        "*.iso",
-        "*.msi",
-        "*.deb",
-        "*.rpm",
-        "*.apk",
-        "*.aab",
-        "*.ipa",
-        "*.pkg",
-        "*.nupkg",
-        "*.snap",
-        "*.whl",
-        "*.gem",
-        "*.pyc",
-        "*.pyo",
-        "*.pyd",
-        "*.class",
-        "*.o",
-        "*.obj",
-        "*.lib",
-        "*.a",
-        "*.map",
-        ".npmrc"
-    ],
-    "default": {
-        "default_prompt": "Enter your prompt here",
-        "default_include_all_files": false,
-        "default_include_entire_project_structure": true
-    },
-    "included_patterns": [
-        "build.gradle",
-        "settings.gradle",
-        "gradle.properties",
-        "pom.xml",
-        "Makefile",
-        "CMakeLists.txt",
-        "package.json",
-        "requirements.txt",
-        "Pipfile",
-        "Gemfile",
-        "composer.json",
-        ".editorconfig",
-        ".eslintrc.json",
-        ".eslintrc.js",
-        ".prettierrc",
-        ".babelrc",
-        ".dockerignore",
-        ".gitattributes",
-        ".stylelintrc",
-        ".npmrc"
-    ]
-}
+# === Temporary & Swap Files ===
+*.tmp
+*.bak
