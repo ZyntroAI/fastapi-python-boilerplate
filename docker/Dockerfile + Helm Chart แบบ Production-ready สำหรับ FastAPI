@@ -225,3 +225,230 @@ spec:
 4. **ArgoCD + Helm + GitOps**
 
 ซึ่งจะได้ Kubernetes deployment ระดับ production enterprise พร้อม rolling deployment, autoscaling, secret management และ GitOps workflow ครบชุด.
+เยี่ยมครับ ถ้าจะยกระดับ Helm Chart ให้พร้อมใช้งานใน Production จริง ควรเพิ่มทั้ง **PodDisruptionBudget (PDB)** และ **Default Deny NetworkPolicy**
+
+## templates/pdb.yaml
+
+PDB ป้องกันไม่ให้ Kubernetes Evict Pods มากเกินไประหว่าง
+
+- Node Upgrade
+- Cluster Autoscaler Scale Down
+- Maintenance
+
+```yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "fastapi.fullname" . }}
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: {{ include "fastapi.name" . }}
+```
+
+หรือถ้าต้องการเป็นเปอร์เซ็นต์
+
+```yaml
+spec:
+  maxUnavailable: 25%
+```
+
+---
+
+## values.yaml
+
+เพิ่ม
+
+```yaml
+pdb:
+  enabled: true
+  minAvailable: 2
+```
+
+---
+
+## templates/pdb.yaml (Dynamic)
+
+```yaml
+{{- if .Values.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "fastapi.fullname" . }}
+spec:
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      app: {{ include "fastapi.name" . }}
+{{- end }}
+```
+
+---
+
+# NetworkPolicy
+
+## 1. Default Deny All
+
+ปิดทุก Traffic ก่อน
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+```
+
+---
+
+## 2. Allow Ingress Controller → FastAPI
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-nginx
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ include "fastapi.name" . }}
+
+  policyTypes:
+  - Ingress
+
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx
+
+    ports:
+    - protocol: TCP
+      port: 8000
+```
+
+---
+
+## 3. Allow DNS
+
+ถ้าปิด egress ทั้งหมด Pod จะ Resolve DNS ไม่ได้
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ include "fastapi.name" . }}
+
+  policyTypes:
+  - Egress
+
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+
+    ports:
+    - protocol: UDP
+      port: 53
+
+    - protocol: TCP
+      port: 53
+```
+
+---
+
+## 4. Allow PostgreSQL
+
+กรณีใช้ PostgreSQL ใน Cluster
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-postgres
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ include "fastapi.name" . }}
+
+  policyTypes:
+  - Egress
+
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: postgres
+
+    ports:
+    - protocol: TCP
+      port: 5432
+```
+
+---
+
+## ถ้าใช้ External RDS/Aurora
+
+```yaml
+egress:
+- to:
+  - ipBlock:
+      cidr: 10.20.30.0/24
+
+  ports:
+  - protocol: TCP
+    port: 5432
+```
+
+---
+
+# Production values.yaml
+
+```yaml
+networkPolicy:
+  enabled: true
+
+pdb:
+  enabled: true
+  minAvailable: 2
+
+replicaCount: 3
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+```
+
+---
+
+# คำแนะนำระดับ Enterprise
+
+ถ้าคลัสเตอร์ของคุณเป็น EKS/GKE/AKS production จริง ผมมักเพิ่มอีกชุดนี้ด้วย
+
+```text
+PodDisruptionBudget
+NetworkPolicy
+PriorityClass
+TopologySpreadConstraints
+AntiAffinity
+ResourceQuota
+LimitRange
+ExternalSecrets
+HPA
+VerticalPodAutoscaler
+Kyverno Policies
+Falco Runtime Security
+```
+
+ผลลัพธ์คือ FastAPI จะมี High Availability, Zero-Downtime Upgrade, Traffic Isolation และ Security Hardening ที่พร้อมสำหรับงาน Production ระดับองค์กรครับ.
