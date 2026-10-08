@@ -452,3 +452,201 @@ Falco Runtime Security
 ```
 
 ผลลัพธ์คือ FastAPI จะมี High Availability, Zero-Downtime Upgrade, Traffic Isolation และ Security Hardening ที่พร้อมสำหรับงาน Production ระดับองค์กรครับ.
+
+TopologySpreadConstraints เป็นอีกตัวที่สำคัญมากสำหรับ High Availability เพราะช่วยบังคับให้ Kubernetes กระจาย Pods ไปตาม Node หรือ Availability Zone แทนที่จะไปกองอยู่เครื่องเดียว
+
+## ปัญหาที่แก้ได้
+
+สมมติ Deployment มี 6 Pods
+
+หากไม่กำหนดอะไรเลย Kubernetes อาจจัดวางแบบนี้
+
+```text
+Node-1: pod-1 pod-2 pod-3 pod-4
+Node-2: pod-5
+Node-3: pod-6
+```
+
+ถ้า Node-1 ล่ม Service จะหายไปทันที 66%
+
+---
+
+## TopologySpreadConstraints ระดับ Node
+
+เพิ่มใน `templates/deployment.yaml`
+
+```yaml
+spec:
+  template:
+    spec:
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app: {{ include "fastapi.name" . }}
+```
+
+ผลลัพธ์
+
+```text
+Node-1: pod-1 pod-2
+Node-2: pod-3 pod-4
+Node-3: pod-5 pod-6
+```
+
+กระจายเท่าๆ กัน
+
+---
+
+# Multi-AZ Deployment
+
+สำหรับ EKS / AKS / GKE Production ควรกระจายข้าม Zone ด้วย
+
+```yaml
+topologySpreadConstraints:
+- maxSkew: 1
+  topologyKey: topology.kubernetes.io/zone
+  whenUnsatisfiable: DoNotSchedule
+  labelSelector:
+    matchLabels:
+      app: {{ include "fastapi.name" . }}
+```
+
+ตัวอย่าง
+
+```text
+AZ-a : 2 Pods
+AZ-b : 2 Pods
+AZ-c : 2 Pods
+```
+
+ถ้า AZ หนึ่งหาย ยังเหลือ Service ในอีกสอง AZ
+
+---
+
+# ใช้พร้อม Node Distribution
+
+Production มักใส่ 2 Constraint
+
+```yaml
+topologySpreadConstraints:
+
+- maxSkew: 1
+  topologyKey: topology.kubernetes.io/zone
+  whenUnsatisfiable: DoNotSchedule
+  labelSelector:
+    matchLabels:
+      app: {{ include "fastapi.name" . }}
+
+- maxSkew: 1
+  topologyKey: kubernetes.io/hostname
+  whenUnsatisfiable: ScheduleAnyway
+  labelSelector:
+    matchLabels:
+      app: {{ include "fastapi.name" . }}
+```
+
+---
+
+# Helm Values
+
+```yaml
+topologySpread:
+  enabled: true
+
+  zone:
+    enabled: true
+    maxSkew: 1
+
+  node:
+    enabled: true
+    maxSkew: 1
+```
+
+---
+
+# Dynamic Template
+
+```yaml
+{{- if .Values.topologySpread.enabled }}
+topologySpreadConstraints:
+
+{{- if .Values.topologySpread.zone.enabled }}
+- maxSkew: {{ .Values.topologySpread.zone.maxSkew }}
+  topologyKey: topology.kubernetes.io/zone
+  whenUnsatisfiable: DoNotSchedule
+  labelSelector:
+    matchLabels:
+      app: {{ include "fastapi.name" . }}
+{{- end }}
+
+{{- if .Values.topologySpread.node.enabled }}
+- maxSkew: {{ .Values.topologySpread.node.maxSkew }}
+  topologyKey: kubernetes.io/hostname
+  whenUnsatisfiable: ScheduleAnyway
+  labelSelector:
+    matchLabels:
+      app: {{ include "fastapi.name" . }}
+{{- end }}
+
+{{- end }}
+```
+
+---
+
+# แนะนำให้ใช้คู่กับ Pod Anti-Affinity
+
+TopologySpread ช่วย "กระจาย"
+
+Anti-Affinity ช่วย "ห้ามอยู่ร่วมกัน"
+
+```yaml
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        topologyKey: kubernetes.io/hostname
+        labelSelector:
+          matchLabels:
+            app: {{ include "fastapi.name" . }}
+```
+
+---
+
+# Enterprise FastAPI Stack
+
+ชุดที่ผมใช้บ่อยสำหรับ FastAPI Production บน EKS/AKS
+
+```text
+Deployment
+Service
+Ingress
+HPA
+PDB
+NetworkPolicy
+TopologySpreadConstraints
+PodAntiAffinity
+PriorityClass
+ExternalSecrets
+ServiceMonitor
+PrometheusRule
+Kyverno Policies
+Falco
+ArgoCD
+```
+
+จะได้คุณสมบัติ:
+
+✅ Multi-Node HA  
+✅ Multi-AZ HA  
+✅ Zero-Downtime Upgrade  
+✅ Safe Node Drain  
+✅ Network Isolation  
+✅ Horizontal Scaling  
+✅ GitOps Ready  
+✅ Enterprise Security Baseline
+
+ซึ่งถือเป็น baseline ที่ดีสำหรับ FastAPI หรือ GraphQL API ขนาด production ระดับองค์กรครับ।
