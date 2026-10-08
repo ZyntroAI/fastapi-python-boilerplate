@@ -1,0 +1,83 @@
+---
+name: CI — Full Automation
+on:
+  push:
+    branches: [main, develop, feat/*, fix/*]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  checks: write
+  pull-requests: write
+
+jobs:
+  # 🧪 ขั้นที่ 1 — ตรวจ & ทดสอบ
+  validate:
+    name: 🔍 ตรวจสอบโค้ด
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: "pip"
+      
+      - run: pip install -r requirements.txt
+      - run: pip install pytest pytest-cov ruff mypy
+      
+      - name: จัดรูปแบบ & ตรวจ
+        run: |
+          ruff check .
+          ruff format --check .
+          mypy .
+      
+      - name: รันทดสอบ
+        id: test
+        run: |
+          pytest -v --cov=./ --cov-fail-under=80
+      
+      - name: บันทึกผล Coverage
+        if: always()
+        run: |
+          mkdir -p 06-Logs/coverage
+          pytest --cov=./ --cov-report=json:coverage.json
+          cp coverage.json 06-Logs/coverage/$(date +%Y%m%d-%H%M).json
+
+  # 📝 ขั้นที่ 2 — อัปเดตเอกสารอัตโนมัติ
+  docs-update:
+    name: 📝 อัปเดตเอกสาร
+    needs: validate
+    runs-on: ubuntu-latest
+    if: always() && success()
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+      
+      - name: อัปเดตดัชนี & สรุป
+        run: python scripts/auto_update_docs.py
+      
+      - name: Commit & Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/ 06-Logs/
+          git diff --quiet && echo "ไม่มีอะไรเปลี่ยน" || git commit -m "🤖 docs: อัปเดตอัตโนมัติ [skip ci]" && git push
+
+  # 📣 ขั้นที่ 3 — แจ้งผล
+  notify:
+    name: 📣 แจ้งผล
+    needs: [validate, docs-update]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: แจ้งเมื่อสำเร็จ
+        if: success()
+        run: echo "✅ ทุกอย่างผ่าน — พร้อม Merge"
+      
+      - name: แจ้งเมื่อล้ม
+        if: failure()
+        run: |
+          echo "::warning::❌ มีขั้นตอนล้ม — ตรวจสอบด่วน!"
+          # ส่งไป Slack/Discord ตามต้องการ
