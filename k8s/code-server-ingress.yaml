@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: code-server-ingress
+  namespace: default
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # Essential NGINX annotations for VS Code WebSockets and large file uploads
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/websocket-services: "code-server-service"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - vscode.yourdomain.com
+      secretName: code-server-tls
+  rules:
+    - host: vscode.yourdomain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: code-server-service
+                port:
+                  number: 8080
