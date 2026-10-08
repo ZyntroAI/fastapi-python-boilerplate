@@ -1,0 +1,18 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Ask OpenAI",
+      "type": "shell",
+      "command": "curl -s https://api.openai.com/v1/chat/completions -H 'Authorization: Bearer ${env:OPENAI_API_KEY}' -H 'Content-Type: application/json' -d '{\"model\":\"gpt-4o-mini\",\"messages\":[{\"role\":\"user\",\"content\":\"${input:prompt}\"}]}'",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "prompt",
+      "type": "promptString",
+      "description": "Prompt"
+    }
+  ]
+}
