@@ -1,0 +1,35 @@
+name: Deploy Dev
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy to Dev
+    runs-on: ubuntu-latest
+
+    environment:
+      name: development
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t app:${{ github.sha }} \
+            .
+
+      - name: Deploy
+        run: |
+          echo "Deploying app:${{ github.sha }} to DEV"
