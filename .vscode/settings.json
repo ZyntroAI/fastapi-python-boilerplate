@@ -1,24 +1,67 @@
 {
-    "github.copilot.enable": {
+  // ─── Semantic Code Understanding ───
+  "copilot-labs-semantic.enabled": true,
+  "copilot-labs-semantic.indexLanguages": ["python", "typescript", "javascript"],
+  "copilot-labs-semantic.autoIndex": true,
+  "copilot-labs-semantic.showSymbolOutline": true,
+
+  // ─── GitLens ───
+  "gitlens.defaultDateFormat": "YYYY-MM-DD",
+  "gitlens.blame.compact": true,
+  "gitlens.blame.heatmap.enabled": true,
+  "gitlens.codeLens.enabled": true,
+  "gitlens.currentLine.enabled": true,
+  "gitlens.hovers.currentLine.over": "line",
+  "gitlens.statusBar.enabled": true,
+
+  // ─── Copilot ───
+  "github.copilot.enable": {
     "*": true,
     "plaintext": false,
-    "markdown": true,
-    "continue.enableTabAutocomplete": true,
-    "continue.telemetryEnabled": false,
-    "cline.apiProvider": "openai",
-    "cline.openAiBaseUrl": "https://api.openai.com/v1",
-  "cline.openAiApiKey": "${env:OPENAI_API_KEY}",
-  "roo-cline.apiProvider": "openai",
-  "roo-cline.openAiBaseUrl": "https://api.openai.com/v1",
-  "roo-cline.openAiApiKey": "${env:OPENAI_API_KEY}",
-  "geminiCodeAssist.enable": true,
-  "npm.packageManager": "pnpm",
-  "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "files.eol": "\n",
-  "files.trimTrailingWhitespace": true,
-  "files.insertFinalNewline": true,
-  "search.exclude": {
-    "**/node_modules": true,
-    "**/pnpm-lock.yaml": false
+    "markdown": true
+  },
+  "github.copilot.advanced": {
+    "length": 50,
+    "temperature": 0.2
+  },
+  "github.copilot-chat.defaultContext": "embeddings",
+
+  // ─── Python ───
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.python",
+    "editor.formatOnSave": true,
+    "editor.rulers": [88],
+    "editor.codeActionsOnSave": {
+      "source.organizeImports.ruff": true
+    }
+  },
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.linting.ruffEnabled": true,
+  "python.linting.mypyEnabled": true,
+  "python.analysis.typeCheckingMode": "strict",
+
+  // ─── TypeScript / JS ───
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "eslint.run": "onType",
+  "prettier.tabWidth": 2,
+  "prettier.printWidth": 100,
+
+  // ─── CLI / Terminal ───
+  "terminal.integrated.defaultProfile.linux": "zsh",
+  "terminal.integrated.profiles.linux": {
+    "zsh": { "path": "/usr/bin/zsh" },
+    "bash": { "path": "/bin/bash" }
+  },
+  "terminal.integrated.env.linux": {
+    "PYTHONPATH": "${workspaceFolder}/src"
+  },
+  "files.autoSave": "onFocusChange",
+  "editor.tabSize": 2
 }
