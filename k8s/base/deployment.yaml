@@ -1,14 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  labels:
+    app.kubernetes.io/name: app
+    app.kubernetes.io/version: latest
 spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: app
   template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: app
+        app.kubernetes.io/version: latest
     spec:
-      nodeSelector:
-        dola.ai/role: ai-runtime
-      tolerations:
-      - key: "dola.ai/workload"
-        operator: "Equal"
-        value: "dola"
-        effect: "NoSchedule"
-      - key: "dola.ai/critical"
-        operator: "Exists"
-        effect: "NoExecute"
-        tolerationSeconds: 3600 # Grace period
+      # 🔒 Security — match Dockerfile non-root user
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+
+      containers:
+        - name: app
+          image: ghcr.io/yourname/app:latest
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+
+          # ✅ Healthcheck — matches /health endpoint
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            failureThreshold: 12 # Allow 60s to start
+
+          # 📦 Resource limits — prevent resource hogging
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+
+          # ✅ Runtime ENV injection — ConfigMap + Secrets
+          env:
+            # Public config from ConfigMap
+            - name: API_BASE_URL
+              valueFrom: { configMapKeyRef: { name: app-config, key: API_BASE_URL } }
+            - name: ENVIRONMENT
+              valueFrom: { configMapKeyRef: { name: app-config, key: ENVIRONMENT } }
+            - name: APP_URL
+              valueFrom: { configMapKeyRef: { name: app-config, key: APP_URL } }
+            - name: TZ
+              valueFrom: { configMapKeyRef: { name: app-config, key: TZ } }
+
+            # Sensitive values from Secret — NEVER in ConfigMap
+            - name: DATABASE_URL
+              valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } }
+            - name: NPM_TOKEN
+              valueFrom: { secretKeyRef: { name: app-secrets, key: NPM_TOKEN, optional: true } }
+            - name: GIT_AUTH_TOKEN
+              valueFrom: { secretKeyRef: { name: app-secrets, key: GIT_AUTH_TOKEN, optional: true } }
+            - name: API_SIGNING_KEY
+              valueFrom: { secretKeyRef: { name: app-secrets, key: API_SIGNING_KEY, optional: true } }
+
+          # Optional: Mount files (certs, config)
+          volumeMounts: []
+
+      imagePullSecrets:
+        - name: ghcr-credentials
