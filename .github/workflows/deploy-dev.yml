@@ -30,6 +30,12 @@ jobs:
             -t app:${{ github.sha }} \
             .
 
-      - name: Deploy
+           - name: Configure kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Deploy Kubernetes
         run: |
-          echo "Deploying app:${{ github.sha }} to DEV"
+          kubectl -n dev set image deployment/app \
+            app=app:${{ github.sha }}
+
+          kubectl -n dev rollout status deployment/app
