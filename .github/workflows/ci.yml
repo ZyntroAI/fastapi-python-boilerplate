@@ -1,339 +1,83 @@
-name: FastAPI — CI Pipeline
-run-name: 🧪 CI • ${{ github.head_ref || github.ref_name }} @ ${{ github.sha }}
+name: CI
 
 on:
   push:
-    branches: [main, develop, dev, master, release/*]
-    paths:
-      - 'src/**'
-      - 'tests/**'
-      - 'backend/**'
-      - 'routers/**'
-      - 'middleware/**'
-      - 'scripts/**'
-      - 'requirements.txt'
-      - '.github/workflows/ci.yml'
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened, ready_for_review]
-    paths:
-      - 'src/**'
-      - 'tests/**'
-      - 'backend/**'
-      - 'routers/**'
-      - 'middleware/**'
-      - 'scripts/**'
-      - 'requirements.txt'
-      - '.github/workflows/ci.yml'
+    branches:
+      - main
+      - develop
 
-# 🔑 สิทธิ์แบบแยกตามงาน — ปลอดภัย
+  pull_request:
+    branches:
+      - main
+      - develop
+
 permissions:
   contents: read
-  pull-requests: write
-  checks: write
-  statuses: write
-  issues: write
 
-# ไม่รันซ้ำถ้ามี commit ใหม่
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  PYTHON_VERSION: "3.12"
-
 jobs:
-  # ==============================================
-  # 🏷️ JOB 1 — Auto Label: ติดป้ายอัตโนมัติ
-  # ==============================================
-  autolabel:
-    name: 🏷️ Auto Label
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    permissions:
-      contents: read
-      pull-requests: write
-
-    steps:
-      - uses: actions/checkout@v11bd71901bbe5b1630ceea73d275971364c9af68 # v4.2.2
-
-      - name: 🏷️ ตรวจและกำหนดป้าย
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const labels = [];
-            const title = context.payload.pull_request.title.toLowerCase();
-            const body = (context.payload.pull_request.body || '').toLowerCase();
-            
-            // ดึงรายการไฟล์ที่เปลี่ยน
-            const files = await github.rest.pulls.listFiles({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
-              per_page: 100
-            });
-            const paths = files.data.map(f => f.filename.toLowerCase());
-
-            // --- ประเภทจากชื่อ PR ---
-            if (/^feat:|feature:|เพิ่ม/.test(title)) labels.push('✨ feature');
-            if (/^fix:|bug:|แก้ไข|ซ่อม/.test(title)) labels.push('🐛 bug-fix');
-            if (/^docs:|เอกสาร|readme|changelog/.test(title) || paths.some(p => p.endsWith('.md'))) labels.push('📚 documentation');
-            if (/^refactor:|ปรับโครงสร้าง|จัดระเบียบ/.test(title)) labels.push('♻️ refactor');
-            if (/^test:|ทดสอบ/.test(title) || paths.some(p => p.startsWith('tests/'))) labels.push('🧪 tests');
-            if (/^ci:|chore:|workflow/.test(title) || paths.some(p => p.startsWith('.github/'))) labels.push('🤖 ci-cd');
-            
-            // --- ประเภทจากโฟลเดอร์ ---
-            if (paths.some(p => p.startsWith('scripts/'))) labels.push('📜 scripts');
-            if (paths.some(p => p.startsWith('backend/') || p.endsWith('.py'))) labels.push('🐍 python');
-            if (paths.some(p => p.includes('docker') || p === 'docker-compose.yml' || p === 'Dockerfile')) labels.push('🐳 docker');
-            if (paths.some(p => p.startsWith('routers/'))) labels.push('🔌 api-routes');
-            if (paths.some(p => p.startsWith('middleware/'))) labels.push('🛡️ security');
-            
-            // --- ติดป้าย ---
-            if (labels.length > 0) {
-              await github.rest.issues.addLabels({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.payload.pull_request.number,
-                labels: [...new Set(labels)]
-              });
-              console.log(`✅ เพิ่มป้าย: ${labels.join(', ')}`);
-            }
-
-  # ==============================================
-  # 🧹 JOB 2 — Lint & Format (ของเดิม)
-  # ==============================================
   lint:
-    name: 🧹 Lint & Format
+    name: Lint
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-      checks: write
 
     steps:
-      - uses: actions/checkout@v11bd71901bbe5b1630ceea73d275971364c9af68 # v4.2.2
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@0a5c61591373683505ea898e09a731b4d133a39d # v5.2.0
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
+          node-version: 22
+          cache: npm
 
-      - run: pip install --upgrade pip ruff black mypy
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Ruff Lint
-        run: |
-          ruff check src/ tests/ backend/ routers/ middleware/ scripts/ \
-            --exclude='__pycache__,.venv' \
-            --output-format=github
+      - name: Lint
+        run: npm run lint
 
-      - name: Black Format Check
-        run: |
-          black --check --diff \
-            src/ tests/ backend/ routers/ middleware/ scripts/ \
-            --exclude='.venv'
-
-  # ==============================================
-  # 🧪 JOB 3 — Unit Tests (ของเดิม + ขยาย path)
-  # ==============================================
   test:
-    name: 🧪 Unit Tests
+    name: Test
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: lint
-    permissions:
-      contents: read
-      checks: write
 
     steps:
-      - uses: actions/checkout@v11bd71901bbe5b1630ceea73d275971364c9af68 # v4.2.2
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@0a5c61591373683505ea898e09a731b4d133a39d # v5.2.0
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
+          node-version: 22
+          cache: npm
 
-      - run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-asyncio pytest-cov
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Run Tests with Coverage
-        run: |
-          pytest tests/ \
-            --cov=src --cov=backend --cov=routers --cov=middleware \
-            --cov-report=term --cov-report=xml \
-            --cov-fail-under=70 \
-            -v
+      - name: Test
+        run: npm test -- --coverage
 
-      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb48e8 # v4.4.3
-        with:
-          name: coverage-report
-          path: coverage.xml
-          retention-days: 7
-
-  # ==============================================
-  # ✅ JOB 4 — App Validation (ของเดิม + ขยาย path)
-  # ==============================================
-  validate:
-    name: ✅ App Validation
+  build:
+    name: Build
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    needs: test
-    permissions:
-      contents: read
+    needs:
+      - lint
+      - test
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d275971364c9af68 # v4.2.2
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@0a5c61591373683505ea898e09a731b4d133a39d # v5.2.0
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          node-version: 22
+          cache: npm
 
-      - run: pip install -r requirements.txt
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Validate App Entrypoint
-        run: |
-          if [ -f "backend/main.py" ]; then
-            python -c "from backend.main import app; print('✅ Backend loaded — v' + getattr(app, 'version', 'unknown'))"
-          elif [ -f "src/main.py" ]; then
-            python -c "from src.main import app; print('✅ App loaded successfully')"
-          else
-            echo "⚠️ ไม่พบ main.py — ข้ามการตรวจสอบ"
-          fi
-
-  # ==============================================
-  # 🤖 JOB 5 — Auto Review: สรุปผลตรวจสอบอัตโนมัติ
-  # ==============================================
-  auto-review:
-    name: 🤖 Auto Review Summary
-    runs-on: ubuntu-latest
-    if: always() && github.event_name == 'pull_request'
-    needs: [autolabel, lint, test, validate]
-    permissions:
-      contents: read
-      pull-requests: write
-
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d275971364c9af68 # v4.2.2
-
-      - name: 📝 สร้างสรุปผลการตรวจสอบ
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const results = {
-              lint: ${{ needs.lint.result == 'success' }},
-              test: ${{ needs.test.result == 'success' }},
-              validate: ${{ needs.validate.result == 'success' }},
-              autolabel: ${{ needs.autolabel.result == 'success' }}
-            };
-
-            const icons = { true: '✅ ผ่าน', false: '❌ ไม่ผ่าน' };
-            const overall = Object.values(results).every(r => r) ? '🟢 พร้อม Merge' : '🟡 ตรวจสอบแก้ไข';
-              auto-review:
-    name: 🤖 Auto Review Summary
-    runs-on: ubuntu-latest
-    if: always() && github.event_name == 'pull_request'
-    needs: [autolabel, lint, test, validate]
-    permissions:
-      contents: read
-      pull-requests: write
-
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d275971364c9af68 # v4.2.2
-
-      - name: 📝 สร้างสรุปผลการตรวจสอบ
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const results = {
-              lint: '${{ needs.lint.result }}' === 'success',
-              test: '${{ needs.test.result }}' === 'success',
-              validate: '${{ needs.validate.result }}' === 'success',
-              autolabel: '${{ needs.autolabel.result }}' === 'success'
-            };
-
-            const icons = { true: '✅ ผ่าน', false: '❌ ไม่ผ่าน' };
-            const overall = Object.values(results).every(r => r) ? '🟢 พร้อม Merge' : '🟡 ตรวจสอบแก้ไข';
-
-            const body = `## 🤖 CI Auto Review — สรุปผล
-
-| ขั้นตอน | สถานะ |
-|---|---|
-| 🏷️ ป้ายอัตโนมัติ | ${icons[results.autolabel]} |
-| 🧹 ตรวจโค้ด (Lint) | ${icons[results.lint]} |
-| 🧪 ทดสอบ (Tests) | ${icons[results.test]} |
-| ✅ ตรวจสอบแอปพลิเคชัน | ${icons[results.validate]} |
-
-**ผลรวม**: ${overall}
-
----
-> 💡 คำแนะนำ:
-${!results.lint ? '• รัน `ruff check` และ `black` เพื่อจัดรูปแบบโค้ด\n' : ''}
-${!results.test ? '• ตรวจสอบว่าทดสอบผ่านครบถ้วน: `pytest tests/`\n' : ''}
-${!results.validate ? '• ตรวจสอบ `main.py` และ dependencies\n' : ''}
-${overall === '🟢 พร้อม Merge' ? '• สามารถ Merge ได้เลยครับ 🚀' : ''}
-
----
-*อัปเดตอัตโนมัติเมื่อมี commit ใหม่*
-`;
-
-            // ตรวจสอบว่ามีความคิดเห็นแล้วหรือไม่ → อัปเดตแทนสร้างใหม่
-            const comments = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number,
-              per_page: 100
-            });
-
-            const botComment = comments.data.find(c =>
-              c.user.type === 'Bot' && c.body.includes('🤖 CI Auto Review')
-            );
-
-            if (botComment) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: botComment.id,
-                body: body
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.payload.pull_request.number,
-                body: body
-              });
-            }
-
-
-            // ตรวจสอบว่ามีความคิดเห็นแล้วหรือไม่ → อัปเดตแทนสร้างใหม่
-            const comments = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number,
-              per_page: 100
-            });
-
-            const botComment = comments.data.find(c => 
-              c.user.type === 'Bot' && c.body.includes('🤖 CI Auto Review')
-            );
-
-            if (botComment) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: botComment.id,
-                body: body
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.payload.pull_request.number,
-                body: body
-              });
-            }
+      - name: Build
+        run: npm run build
