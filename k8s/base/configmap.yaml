@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  # ✅ Non-sensitive config — injected at RUNTIME
+  API_BASE_URL: "https://api.prod.yourdomain.com"
+  APP_URL: "https://app.yourdomain.com"
+  ENVIRONMENT: "production"
+  TZ: "Asia/Bangkok"
+  # Add more config here — NO rebuild needed when changed!
