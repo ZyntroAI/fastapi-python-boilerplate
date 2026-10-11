@@ -67,3 +67,22 @@ python -c "import fastapi; print('FastAPI OK:', fastapi.__version__)"
 //pytest==9.1.1          # เพิ่ม
 //pytest-cov==7.1.0      # เพิ่ม
 //flake8==7.3.0          # เพิ่ม
+
+fastapi>=0.115.0
+uvicorn>=0.32.0
+python-dotenv>=1.0.0
+
+# Core v1.6.0 — Redis Rate Limiting MOC
+slowapi>=0.2.3
+limits>=3.13.0
+sqlalchemy>=2.0
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+python-multipart>=0.0.9
+httpx>=0.27.0
+redis>=5.0.0
+
+# Optional
+boto3>=1.35.0
+apscheduler>=3.10.0
+supabase>=2.9.0
