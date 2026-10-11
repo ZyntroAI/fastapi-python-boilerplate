@@ -1,83 +1,151 @@
----
 name: CI — Full Automation
+
 on:
   push:
-    branches: [main, develop, feat/*, fix/*]
+    branches: [main, develop, 'feat/*', 'fix/*']
   pull_request:
     branches: [main]
-  workflow_dispatch:
 
 permissions:
   contents: write
   checks: write
   pull-requests: write
 
+# Prevent duplicate runs — cancel previous if new commit arrives
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  # 🧪 ขั้นที่ 1 — ตรวจ & ทดสอบ
+  # ─────────────────────────────────────────────
+  # ขั้นที่ 1 — ตรวจสอบ & ทดสอบ
+  # ─────────────────────────────────────────────
   validate:
-    name: 🔍 ตรวจสอบโค้ด
+    name: 🧪 ตรวจสอบโค้ด & ทดสอบ
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+      fail-fast: false
+
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
-          cache: "pip"
-      
-      - run: pip install -r requirements.txt
-      - run: pip install pytest pytest-cov ruff mypy
-      
-      - name: จัดรูปแบบ & ตรวจ
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: 📦 Install dependencies
         run: |
-          ruff check .
-          ruff format --check .
-          mypy .
-      
-      - name: รันทดสอบ
-        id: test
-        run: |
-          pytest -v --cov=./ --cov-fail-under=80
-      
-      - name: บันทึกผล Coverage
-        if: always()
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov ruff mypy
+
+      - name: 🔍 Ruff — Linting
+        run: ruff check . --fix --exit-non-zero-on-fix
+
+      - name: 📝 Ruff — Formatting
+        run: ruff format . --check
+
+      - name: 🔒 MyPy — Type Check
+        run: mypy . --strict --ignore-missing-imports
+
+      - name: ✅ Run Tests
+        run: pytest -v --cov=. --cov-report=term --cov-fail-under=80
+
+      - name: 📊 Generate Coverage Report
+        if: matrix.python-version == '3.13' && success()
         run: |
           mkdir -p 06-Logs/coverage
-          pytest --cov=./ --cov-report=json:coverage.json
-          cp coverage.json 06-Logs/coverage/$(date +%Y%m%d-%H%M).json
+          pytest --cov=./ --cov-report=json:./coverage.json
+          cp coverage.json 06-Logs/coverage/coverage-${{ github.sha }}.json
 
-  # 📝 ขั้นที่ 2 — อัปเดตเอกสารอัตโนมัติ
+      - name: 📤 Upload Coverage Report
+        if: matrix.python-version == '3.13' && success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: 06-Logs/coverage/
+          retention-days: 30
+
+  # ─────────────────────────────────────────────
+  # ขั้นที่ 2 — อัปเดตเอกสารอัตโนมัติ
+  # ─────────────────────────────────────────────
   docs-update:
-    name: 📝 อัปเดตเอกสาร
+    name: 📄 อัปเดตเอกสาร
     needs: validate
     runs-on: ubuntu-latest
-    if: always() && success()
+    if: |
+      always() &&
+      needs.validate.result == 'success' &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main'
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-      
-      - name: อัปเดตดัชนี & สรุป
-        run: python scripts/auto_update_docs.py
-      
-      - name: Commit & Push
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📄 Run docs update script
+        run: |
+          if [ -f "scripts/auto_update_docs.py" ]; then
+            python scripts/auto_update_docs.py
+          else
+            echo "⚠️ scripts/auto_update_docs.py not found — skipping"
+          fi
+
+      - name: ✅ Check for changes
+        id: git-check
+        run: |
+          git add 06-Logs/
+          if git diff --quiet && git diff --staged --quiet; then
+            echo "changes=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ No changes to document — skipping commit"
+          else
+            echo "changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 📌 Commit & Push Docs
+        if: steps.git-check.outputs.changes == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/ 06-Logs/
-          git diff --quiet && echo "ไม่มีอะไรเปลี่ยน" || git commit -m "🤖 docs: อัปเดตอัตโนมัติ [skip ci]" && git push
+          git commit -m "📄 docs: auto-update coverage & logs [skip ci]"
+          git push
+        continue-on-error: true
 
-  # 📣 ขั้นที่ 3 — แจ้งผล
+  # ─────────────────────────────────────────────
+  # ขั้นที่ 3 — แจ้งผล
+  # ─────────────────────────────────────────────
   notify:
-    name: 📣 แจ้งผล
+    name: 📢 แจ้งผล
     needs: [validate, docs-update]
     runs-on: ubuntu-latest
     if: always()
+
     steps:
-      - name: แจ้งเมื่อสำเร็จ
-        if: success()
-        run: echo "✅ ทุกอย่างผ่าน — พร้อม Merge"
-      
-      - name: แจ้งเมื่อล้ม
-        if: failure()
+      - name: ✅ Build Passed
+        if: needs.validate.result == 'success'
+        run: echo "✅ CI Passed — all checks completed"
+
+      - name: ❌ Build Failed
+        if: needs.validate.result == 'failure'
         run: |
-          echo "::warning::❌ มีขั้นตอนล้ม — ตรวจสอบด่วน!"
-          # ส่งไป Slack/Discord ตามต้องการ
+          echo "❌ CI Failed — check validate job details"
+          exit 1
