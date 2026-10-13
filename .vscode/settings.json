@@ -93,3 +93,59 @@
 * **`files.exclude`**: ซ่อนโฟลเดอร์ที่ไม่จำเป็น เช่น `**/vendor`, `**/.git` และ `**/node_modules` เพื่อไม่ให้บดบังโฟลเดอร์งานใน File Explorer [1]
 
 🐘 หากคุณต้องการการตั้งค่าสำหรับ **Docker / Dev Containers** หรือส่วนขยายเพิ่มเติมสำหรับการพัฒนา PHP/Laravel แจ้งได้เลยครับ!
+ตัวอย่างการตั้งค่า **`.vscode/settings.json`** สำหรับโปรเจกต์ **Next.js** (รองรับทั้ง JavaScript, TypeScript, React JSX/TSX, ESLint และ Prettier):
+
+```json
+{
+  // กำหนด Prettier เป็น Formatter หลักสำหรับการจัดรูปแบบโค้ด
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[javascript]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.formatOnSave": true
+  },
+  "[typescriptreact]": {
+    "editor.formatOnSave": true
+  },
+
+  // แก้ไขไวยากรณ์ด้วย ESLint และจัดเรียง Import อัตโนมัติเมื่อบันทึก
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true,
+    "source.organizeImports": true
+  },
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+
+  // ซ่อนโฟลเดอร์บิลด์และไลบรารีเพื่อลดความสับสนและเพิ่มความเร็วในการค้นหา
+  "files.exclude": {
+    "**/.next": true,
+    "**/node_modules": true,
+    "**/.git": true
+  },
+  "search.exclude": {
+    "**/.next": true,
+    "**/node_modules": true
+  }
+}
+```
+
+---
+
+### **คำอธิบายจุดสำคัญของการตั้งค่าสำหรับ Next.js:**
+* **การจัดฟอร์แมตอัตโนมัติ (Formatting)**: กำหนดให้ **Prettier** (`esbenp.prettier-vscode`) ทำหน้าที่จัดรูปแบบโค้ดให้อัตโนมัติเมื่อกดบันทึก ทั้งไฟล์ JavaScript, TypeScript, JSX และ TSX [1, 2]
+* **การตรวจสอบและเคลียร์ Import (ESLint & Organize Imports)**: เปิดใช้งาน `editor.codeActionsOnSave` เพื่อสั่งแก้ไขข้อผิดพลาดตามกฎของ ESLint (`source.fixAll.eslint`) และจัดเรียงคำสั่ง `import` (`source.organizeImports`) ให้อัตโนมัติทันทีเมื่อบันทึก [1, 2]
+* **การซ่อนโฟลเดอร์ส่วนเกิน (Exclusions)**: กำหนดให้ซ่อนโฟลเดอร์ `**/.next`, `**/node_modules` และ `**/.git` ออกจากการแสดงผลใน File Explorer รวมถึงปิดการค้นหาในโฟลเดอร์บิลด์ชั่วคราว เพื่อให้ทำงานได้สะอาดตาและรวดเร็วยิ่งขึ้น [3, 4]
+
+---
+
+💡 คุณต้องการให้ฉันช่วยเตรียมไฟล์ **`.vscode/extensions.json`** สำหรับแนะนำ Extension ของ Next.js หรือชุดตั้งค่าตัวอื่นเพิ่มเติมไหมครับ?
