@@ -1,0 +1,59 @@
+สรุปแนวทางและการตั้งค่า **Docker** ใน VSCode ทั้งในส่วนของ `settings.json`, Extensions และการใช้งานร่วมกับ Dev Containers ครับ:
+
+---
+
+### 1. การตั้งค่า Docker ใน `.vscode/settings.json`
+การตั้งค่าแสดงผลและการทำงานร่วมกับ Docker และ Remote SSH [1]:
+
+```json
+{
+  // แสดงไอคอน Docker บนแถบ Activity Bar ด้านข้าง
+  "docker.showInActivityBar": true,
+
+  // จัดกลุ่ม Docker Images ตามชื่อ Image
+  "docker.groupImages": "ImageName",
+
+  // ระบุไฟล์ Docker Compose หลักสำหรับ Dev Containers
+  "dev.containers.dockerComposePath": "docker-compose.yml",
+
+  // แสดงหน้าต่าง Terminal เมื่อเชื่อมต่อผ่าน Remote SSH
+  "remote.SSH.showLoginTerminal": true
+}
+```
+
+---
+
+### 2. Extensions แนะนำสำหรับ Docker
+ระบุเพิ่มลงในไฟล์ `.vscode/extensions.json` เพื่อให้เพื่อนร่วมทีมติดตั้งได้สะดวก:
+
+* **`ms-azuretools.vscode-docker`** (**Docker**): สำหรับจัดการ Containers, Images, Networks และ Volumes ผ่าน GUI ใน VSCode โดยตรง
+* **`ms-vscode-remote.remote-containers`** (**Dev Containers**): ช่วยเปิดสภาพแวดล้อมการเขียนโค้ดและรัน VSCode Server อยู่ภายใน Docker Container โดยตรง
+
+---
+
+### 3. ตัวอย่างคอนฟิก Dev Container (`.devcontainer/devcontainer.json`)
+หากต้องการพัฒนาโค้ดภายใน Container ให้สภาพแวดล้อมเหมือนกันทั้งทีม สามารถสร้างโฟลเดอร์ `.devcontainer/` แล้วสร้างไฟล์ `devcontainer.json` ดังนี้:
+
+```json
+{
+  "name": "Node.js & Docker Dev Environment",
+  "image": "[suspicious link removed]",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      },
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  },
+  "forwardPorts": 
+}
+```
+
+---
+
+💡 คุณต้องการให้ฉันช่วยเตรียมตัวอย่าง **`Dockerfile`** หรือ **`docker-compose.yml`** สำหรับโปรเจกต์ประเภทไหนเพิ่มเติมไหมครับ?
