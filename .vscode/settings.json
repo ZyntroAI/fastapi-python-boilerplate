@@ -65,3 +65,31 @@
   "files.autoSave": "onFocusChange",
   "editor.tabSize": 2
 }
+
+ตัวอย่างไฟล์ **`.vscode/settings.json`** สำหรับการพัฒนา **PHP และ Laravel** [1]:
+
+```json
+{
+  "[php]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "bmewburn.vscode-intelephense-client"
+  },
+  "intelephense.format.enable": true,
+  "php.validate.executablePath": "php",
+  "php.suggest.basic": true,
+  "files.exclude": {
+    "**/vendor": true,
+    "**/.git": true,
+    "**/node_modules": true
+  }
+}
+```
+
+### คำอธิบายการตั้งค่าหลัก [1]:
+* **`[php]`**: กำหนดให้จัดรูปแบบโค้ดอัตโนมัติเมื่อบันทึกไฟล์ (`editor.formatOnSave`) โดยใช้ **Intelephense** (`bmewburn.vscode-intelephense-client`) เป็น Formatter หลัก [1]
+* **`intelephense.format.enable`**: เปิดใช้งานการจัดฟอร์แมตของ Intelephense [1]
+* **`php.validate.executablePath`**: กำหนด Path ของตัวรัน PHP สำหรับตรวจสอบความถูกต้องของไวยากรณ์ [1]
+* **`php.suggest.basic`**: เปิดใช้งานระบบเติมคำสั่งพื้นฐานของ PHP [1]
+* **`files.exclude`**: ซ่อนโฟลเดอร์ที่ไม่จำเป็น เช่น `**/vendor`, `**/.git` และ `**/node_modules` เพื่อไม่ให้บดบังโฟลเดอร์งานใน File Explorer [1]
+
+🐘 หากคุณต้องการการตั้งค่าสำหรับ **Docker / Dev Containers** หรือส่วนขยายเพิ่มเติมสำหรับการพัฒนา PHP/Laravel แจ้งได้เลยครับ!
