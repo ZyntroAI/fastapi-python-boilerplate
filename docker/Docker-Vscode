@@ -57,3 +57,51 @@
 ---
 
 💡 คุณต้องการให้ฉันช่วยเตรียมตัวอย่าง **`Dockerfile`** หรือ **`docker-compose.yml`** สำหรับโปรเจกต์ประเภทไหนเพิ่มเติมไหมครับ?
+
+ตัวอย่างการตั้งค่า **VSCode สำหรับโปรเจกต์ Python** ในไฟล์ `.vscode/settings.json` ตามที่ระบุในแหล่งข้อมูล [1-3]:
+
+```json
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.typeCheckingMode": "basic",
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": true,
+  "python.formatting.provider": "black",
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "files.trimTrailingWhitespace": true
+}
+```
+
+---
+
+### **คำอธิบายรายละเอียดการตั้งค่าแต่ละส่วน**
+
+1. **การกำหนด Virtual Environment / Interpreter:**
+   * **`"python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python"`**: กำหนดตำแหน่งเริ่มต้นของ Python Interpreter ให้ชี้ไปยัง Virtual Environment (`.venv`) ในโฟลเดอร์โปรเจกต์โดยอัตโนมัติ [2, 3]
+
+2. **การจัดรูปแบบโค้ด (Formatting with Black):**
+   * **`"[python]"`**: กำหนดให้จัดรูปแบบโค้ดเมื่อบันทึกไฟล์ (`"editor.formatOnSave": true`) โดยใช้ **Black** (`ms-python.black-formatter`) เป็น Formatter หลัก [1-3]
+   * **`"python.formatting.provider": "black"`**: กำหนดตัวจัดฟอร์แมตของ Python ให้เป็น Black [1]
+
+3. **การตรวจสอบคุณภาพและไวยากรณ์โค้ด (Linting with Pylint):**
+   * **`"python.linting.enabled": true`** และ **`"python.linting.pylintEnabled": true`**: เปิดใช้งานการตรวจเช็คข้อผิดพลาดและสไตล์ของโค้ดด้วย **Pylint** [1, 3, 4]
+
+4. **ระบบแนะนำโค้ดและ Type Checking (Pylance):**
+   * **`"python.analysis.autoImportCompletions": true`**: เปิดการแนะนำและเติมคำสั่ง `import` โมดูลให้อัตโนมัติขณะพิมพ์ [2, 3]
+   * **`"python.analysis.typeCheckingMode": "basic"`**: เปิดใช้งานการตรวจสอบประเภทข้อมูล (Type Checking) ระดับพื้นฐาน [2, 3]
+
+5. **การทำความสะอาดไฟล์:**
+   * **`"files.trimTrailingWhitespace": true`**: ลบระยะห่างและช่องว่างส่วนเกินท้ายบรรทัดออกให้อัตโนมัติเมื่อกดบันทึกไฟล์ [2, 3]
+
+---
+
+### **วิธีเปิดใช้งานไฟล์ตั้งค่า**
+* **Windows / Linux**: กด `Ctrl + Shift + P` แล้วเลือก **Preferences: Open Settings (JSON)** [5, 6]
+* **Mac**: กด `Cmd + Shift + P` แล้วเลือก **Preferences: Open Settings (JSON)** [5, 6]
+* หรือสร้างไฟล์ที่ตำแหน่ง **`.vscode/settings.json`** ในโฟลเดอร์โปรเจกต์โดยตรง [5, 6]
+
+💡 คุณสนใจให้ฉันช่วยเตรียมการตั้งค่าเพิ่มเติมสำหรับเครื่องมืออื่น หรือช่วยรวบรวมคู่มือทั้งหมดลงใน Studio Panel ไหมครับ?
