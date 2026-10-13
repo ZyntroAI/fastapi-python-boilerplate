@@ -149,3 +149,26 @@
 ---
 
 💡 คุณต้องการให้ฉันช่วยเตรียมไฟล์ **`.vscode/extensions.json`** สำหรับแนะนำ Extension ของ Next.js หรือชุดตั้งค่าตัวอื่นเพิ่มเติมไหมครับ?
+ตัวอย่างการตั้งค่า VSCode ในไฟล์ `settings.json` สำหรับ **Docker** และ **Dev Containers** เพื่อผสานการทำงานร่วมกับ Container [1]:
+
+```json
+{
+  "docker.showInActivityBar": true,
+  "docker.groupImages": "ImageName",
+  "dev.containers.dockerComposePath": "docker-compose.yml",
+  "remote.SSH.showLoginTerminal": true
+}
+```
+
+### รายละเอียดการตั้งค่า:
+* **`"docker.showInActivityBar": true`**: เปิดการแสดงผลแถบเครื่องมือ Docker บน Activity Bar ด้านข้าง [1]
+* **`"docker.groupImages": "ImageName"`**: จัดกลุ่มรายการ Docker Images ตามชื่อของ Image [1]
+* **`"dev.containers.dockerComposePath": "docker-compose.yml"`**: กำหนดตำแหน่งไฟล์ `docker-compose.yml` หลักสำหรับการใช้งาน Dev Containers [1]
+* **`"remote.SSH.showLoginTerminal": true`**: แสดงหน้าต่าง Terminal เมื่อเชื่อมต่อผ่าน Remote SSH [1]
+
+---
+
+**วิธีการเปิดใช้งาน:**
+กด **Ctrl + Shift + P** (บน Mac: **Cmd + Shift + P**) แล้วเลือก **Preferences: Open Settings (JSON)** หรือแก้ไขไฟล์ `.vscode/settings.json` ในโฟลเดอร์โปรเจกต์โดยตรง [2]
+
+🐳 คุณสนใจให้ฉันช่วยรวบรวมไฟล์ตั้งค่าทั้งหมดสำหรับโปรเจกต์ของคุณออกเป็นรายงานคู่มือประจำทีมไว้ใน Studio Panel ไหมครับ?
