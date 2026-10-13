@@ -1,0 +1,54 @@
+ตัวอย่างการเขียน **Conventional Commits** จากแหล่งข้อมูล โดยมีโครงสร้างหลักคือ **`type(scope): summary`** [1]:
+
+### 1. ตัวอย่างแบ่งตามประเภท (Type) [1, 2]
+* **`feat`** (การเพิ่มฟีเจอร์ใหม่):
+  * `feat(auth): add login validation` [1]
+  * `feat(ui): add dark mode toggle` [3]
+  * `feat(api): add category filter to product list` [1]
+* **`fix`** (การแก้ไขข้อผิดพลาด/Bug):
+  * `fix(api): prevent duplicate order submission` [1]
+  * `fix(auth): handle expired token refresh` [3]
+  * `fix(auth): handle empty email during sign-in` [4]
+* **`refactor`** (การปรับปรุงโครงสร้างโค้ดโดยไม่เปลี่ยนการทำงาน):
+  * `refactor(ui): simplify dashboard card state` [1]
+  * `refactor(service): simplify payment validation flow` [3]
+* **`docs`** (การปรับปรุงเอกสาร):
+  * `docs(readme): update setup instructions` [1]
+  * `docs(readme): add installation steps for Windows` [3]
+* **`chore`** (การอัปเดตการตั้งค่าหรืองานดูแลระบบ):
+  * `chore(ci): update Node version in workflow` [1]
+  * `chore(deps): upgrade React to 19` [3]
+
+*(ประเภทอื่นๆ ที่สามารถใช้ได้ตามสเปก ได้แก่ `test`, `perf`, `style` [2])*
+
+---
+
+### 2. โครงสร้างแบบเต็ม (Full Commit Message Template) [3, 5]
+กรณีต้องการอธิบายรายละเอียดเพิ่มเติม สามารถเพิ่มส่วนรายละเอียด (Body) ต่อท้ายได้ดังนี้ [3, 5]:
+
+```text
+type(scope): short summary
+
+* explain what changed
+* mention why it changed
+* include testing if relevant
+``` [3, 5]
+
+**ตัวอย่างการใช้งาน:**
+```text
+fix(api): prevent duplicate order submission
+
+* block duplicate requests from same client within same session
+* add guard in service layer before creating order
+* add unit test for duplicate request case
+``` [5]
+
+---
+
+### 3. กฎและข้อแนะนำในการเขียน [4, 5]
+* **ความยาวสรุป**: ควรสั้นกระชับและไม่เกิน **72 ตัวอักษร** [2, 5]
+* **รูปแบบคำ**: ใช้คำกริยาแบบ **Present tense** [5]
+* **ความชัดเจน**: หลีกเลี่ยงคำคลุมเครือ เช่น *"fix bug"* [4] แต่ควรระบุให้ชัดเจน เช่น *"fix(auth): handle empty email during sign-in"* [4]
+* **ขอบเขต**: มุ่งเน้น 1 การกระทำต่อ 1 Commit และคำนึงถึงผลกระทบต่อผู้ใช้งาน [5]
+
+💡 ต้องการให้ฉันช่วยเตรียมตัวอย่างสคริปต์สำหรับช่วยสร้าง หรือตรวจเช็ค Commit Message อัตโนมัติในเครื่องของคุณเพิ่มเติมไหมครับ?
