@@ -20,6 +20,36 @@
       "env": {
         "TYPHOON_API_KEY": "${env:TYPHOON_API_KEY}"
       }
+    },
+    "gemini": {
+      "command": "npx",
+      "args": ["-y", "gemini-mcp"],
+      "env": {
+        "GEMINI_API_KEY": "${env:GEMINI_API_KEY}"
+      }
+    },
+    "claude": {
+      "command": "npx",
+      "args": ["-y", "claude-mcp"],
+      "env": {
+        "ANTHROPIC_API_KEY": "${env:ANTHROPIC_API_KEY}"
+      }
+    },
+    "ollama": {
+      "command": "npx",
+      "args": ["-y", "ollama-mcp"],
+      "env": {
+        "OLLAMA_HOST": "${env:OLLAMA_HOST}"
+      }
+    }
+  }
+}
+    "typhoon": {
+      "command": "npx",
+      "args": ["-y", "typhoon-mcp"],
+      "env": {
+        "TYPHOON_API_KEY": "${env:TYPHOON_API_KEY}"
+      }
     }
   }
 }
