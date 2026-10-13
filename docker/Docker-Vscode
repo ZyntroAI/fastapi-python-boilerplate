@@ -156,3 +156,51 @@
 กด `Ctrl + Shift + P` (บน Mac: `Cmd + Shift + P`) แล้วเลือก **Preferences: Open Settings (JSON)** หรือสร้างไฟล์ไว้ที่ตำแหน่ง `.vscode/settings.json` ในโฟลเดอร์โปรเจกต์โดยตรง [6-8].
 
 💡 คุณต้องการให้ฉันช่วยเตรียมตัวอย่างการตั้งค่าสำหรับเครื่องมืออื่น หรือช่วยสรุปแนวทางทั้งหมดลงในโปรเจกต์ของคุณเพิ่มเติมไหมครับ?
+
+ตัวอย่างไฟล์ **`.vscode/settings.json`** ที่ปรับแต่งให้เหมาะสำหรับโปรเจกต์ **Next.js** พร้อมการรองรับ JavaScript, TypeScript และ React (JSX/TSX) [1-4]:
+
+```json
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[javascript]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.formatOnSave": true
+  },
+  "[typescriptreact]": {
+    "editor.formatOnSave": true
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true,
+    "source.organizeImports": true
+  },
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "files.exclude": {
+    "**/.next": true,
+    "**/node_modules": true,
+    "**/.git": true
+  },
+  "search.exclude": {
+    "**/.next": true,
+    "**/node_modules": true
+  }
+}
+```
+
+### สรุปการทำงานของการตั้งค่าหลัก:
+* **การจัดรูปแบบโค้ดและการแก้ไขอัตโนมัติ**: กำหนดให้ **Prettier** (`esbenp.prettier-vscode`) จัดฟอร์แมตเมื่อบันทึกไฟล์ พร้อมให้ **ESLint** แก้ไขข้อผิดพลาดอัตโนมัติ (`source.fixAll.eslint`) และจัดเรียงคำสั่ง `import` (`source.organizeImports`) ทุกครั้งที่บันทึก [1, 2]
+* **การเปิดใช้ ESLint ครอบคลุมไฟล์ React/Next.js**: ระบุรายการประเภทไฟล์ใน `eslint.validate` ให้รองรับ `javascriptreact` และ `typescriptreact` [1, 2]
+* **การซ่อนโฟลเดอร์ไฟล์บิลด์และระบบ**: ซ่อนโฟลเดอร์ `**/.next`, `**/node_modules` และ `**/.git` ใน `files.exclude` และ `search.exclude` เพื่อซ่อนไฟล์ผลลัพธ์การบิลด์ชั่วคราวออกจากการแสดงผลใน Explorer และผลการค้นหาข้อความ ช่วยลดความสับสนและทำให้ระบบทำงานได้สะอาดขึ้น [3, 4]
+
+💡 คุณต้องการให้ฉันช่วยเตรียมไฟล์แนะนำส่วนขยายประจำโปรเจกต์อย่าง `.vscode/extensions.json` หรือการตั้งค่าอื่นๆ เพิ่มเติมไหมครับ?
