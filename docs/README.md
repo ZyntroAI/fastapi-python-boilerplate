@@ -116,7 +116,20 @@ fastapi-python-boilerplate/
 ├── CONTRIBUTING.md
 ├── LICENSE
 └── README.md
- 
+ src/
+├── app/api/
+│   └── prompt/route.ts
+└── lib/
+    ├── api/
+    │   ├── http-error.ts
+    │   └── response.ts
+    ├── validation/
+    │   └── prompt.schema.ts
+    ├── security/
+    │   ├── rate-limit.ts
+    │   └── auth.ts
+    └── observability/
+        └── logger.ts
  
  
  
