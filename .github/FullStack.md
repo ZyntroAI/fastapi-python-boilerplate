@@ -1,700 +1,678 @@
-# FullStack Development & DevOps Skillsbook
+🚀 FullStack Development & DevOps Skillsbook — Optimized Edition
+ 
+A comprehensive, production-ready guide covering full-stack development, DevOps workflows, Docker, Kubernetes, CI/CD, and AI integration.
+ 
+ 
+ 
+📋 Table of Contents
+ 
+- 🎯 Executive Overview
+- 🔄 Complete Workflow Pipeline
+- 📁 Repository Structure
+- 📋 Project Planning
+- 💻 Feature Development
+- 🔨 Build & Testing
+- 📚 Documentation
+- 🐳 Docker & Containerization
+- ⚙️ CI/CD with GitHub Actions
+- ☸️ Kubernetes Deployment
+- 🧪 UAT Environment
+- 🤖 AI Integration (Vertex MCP)
+- 🔒 Security & Compliance
+- 🔧 Maintenance & Automation
+- 📊 Quick Reference
+- ✅ Pre-Deployment Checklist
+ 
+ 
+ 
+🎯 Executive Overview
+ 
+Phase Command Objective Output 
+Plan  /create-plans  Define scope, architecture, risks Spec + Tech Design 
+Develop  /feat  Implement features in isolation PR ready for review 
+Verify  /build  +  /test  Validate correctness & quality Passing artifacts 
+Document  /docs  Keep docs in sync with code Updated docs 
+Package  /docker-compose  Containerize consistently Multi-service stack 
+Validate  /github-actions  Enforce quality gates Green CI pipeline 
+Deploy  /deploy dev → /deploy uat → /deploy prod  Phased rollout with approvals Production release 
+Intelligence  /vertex-mcp  Integrate AI capabilities AI-augmented workflows 
+Maintain  /chores  +  /summaries  Keep system healthy Audit + status report 
+ 
+ 
+ 
+🔄 Complete Workflow Pipeline
+ 
+plaintext
+  
+┌─────────────┐    ┌──────────────┐    ┌──────────────┐
+│  PLANNING   │ →  │  DEVELOPMENT  │ →  │   VERIFICATION  │
+│ /create-plans │   │   /feat      │    │ /build /test  │
+└─────────────┘    └──────────────┘    └──────┬───────┘
+                                                │
+┌─────────────┐    ┌──────────────┐    ┌──────▼───────┐
+│  PROD READY │ ←  │   UAT PASS   │ ←  │  DEPLOY DEV  │
+│ /deploy prod│    │ /deploy uat │    │ /github-actions│
+└──────┬──────┘    └──────────────┘    └──────────────┘
+       │
+┌──────▼───────┐    ┌──────────────┐    ┌──────────────┐
+│  MONITORING  │ ← │ MAINTENANCE  │ ←  │  AI ENRICH   │
+│ /summaries   │    │   /chores   │    │ /vertex-mcp │
+└──────────────┘    └──────────────┘    └──────────────┘
+ 
+ 
+ 
+ 
+📁 Repository Structure — Optimized
+ 
+plaintext
+  
+.
+├── .github/workflows/       # CI/CD pipelines
+│   ├── ci.yml              # Build + test + lint
+│   ├── secret-scan.yml     # Secrets detection
+│   ├── dependency-review.yml # Vulnerability scan
+│   ├── deploy-dev.yml      # Auto deploy dev
+│   ├── deploy-uat.yml      # Manual deploy UAT
+│   └── release.yml         # Tag → deploy prod
+├── backend/                # API / services
+├── frontend/               # UI / client
+├── docker/                 # Dockerfiles & configs
+│   ├── Dockerfile.dev
+│   └── Dockerfile.prod
+├── k8s/                    # Kubernetes manifests
+│   ├── base/               # Base resources
+│   │   ├── deployment.yaml
+│   │   ├── service.yaml
+│   │   ├── configmap.yaml
+│   │   └── kustomization.yaml
+│   └── overlays/           # Env-specific configs
+│       ├── dev/kustomization.yaml
+│       ├── uat/kustomization.yaml
+│       └── prod/kustomization.yaml
+├── helm/app/               # Helm charts
+│   ├── Chart.yaml
+│   ├── values.yaml
+│   ├── values-dev.yaml
+│   ├── values-uat.yaml
+│   └── templates/
+├── scripts/                # Utility scripts
+│   ├── backup.sh
+│   ├── health-check.sh
+│   ├── deploy.sh
+│   └── maintenance.sh
+├── docs/                   # Project documentation
+│   ├── architecture.md
+│   ├── api.md
+│   ├── development.md
+│   ├── deployment.md
+│   ├── security.md
+│   ├── troubleshooting.md
+│   └── runbook.md
+├── .github/ISSUE_TEMPLATE/ # Standardized issue templates
+├── .gitignore
+├── .dockerignore
+├── docker-compose.yml
+├── docker-compose.dev.yml
+├── Makefile
+├── README.md
+└── .env.example            # Template — NEVER commit .env
+ 
+ 
+ 
+ 
+📋 Project Planning
+ 
+Planning Checklist
+ 
+Requirements — Functional, non-functional, constraints
+Architecture — System design, tech stack, data flows
+Security — Auth model, data classification, network boundaries
+Environments — Dev / UAT / Prod strategy, isolation rules
+Risks — Dependencies, external APIs, compliance requirements
+Timeline — Milestones, deliverables, dependencies
+ 
+ 
+ 
+💻 Feature Development
+ 
+Standard Git Workflow
+ 
+bash
+  
+# Create feature branch from main
+git checkout main
+git pull origin main
+git checkout -b feat/short-description
 
-> A comprehensive guide for full-stack development, DevOps workflows, Docker, Kubernetes, CI/CD, and AI integration.
-
----
-
-## Table of Contents
-
-- [Workflow Overview](#workflow-overview)
-- [Project Planning](#project-planning)
-- [Feature Development](#feature-development)
-- Build & Testing
-- [Documentation](#documentation)
-- Docker & Containerization
-- [CI/CD with GitHub Actions](#cicd-with-github-actions)
-- [Kubernetes Deployment](#kubernetes-deployment)
-- [UAT Environment](#uat-environment)
-- [AI Integration (Vertex MCP)](#ai-integration-vertex-mcp)
-- Maintenance & Automation
-- [Repository Structure](#repository-structure)
-- [Quick Reference](#quick-reference)
-
----
-
-## Workflow Overview
-
-The complete development and deployment lifecycle:
-
-```text
-/create-plans → /create-skillsbooks → /feat → /build → /test → /docs → /updates 
-→ /docker-compose → /github-actions → /deploy dev → /setup uat → /deploy uat 
-→ /deploy prod → /summaries
-Command Reference
-Command	Purpose
-/create-plans	Create implementation plan
-/create-skillsbooks	Generate reusable engineering knowledge
-/feat	Develop a feature
-/build	Build application and artifacts
-/test	Run tests and validation
-/docs	Create or update documentation
-/updates	Review updates and maintenance
-/docker-compose	Manage local containers
-/github-actions	Configure CI/CD
-/deploy dev	Deploy development environment
-/setup uat	Prepare UAT environment
-/deploy uat	Deploy UAT environment
-/deploy prod	Deploy production
-/vertex-mcp	Configure Vertex AI/MCP integration
-/chores	Perform maintenance
-/summaries	Generate project summary
-Project Planning
-/create-plans
-Create an implementation plan before development begins.
-
-Planning Areas:
-
-Requirements analysis
-Architecture design
-Technology stack selection
-Repository structure
-Environment strategy
-Security requirements
-Deployment strategy
-Development Areas:
-
-Repository setup
-Feature implementation
-Testing strategy
-Documentation plan
-Code review process
-Infrastructure Areas:
-
-Docker configuration
-Docker Compose setup
-Kubernetes manifests
-Helm charts
-GitHub Actions workflows
-CI/CD pipelines
-Monitoring setup
-Feature Development
-/feat
-Define and implement a new application feature.
-
-Workflow:
-
-Define requirements
-Design implementation
-Implement source code
-Add tests
-Update documentation
-Run validation
-Commit changes
-Example:
-
-git checkout -b feat/new-feature
-
+# Work + commit frequently
 git add .
-git commit -m "feat: add new feature"
-git push origin feat/new-feature
-Build & Testing
-/build
-Build the application and deployment artifacts.
+git commit -m "feat: implement user authentication"
 
-Commands:
+# Keep branch updated
+git pull origin main --rebase
 
-make build
-make lint
-make test
-docker build -t my-app:latest .
-Responsibilities:
+# Push and open PR
+git push -u origin feat/short-description
+# Create PR → Request review → Merge when approved
+ 
+ 
+Branch Naming Convention
+ 
+Prefix Purpose Example 
+ feat/  New feature  feat/user-login  
+ fix/  Bug fix  fix/login-timeout  
+ docs/  Documentation  docs/api-endpoints  
+ refactor/  Code refactoring  refactor/auth-service  
+ chore/  Maintenance  chore/update-deps  
+ 
+ 
+ 
+🔨 Build & Testing
+ 
+Makefile Standard Targets
+ 
+makefile
+  
+.PHONY: all setup build lint test clean help
 
-Compile application source
-Validate dependencies
-Run linting checks
-Execute tests
-Build production artifacts
-Create container images
-/test
-Run automated validation before deployment.
+all: setup lint test build
 
-Test Layers:
+setup:  ## Install dependencies
+	@echo "🔧 Setting up project..."
 
-Unit Tests
-    ↓
-Integration Tests
-    ↓
-API Tests
-    ↓
-Container Tests
-    ↓
-Smoke Tests
-    ↓
-UAT
-Example:
+build:  ## Build application
+	@echo "🏗️ Building..."
 
-make lint
-make test
-Documentation
-/docs
-Maintain comprehensive project documentation.
+lint:   ## Run linters
+	@echo "🔍 Linting..."
 
-Recommended Structure:
+test:   ## Run unit tests
+	@echo "🧪 Running tests..."
 
-docs/
-├── architecture.md
-├── api.md
-├── development.md
-├── deployment.md
-├── troubleshooting.md
-└── runbook.md
-Documentation Should Cover:
+test-integration:  ## Run integration tests
+	@echo "🔗 Running integration tests..."
 
-System architecture
-API specifications
-Development setup
-Deployment procedures
-Configuration options
-Troubleshooting guides
-Operations manual
-Disaster recovery plans
-Docker & Containerization
-/docker-compose
-Example local development stack:
+test-e2e:  ## Run end-to-end tests
+	@echo "🎭 Running E2E tests..."
+
+clean:  ## Clean build artifacts
+	@echo "🧹 Cleaning..."
+
+help:   ## Show this help
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
+ 
+ 
+Test Pyramid — Recommended Balance
+ 
+plaintext
+  
+        /\
+       /E2E\        ← Few (Critical paths only)
+      /------\
+     /Integration\   ← Moderate (API/Service contracts)
+    /----------\
+   /   Unit     \    ← Most (Fast, isolated logic)
+  /==============\
+ 
+ 
+ 
+ 
+📚 Documentation
+ 
+Docs-as-Code Principles
+ 
+- ✅ Close to code — Store docs in repo, not separate wiki
+- ✅ Versioned together — Same commit as code changes
+- ✅ Reviewable — PR includes doc changes
+- ✅ Generated where possible — API docs from OpenAPI/Swagger
+ 
+Minimum Documentation Set
+ 
+Document Purpose Owner 
+ README.md  Quickstart, overview All devs 
+ architecture.md  System design, diagrams, decisions Tech Lead 
+ api.md  Endpoints, request/response examples Backend Team 
+ development.md  Local setup, common commands All devs 
+ deployment.md  Env guide, promote procedures DevOps 
+ troubleshooting.md  Known issues + fixes Everyone contributes 
+ 
+ 
+ 
+🐳 Docker & Containerization
+ 
+Multi-Stage Build Example
+ 
+dockerfile
+  
+# ---- Builder Stage ----
+FROM node:22-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+# ---- Production Stage ----
+FROM node:22-alpine
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+EXPOSE 3000
+CMD ["node", "dist/index.js"]
+ 
+ 
+Docker Compose — Local Development
+ 
+yaml
+  
+version: '3.8'
+
+x-common-env: &common-env
+  NODE_ENV: development
+  LOG_LEVEL: debug
 
 services:
   api:
     build:
       context: ./backend
-    ports:
-      - "8080:8080"
+      dockerfile: Dockerfile.dev
+    ports: ["8080:8080"]
+    environment:
+      <<: *common-env
+      DB_HOST: db
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
-    ports:
-      - "3000:3000"
+      dockerfile: Dockerfile.dev
+    ports: ["3000:3000"]
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     depends_on:
       - api
 
   db:
-    image: postgres:16
+    image: postgres:16-alpine
     environment:
       POSTGRES_DB: app
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: devuser
+      POSTGRES_PASSWORD: devpass
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./scripts/init-db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devuser"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres-data:
-Docker Commands:
-
-# Start services
-docker compose up -d
-
-# Check services
-docker compose ps
-
-# View logs
-docker compose logs -f
-
-# Stop services
-docker compose down
-
-# Rebuild
-docker compose build --no-cache
-Docker Scaling
-Horizontal Scaling:
-
-docker compose up --scale api=3
-Architecture:
-
-             Load Balancer
-                  |
-        +---------+---------+
-        |         |         |
-        v         v         v
-      API-1     API-2     API-3
-        |         |         |
-        +---------+---------+
-                  |
-                  v
-              Database
-                  |
-                  v
-                Cache
-Note: In production, use proper load-balancing and service-discovery layers rather than relying solely on Docker Compose scaling.
-
-CI/CD with GitHub Actions
-/github-actions
-Recommended Workflow Structure:
-
-.github/
-└── workflows/
-    ├── ci.yml
-    ├── secret-scan.yml
-    ├── dependency-review.yml
-    ├── deploy-dev.yml
-    ├── deploy-uat.yml
-    └── release.yml
-CI Example:
-
+ 
+ 
+ 
+ 
+⚙️ CI/CD with GitHub Actions
+ 
+Pipeline Design Strategy
+ 
+plaintext
+  
+Pull Request → CI (Build + Test + Lint) → Merge to Main
+     ↓
+   Main Branch → CI Passes → Auto Deploy DEV → Notify Team
+     ↓
+   Tag Release Candidate → Manual Approval → Deploy UAT → Test → Approve → Deploy PROD
+ 
+ 
+CI Pipeline Template ( ci.yml )
+ 
+yaml
+  
 name: CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true  # Cancel old runs on new pushes
+
 jobs:
-  build-test:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
+        with: { node-version: '22', cache: 'npm' }
       - run: npm ci
       - run: npm run lint
-      - run: npm test
-      - run: npm run build
-Kubernetes Deployment
-Kubernetes Structure
-Recommended Layout:
 
+  test:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22', cache: 'npm' }
+      - run: npm ci
+      - run: npm test -- --coverage
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: my-app:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  scan:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'my-app:ci'
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+ 
+ 
+Deployment Promotion Flow
+ 
+plaintext
+  
+main branch ──► DEV (Auto)
+     │
+     ├─── Tag: v1.2.3-rc1 ──► UAT (Manual trigger)
+     │                              │
+     │                              ▼
+     │                         ✅ UAT Approved?
+     │                              │
+     └─── Tag: v1.2.3 ─────────────► PROD (Manual approval)
+ 
+ 
+ 
+ 
+☸️ Kubernetes Deployment
+ 
+Kustomize Structure
+ 
+plaintext
+  
 k8s/
 ├── base/
 │   ├── deployment.yaml
 │   ├── service.yaml
-│   └── configmap.yaml
-│
+│   ├── configmap.yaml
+│   ├── pdb.yaml          # Pod Disruption Budget
+│   └── kustomization.yaml
 └── overlays/
     ├── dev/
+    │   ├── cpu-limits.yaml
+    │   └── kustomization.yaml
     ├── uat/
+    │   ├── replicas.yaml
+    │   └── kustomization.yaml
     └── prod/
-Deploy Development:
-
+        ├── hpa.yaml       # Auto-scaling
+        ├── pdb.yaml
+        └── kustomization.yaml
+ 
+ 
+Deployment Commands
+ 
+bash
+  
+# Deploy to environment
 kubectl apply -k k8s/overlays/dev
+
+# Verify deployment
 kubectl get pods -n dev
+kubectl get svc -n dev
+kubectl describe ingress -n dev
+
+# Check rollout status
 kubectl rollout status deployment/app -n dev
-Kubernetes Scaling
-Manual Scaling:
 
-kubectl scale deployment app --replicas=5 -n dev
-Horizontal Pod Autoscaler:
-
-kubectl autoscale deployment app \
-  --min=2 \
-  --max=10 \
-  --cpu-percent=70
-Helm
-Example Deployment:
-
-helm upgrade --install app ./helm/app \
-  --namespace dev \
-  --create-namespace \
-  -f values-dev.yaml
-Recommended Helm Structure:
-
-helm/
-└── app/
-    ├── Chart.yaml
-    ├── values.yaml
-    └── templates/
-        ├── deployment.yaml
-        ├── service.yaml
-        ├── ingress.yaml
-        └── configmap.yaml
-UAT Environment
-/setup uat
-Prepare the User Acceptance Testing environment.
-
-Setup Commands:
-
-kubectl create namespace uat
-kubectl apply -k k8s/overlays/uat
-kubectl get pods -n uat
-kubectl rollout status deployment/app -n uat
-UAT Checklist
-Environment:
-
- Namespace created
- Database configured
- Storage configured
- Secrets configured
- Network policies configured
- Ingress configured
-Testing:
-
- Smoke tests
- API tests
- Integration tests
- User workflows
- Acceptance tests
-Approval:
-
- UAT completed
- Business validation completed
- Production readiness confirmed
- Release approved
-AI Integration (Vertex MCP)
-/vertex-mcp
-Conceptual Architecture:
-
-                  AI Agent
-                     |
-                     | MCP
-                     v
-                 MCP Server
-                     |
-                     v
-                 Vertex AI
-                     |
-          +----------+----------+
-          |          |          |
-          v          v          v
-       Gemini    Embeddings   BigQuery
-          |
-          v
-     Cloud Storage
-          |
-          v
-       Kubernetes
-Example Configuration:
-
-mcp:
-  server: vertex-ai
+# Rollback if needed
+kubectl rollout undo deployment/app -n dev
+ 
+ 
+Production Hardening
+ 
+yaml
+  
+# hpa.yaml — Auto-scaling
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: app-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: app
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+---
+# pdb.yaml — Pod Disruption Budget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: app-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: my-app
+ 
+ 
+ 
+ 
+🧪 UAT Environment
+ 
+UAT Deployment Checklist
+ 
+Namespace created:  kubectl create namespace uat 
+Database provisioned & migrated
+Secrets populated (never commit — use ExternalSecrets/Secrets Manager)
+Ingress/DNS configured
+Smoke tests pass
+API contract tests pass
+User workflow scenarios validated
+Performance baseline established
+Business stakeholder signs off ✅
+ 
+ 
+ 
+🤖 AI Integration (Vertex MCP)
+ 
+Architecture Overview
+ 
+plaintext
+  
+   User / Agent
+       │
+       ▼
+   MCP Client
+       │
+       ▼
+   MCP Server ◄─── Auth: Service Account / Workload Identity
+       │
+       ├───► Vertex AI Gemini  (Generate Content)
+       ├───► Vertex Embeddings  (Semantic Search)
+       ├───► BigQuery          (Data Analytics)
+       └──► Cloud Storage     (Knowledge Retrieval)
+ 
+ 
+MCP Configuration
+ 
+yaml
+  
+# mcp-config.yaml
+apiVersion: mcp.vertexai/v1
+kind: MCPServer
+metadata:
+  name: vertex-ai
+spec:
   provider: google-cloud
-  project: my-project
+  project: my-gcp-project
   region: asia-southeast1
+  auth:
+    type: workload_identity
   tools:
-    - generate_content
-    - embeddings
-    - cloud_storage
-    - bigquery
-Security Note: Treat credentials, API keys, service-account files, and production secrets as external configuration. Do not commit secrets to the repository.
-
-Maintenance & Automation
-/chores
-Perform technical maintenance and housekeeping.
-
-Dependencies:
-
-Update packages
-Apply security patches
-Review deprecated dependencies
-Update lockfiles
-CI/CD:
-
-Clean workflows
-Improve caching
-Review build performance
-Review deployment permissions
-Repository:
-
-Remove unused files
-Improve project structure
-Refactor technical debt
-Update documentation
-Security:
-
-Review secrets
-Review permissions
-Run secret scanning
-Review dependency vulnerabilities
-Cron Jobs
-Linux Cron Examples:
-
-# Backup at 02:00
-0 2 * * * /opt/app/scripts/backup.sh
-
-# Health check every 5 minutes
-*/5 * * * * /opt/app/scripts/health-check.sh
-
-# Weekly report Monday at 08:00
-0 8 * * 1 /opt/app/scripts/report.sh
-Kubernetes CronJob:
-
+    - name: generate_content
+      model: gemini-2.0-flash
+    - name: get_embeddings
+      model: text-embedding-005
+    - name: bigquery.query
+      enabled: true
+    - name: storage.read
+      buckets: ["docs-knowledge-base"]
+  security:
+    allow_from:
+      - kubernetes-namespace:dev
+      - kubernetes-namespace:uat
+ 
+ 
+ 
+ 
+🔒 Security & Compliance
+ 
+Security Gates — Integrated in Pipeline
+ 
+Gate Tool When Fails Pipeline? 
+Secret Scanning GitHub Secret Scanning Push/PR ✅ Yes 
+Dependency Review Dependabot + Review PR ✅ Yes 
+Code Scanning CodeQL Daily + PR ⚠️ Warning 
+Image Vulnerability Trivy Build ✅ CRITICAL/HIGH only 
+License Check FOSSA Scheduled ⚠️ Warning 
+ 
+Secrets Management — ⚠️ CRITICAL RULE
+ 
+NEVER commit  .env , API keys, tokens, or credentials to Git
+ 
+Where to Store Solution 
+Local dev  .env  file — in  .gitignore  
+CI/CD GitHub Secrets →  ${{ secrets.NAME }}  
+Kubernetes Secrets + External Secrets Operator 
+Cloud GCP Secret Manager / AWS Secrets Manager 
+ 
+ 
+ 
+🔧 Maintenance & Automation
+ 
+Cron Schedule Template
+ 
+yaml
+  
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: app-maintenance
 spec:
-  schedule: "0 2 * * *"
+  schedule: "0 2 * * *"   # Daily @ 2 AM UTC
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
+      backoffLimit: 3
       template:
         spec:
           restartPolicy: OnFailure
+          serviceAccountName: app-maintenance
           containers:
-            - name: maintenance
-              image: my-app:latest
-              command:
-                - /bin/sh
-                - -c
-                - /app/scripts/maintenance.sh
-/change-appname
-Rename the application consistently across the repository.
-
-Rename Checklist:
-
- package.json
- Environment variables
- Docker image names
- Docker Compose
- Kubernetes metadata
- Helm values
- GitHub Actions
- Documentation
- Monitoring configuration
-/summaries
-Generate a project status summary.
-
-Example:
-
-Area	Status	Next Action
-Feature	Development	Complete implementation
-Build	Validation	Run CI
-Dev	Active	Smoke test
-UAT	Preparing	Deploy UAT
-Production	Pending	UAT approval
-A good summary should include:
-
-Current state
-Completed work
-Remaining work
-Known issues
-Risks
-Deployment status
-Next actions
-Release readiness
-Repository Structure
-Recommended Structure:
-
-.
-├── .github/
-│   └── workflows/
-│       ├── ci.yml
-│       ├── secret-scan.yml
-│       ├── dependency-review.yml
-│       ├── deploy-dev.yml
-│       ├── deploy-uat.yml
-│       └── release.yml
-│
-├── backend/
-│
-├── frontend/
-│
-├── docker/
-│
-├── k8s/
-│   ├── base/
-│   └── overlays/
-│       ├── dev/
-│       ├── uat/
-│       └── prod/
-│
-├── helm/
-│   └── app/
-│
-├── scripts/
-│   ├── backup.sh
-│   ├── cleanup.sh
-│   ├── health-check.sh
-│   └── maintenance.sh
-│
-├── docs/
-│   ├── architecture.md
-│   ├── api.md
-│   ├── development.md
-│   ├── deployment.md
-│   ├── troubleshooting.md
-│   └── runbook.md
-│
-├── skillsbook/
-│   ├── 00-overview.md
-│   ├── 01-foundation.md
-│   ├── 02-development.md
-│   ├── 03-testing.md
-│   ├── 04-devops.md
-│   ├── 05-kubernetes.md
-│   ├── 06-ai-vertex-mcp.md
-│   ├── 07-security.md
-│   ├── 08-troubleshooting.md
-│   └── 09-best-practices.md
-│
-├── docker-compose.yml
-├── Dockerfile
-├── Makefile
-└── README.md
-Environment Strategy
-Use separate environments for development, UAT, and production.
-
-                 Git Repository
-                       |
-                       v
-                  GitHub Actions
-                       |
-          +------------+------------+
-          |            |            |
-          v            v            v
-         DEV          UAT          PROD
-          |            |            |
-          v            v            v
-       Testing      Acceptance    Release
-Environment	Purpose	Deployment
-dev	Development and integration	Automatic
-uat	User acceptance testing	Controlled
-prod	Production	Approval required
-Quick Reference
-PLAN
-PLAN
-  |
-  +-- /create-plans
-  |
-  +-- /create-skillsbooks
-DEVELOP
-DEVELOP
-  |
-  +-- /feat
-  +-- /build
-  +-- /test
-  +-- /docs
-  +-- /updates
-CONTAINER
-CONTAINER
-  |
-  +-- /docker-compose
-  +-- Docker build
-CI/CD
-CI/CD
-  |
-  +-- /github-actions
-KUBERNETES
-KUBERNETES
-  |
-  +-- /deploy dev
-  +-- /setup uat
-  +-- /deploy uat
-  +-- /deploy prod
-AI
-AI
-  |
-  +-- /vertex-mcp
-OPERATIONS
-OPERATIONS
-  |
-  +-- /chores
-  +-- Cron Jobs
-  +-- Scaling
-  +-- Monitoring
-REPORTING
-REPORTING
-  |
-  +-- /summaries
-Release Pipeline
-+---------+
-|  Plan   |
-+----+----+
-     |
-     v
-+---------+
-| Feature |
-+----+----+
-     |
-     v
-+---------+
-|  Build  |
-+----+----+
-     |
-     v
-+---------+
-|  Test   |
-+----+----+
-     |
-     v
-+---------+
-| Docker  |
-+----+----+
-     |
-     v
-+---------+
-|   CI    |
-+----+----+
-     |
-     v
-+---------+
-|   Dev   |
-+----+----+
-     |
-     v
-+---------+
-|   UAT   |
-+----+----+
-     |
-     v
-+---------+
-|  Prod   |
-+---------+
-Release Validation
-make lint
-make test
-make build
-docker build -t my-app:latest .
-docker compose up -d
-kubectl get pods -n dev
-kubectl rollout status deployment/app -n dev
-Operational Checklist
-Before production release:
-
- Feature implemented
- Unit tests passing
- Integration tests passing
- Lint passing
- Docker image builds successfully
- Security scanning completed
- Dependencies reviewed
- Dev deployment validated
- UAT deployed
- UAT completed
- Production configuration reviewed
- Database migration reviewed
- Backup verified
- Monitoring configured
- Rollback strategy confirmed
- Production approval received
-Skillsbook Areas
-Foundation
-Git workflows
-Coding standards
-Architecture patterns
-Repository structure
-Development
-Feature development
-Testing strategies
-Code review processes
-Refactoring techniques
-DevOps
-Docker containerization
-CI/CD pipelines
-Container registries
-Deployment strategies
-Monitoring setups
-Kubernetes
-Pods and Deployments
-Services and ConfigMaps
-Secrets management
-Ingress controllers
-Helm charts
-Horizontal Pod Autoscaling
-AI
-Vertex AI integration
-Gemini models
-MCP protocols
+          - name: tasks
+            image: my-app:latest
+            command: ["/bin/sh", "-c"]
+            args:
+            - |
+              /app/scripts/backup.sh && \
+              /app/scripts/cleanup-temp-files.sh && \
+              /app/scripts/health-check.sh
+ 
+ 
+Weekly Maintenance Checklist
+ 
+ git dependabot  — Review dependency updates
+Security alerts — Address HIGH/CRITICAL vulnerabilities
+CI run history — Investigate flaky tests
+Log review — Check for errors/warnings
+Disk cleanup — Remove old images/pods
+Backup verification — Confirm restore works
+ 
+ 
+ 
+📊 Quick Reference
+ 
+Category Command / Action When 
+Git Workflow  git checkout -b feat/name  → commit → push → PR Daily dev 
+Local Run  docker compose up -d --build  Start dev stack 
+Build  make build  /  docker build -t app:tag .  Before deploy 
+CI Check All jobs green ✅ Before merge 
+Deploy Dev  kubectl apply -k k8s/overlays/dev  Merge to main 
+Deploy UAT Tag RC → manual approval →  kubectl apply -k overlays/uat  Pre-release 
+Deploy Prod Tag release → approval →  kubectl apply -k overlays/prod  Release 
+Status  /summaries  → generate project snapshot Weekly reports 
+ 
+ 
+ 
+✅ Pre-Deployment Checklist — Production Release
+ 
+Code Quality
+ 
+All CI jobs passing
+Code review approved ✅
+No new HIGH/CRITICAL vulnerabilities
+Documentation updated
+ 
+Environment
+ 
+Database migrations tested on UAT
+Secrets validated
+Ingress/DNS ready
+Monitoring/Alerts configured
+Rollback plan documented & tested
+ 
+Validation
+ 
+Smoke tests pass on UAT
+Load/performance baseline met
+Business acceptance signed off ✅
+Change log finalized
+Communication sent to stakeholders
+ 
+ 
+ 
+💡 Next Steps: Save this as  skillsbook/README.md  or  skillsbook/00-overview.md  in your repository. Customize tech stack specifics, adjust CI triggers, and add environment details to match your project. Want me to convert this to Obsidian  .md  format with tags and frontmatter? 😊
