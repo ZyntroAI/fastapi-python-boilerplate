@@ -1,0 +1,161 @@
+ถ้าต้องการ **SQLite Backup + Telegram Alert** แบบ Production-friendly และทำง่ายที่สุด:
+
+### Flow
+
+```text
+SQLite DB
+   │
+   ├─ backup ทุกวัน
+   │
+   ├─ gzip
+   │
+   ├─ เก็บ backup/
+   │
+   └─ ส่งแจ้งเตือน Telegram
+```
+
+---
+
+## Python Script
+
+```python
+import sqlite3
+import shutil
+import gzip
+import os
+from datetime import datetime
+import requests
+
+DB_PATH = "app.db"
+BACKUP_DIR = "backup"
+
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+
+os.makedirs(BACKUP_DIR, exist_ok=True)
+
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+backup_file = f"{BACKUP_DIR}/app_{timestamp}.db"
+compressed_file = f"{backup_file}.gz"
+
+try:
+    # SQLite Online Backup
+    src = sqlite3.connect(DB_PATH)
+    dst = sqlite3.connect(backup_file)
+
+    src.backup(dst)
+
+    dst.close()
+    src.close()
+
+    # Compress
+    with open(backup_file, "rb") as f_in:
+        with gzip.open(compressed_file, "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
+
+    os.remove(backup_file)
+
+    message = (
+        f"✅ SQLite Backup Success\n"
+        f"File: {os.path.basename(compressed_file)}"
+    )
+
+except Exception as e:
+    message = f"❌ SQLite Backup Failed\n{str(e)}"
+
+requests.post(
+    f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+    json={
+        "chat_id": CHAT_ID,
+        "text": message
+    }
+)
+```
+
+---
+
+## Docker Cron
+
+### crontab
+
+```cron
+0 2 * * * python /app/scripts/sqlite_backup.py
+```
+
+รันทุกวันเวลา 02:00
+
+---
+
+## Docker Compose
+
+```yaml
+services:
+  backup:
+    image: python:3.12-slim
+    volumes:
+      - ./data:/data
+      - ./backup:/backup
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
+```
+
+---
+
+## Telegram Alert ตัวอย่าง
+
+```text
+✅ SQLite Backup Success
+
+File:
+app_20260928_020000.db.gz
+```
+
+หรือ
+
+```text
+❌ SQLite Backup Failed
+
+database is locked
+```
+
+---
+
+## เพิ่มความ Production Ready
+
+### P1
+
+- เก็บย้อนหลัง 7-30 วัน
+
+```python
+RETENTION_DAYS = 30
+```
+
+- ส่ง Alert เมื่อ Backup ล้มเหลว
+- ส่ง Alert เมื่อไฟล์ Backup < Size ขั้นต่ำ
+
+### P2
+
+- Upload ไป S3/Cloudflare R2
+- Encrypt ด้วย AES-256 ก่อน Upload
+
+### P3
+
+- Health Check Dashboard
+- Backup Verification Restore Test รายวัน
+
+Checklist:
+
+- [ ] SQLite Online Backup API
+- [ ] Gzip Compression
+- [ ] Telegram Success Alert
+- [ ] Telegram Failure Alert
+- [ ] Retention Cleanup
+- [ ] Offsite Storage (S3/R2)
+- [ ] Restore Verification
+- [ ] Cron Schedule
+- [ ] Docker Integration
+- [ ] Secret ผ่าน Environment Variables
+
+แนวทางนี้เหมาะกับ FastAPI, Flask, Django และ Service ขนาดเล็กถึงกลางที่ใช้ SQLite ใน Production หรือ Homelab.
