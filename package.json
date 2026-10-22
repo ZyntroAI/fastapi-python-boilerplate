@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "private": true,
+  "packageManager": "pnpm@9.15.0",
   "scripts": {
     "dev": "vercel dev",
     "deploy": "vercel --prod",
