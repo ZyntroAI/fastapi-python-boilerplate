@@ -1,0 +1,93 @@
+Docs for auto repair
+
+Use this **prompt** to request auto-repair documentation for your repository:
+
+```text
+Prepare evidence-based auto-repair documentation for
+ZyntroAI/crystalcastleX.
+
+Target document: docs/auto-repair.md
+
+Start by checking existing documentation and the latest checkpoint.
+Inspect only files necessary to establish current repair behavior.
+Do not assume proposed fixes were applied or tested.
+
+First return a brief outline and supporting file paths.
+Wait for approval before creating or modifying documentation.
+
+Document these sections:
+
+1. Purpose and scope
+   - Define what “auto repair” means for this project.
+   - Separate implemented capabilities from proposed improvements.
+   - Mark unknown or unverified behavior explicitly.
+
+2. Supported repair scenarios
+   For each scenario found in the code or configuration, record:
+   - Failure symptom and detection signal.
+   - Root-cause checks.
+   - Existing repair action.
+   - Preconditions and required permissions.
+   - Expected impact and possible side effects.
+   - Success criteria and verification.
+   - Retry limits, stop conditions, and escalation.
+
+3. Repair authorization
+   - Read-only diagnosis may proceed within the approved scope.
+   - File changes, service restarts, deployments, and external writes
+     require explicit approval unless covered by a documented,
+     narrowly scoped authorization.
+   - Never treat approval for one repair as blanket approval.
+
+4. Safety controls
+   - Keep changes minimal and reversible.
+   - Preserve diagnostic evidence before changing state.
+   - Prevent concurrent or repeated repair attempts.
+   - Use bounded retries and stop after repeated failure.
+   - Never delete persistent data, expose secrets, weaken security,
+     reset databases, or run destructive migrations automatically.
+   - Do not interpret an unhealthy status as proof that a restart
+     will fix the cause.
+
+5. Operator runbook
+   - Diagnosis commands first.
+   - Repair commands labeled with their impact.
+   - Preconditions, expected output, and stop conditions.
+   - Backups and restoration prerequisites where relevant.
+   - Rollback steps only where supported by evidence.
+   - Human escalation when no safe repair is available.
+
+6. Audit trail
+   Record the trigger, diagnosis, approved action, affected resources,
+   changes made, verification results, and final status.
+   Redact secrets and sensitive data.
+
+7. Validation
+   - Distinguish static inspection from executed tests.
+   - Propose tests in an isolated environment.
+   - Require approval before fault injection or service disruption.
+   - Do not claim a repair succeeded without verifying the outcome.
+
+8. Known gaps
+   List at most three high-impact gaps with repository evidence.
+   Do not invent existing automation to make the document complete.
+
+Budget constraints:
+- Reuse previous findings.
+- Avoid broad scans and repeated commands.
+- Do not implement repair automation during this documentation task.
+- End with a compact checkpoint and the exact next step.
+```
+
+## Short version
+
+```text
+Propose docs/auto-repair.md for ZyntroAI/crystalcastleX.
+Document only verified repair capabilities, detection signals,
+authorization boundaries, minimal repair steps, bounded retries,
+verification, rollback, and escalation. Label recommendations separately.
+Cite repository files. Do not edit files or run repair commands until
+approved. If no auto-repair capability exists, state that plainly and
+document manual recovery plus proposed requirements instead.
+```
+
