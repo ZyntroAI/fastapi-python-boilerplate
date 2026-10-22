@@ -34,7 +34,8 @@
     "typescript-eslint": "^8.70.0",
     "vite": ">=8.3.0",
     "vitest": "^5.0.0",
-    "python-multipart": "0.0.31"
+    "python-multipart": "0.0.31",
+    "fastapi": "^0.143.0"
   },
   "lint-staged": {
     "*.{js,ts,json,md}": [
