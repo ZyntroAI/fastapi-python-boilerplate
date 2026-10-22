@@ -1,24 +1,123 @@
-# yaml-language-server: $schema=https://coderabbit.ai
-language: "th-TH"       # กำหนดให้ AI รีวิวและตอบกลับเป็นภาษาไทย
-early_access: false     # ปิดการใช้งานฟีเจอร์ทดลองล่วงหน้า
+language: "th-TH"
+tone_instructions: >
+  รีวิวสั้น กระชับ ตรงประเด็น
+  โฟกัส Security, Reliability, Correctness และ Performance
+  ไม่ต้องกล่าวถึง formatting หรือ style
+
+focus: "security"
 
 reviews:
-  profile: "chill"      # สไตล์การรีวิว (เช่น chill, assertive)
-  request_changes_workflow: false # เปิด/ปิด ระบบสั่งบล็อกไม่ให้ Merge ถ้าตรวจเจอ Error
-  high_level_summary: true        # ให้สรุปภาพรวมการเปลี่ยนแปลงของ PR ด้านบนสุด
-  poem: false           # เปิด/ปิด การให้ AI แต่งกลอนสรุปโค้ด (เปิดเป็น true ได้หากชอบความสนุก)
-  
-  auto_review:
-    enabled: true       # เปิดระบบรีวิวอัตโนมัติทันทีที่สร้าง PR
-    drafts: false       # ไม่ต้องรีวิวถ้า PR นั้นยังเป็นสถานะ Draft
-    base_branches:      # เลือกเฉพาะกิ่งหลักที่ต้องการให้บอททำงาน
-      - "main"
-      - "develop"
-  
-  tools:
-    languagetool:
-      enabled: true     # ตรวจสอบไวยากรณ์และการสะกดคำ
+  profile: "assertive"
+  high_level_summary: true
+  changed_files_summary: true
+  collapse_walkthrough: true
+  estimate_code_review_effort: true
+  suggested_labels: true
+  auto_apply_labels: false
+  suggested_reviewers: false
 
+  review_instructions: |
+    รายงานเฉพาะประเด็นระดับ medium–high impact
+    เน้น:
+    - Security
+    - Reliability
+    - Correctness
+    - Performance
+    ข้ามเรื่อง formatting, lint และ style โดยสมบูรณ์
+    หากปัญหาสามารถแก้ไขอัตโนมัติผ่าน linter/formatter ไม่ต้องกล่าวถึง
+
+  review_settings:
+    minimum_severity: medium
+    report_minor_issues: false
+
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    drafts: false
+
+  path_reviews:
+    # ── GitHub Workflows ──
+    - path: ".github/workflows/**"
+      instructions: |
+        ตรวจความปลอดภัย CI/CD อย่างเข้มงวด:
+        - permissions ต้องเป็น least privilege
+        - actions ต้อง pin SHA หรือใช้ trusted release
+        - ห้ามใช้ pull_request_target หากไม่มีการตรวจสอบที่เหมาะสม
+        - ห้ามส่งต่อ secret ผ่าน env โดยไม่จำเป็น
+        - แนะนำใช้ OIDC แทน token ที่มีอายุยาว
+        - ตรวจความเสี่ยงจาก artifact poisoning
+
+    # ── CODEOWNERS ──
+    - path: ".github/CODEOWNERS"
+      instructions: |
+        ตรวจสอบ:
+        - ความครอบคลุมของ critical paths (.github/workflows/**, src/lib/**, infra/**)
+        - ไม่มี wildcard ที่กว้างเกินไป (* ครอบคลุมทั้ง repo)
+
+    # ── Next.js Application ──
+    - path: "src/**"
+      instructions: |
+        ตรวจตามหลักความปลอดภัย Next.js 15:
+        - Server Actions validation & authorization
+        - Route Handlers authentication & input guard
+        - Cache behavior / revalidate / dynamic rendering — ป้องกันข้อมูลรั่วทาง SSR
+        - Server–Client component boundary ถูกต้อง
+
+    # ── Supabase ──
+    - path: "supabase/**"
+      instructions: |
+        ตรวจการตั้งค่าความปลอดภัย:
+        - เปิด RLS ทุกตารางที่เปิดให้เข้าถึง
+        - ตรวจสอบการใช้ auth.uid() อย่างถูกต้อง
+        - จำกัดสิทธิ anon ให้น้อยที่สุด
+        - service role ใช้เฉพาะฝั่ง server เท่านั้น
+        - มีการตรวจสอบ/validate ข้อมูลก่อนส่ง query
+
+    # ── AI / Groq Integration ──
+    - path: "src/**/*ai*,src/**/*groq*,src/lib/llm/**"
+      instructions: |
+        ตรวจความปลอดภัยและความเสถียร:
+        - ป้องกัน prompt injection
+        - Output sanitization ก่อนนำไปใช้งาน
+        - จำกัด rate / timeout / retry logic ที่เหมาะสม
+        - ป้องกัน token exhaustion & hallucination impact
+
+    # ── Dependencies ──
+    - path: "package.json"
+      instructions: |
+        ตรวจ:
+        - Dependency ที่ deprecated หรือมี CVE
+        - Version drift / หลายเวอร์ชันใน repo เดียว
+        - ไม่ดึงข้อมูลจาก registry ที่ไม่น่าเชื่อถือ
+
+    - path: "pnpm-lock.yaml"
+      instructions: |
+        ตรวจการเปลี่ยนแปลงที่ผิดปกติใน dependencies
+
+# ── Knowledge Base ──
+knowledge_base:
+  web_search:
+    enabled: true
+  code_guidelines:
+    enabled: true
+
+# ── Chat ──
 chat:
-  auto_reply: true      # ให้ AI ตอบกลับบทสนทนาในเซกชันคอมเมนต์โดยอัตโนมัติ
-  tone_instructions: "พูดจาสุภาพ เป็นกันเอง เหมือนเป็นรุ่นพี่วิศวกรคอมพิวเตอร์ที่คอยแนะนำรุ่นน้อง"
+  auto_reply: false
+
+# ── Security Scanners ──
+tools:
+  gitleaks:
+    enabled: true
+  trufflehog:
+    enabled: true
+  zizmor:
+    enabled: true
+
+# ── Optional Linters — เปิดเมื่อมีในโปรเจกต์ ──
+# hadolint:
+#   enabled: true   # หากมี Dockerfile
+# checkov:
+#   enabled: true   # หากมี Terraform/IaC
+# tflint:
+#   enabled: true
