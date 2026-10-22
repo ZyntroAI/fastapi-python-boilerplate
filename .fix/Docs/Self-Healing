@@ -1,0 +1,84 @@
+Docs for self healing
+
+For your repository work, use this **prompt** to have the agent create evidence-based self-healing documentation:
+
+```text
+Document the self-healing and recovery behavior of
+ZyntroAI/crystalcastleX.
+
+Goal:
+Create a concise operational guide explaining how failures are
+detected, what recovery is already implemented, and what requires
+human intervention.
+
+Scope and budget:
+- Reuse previous findings.
+- Inspect only relevant application, Docker, Compose, and deployment files.
+- Do not restart a broad repository audit.
+- Do not implement recovery features or change runtime configuration.
+- First propose the documentation outline and evidence sources.
+- Wait for approval before creating or editing files.
+
+Suggested document: docs/self-healing.md
+
+Include:
+
+1. Current capabilities
+   - List recovery mechanisms actually present in the repository.
+   - Cite file paths and relevant configuration.
+   - Mark unsupported or unverified capabilities clearly.
+   - Keep existing behavior separate from recommendations.
+
+2. Failure detection
+   - Startup failures, unhealthy endpoints, and process crashes.
+   - Dependency failures and resource exhaustion, if applicable.
+   - Explain which signals are available and their limitations.
+   - Distinguish health reporting from automatic recovery.
+
+3. Recovery matrix
+   For each supported failure scenario, document:
+   - Detection signal.
+   - Existing recovery action.
+   - Preconditions and permissions.
+   - Retry limits and escalation.
+   - Data-loss or security risks.
+   - Verification after recovery.
+
+4. Safe operating boundaries
+   - No endless restart or retry loops.
+   - No automatic deletion of persistent data.
+   - No automatic database rollback or destructive migration.
+   - No disabling security controls to restore service.
+   - Require approval for production changes and cost-incurring actions.
+
+5. Operator runbook
+   - Read-only checks first.
+   - Proposed recovery commands, clearly labeled by impact.
+   - Expected results and stop conditions.
+   - Rollback instructions only where supported and verified.
+   - Never invent commands, services, endpoints, or successful tests.
+
+6. Validation plan
+   - Propose controlled tests in an isolated environment.
+   - Explain how to confirm detection and recovery.
+   - Do not execute fault injection or stop services without approval.
+
+7. Gaps and next steps
+   - Rank no more than three improvements.
+   - Explain supporting evidence and minimal implementation scope.
+
+Finish with a compact checkpoint:
+files inspected, verified findings, unresolved questions, and next step.
+```
+
+## Short version
+
+```text
+Review the repository’s existing self-healing behavior and propose
+docs/self-healing.md. Cover detection, bounded recovery, verification,
+rollback, and human escalation. Cite repository evidence and distinguish
+implemented behavior from proposed improvements. Do not equate a health
+check with automatic recovery. Do not edit files or execute recovery
+commands until approved. Keep this pass narrowly scoped.
+```
+
