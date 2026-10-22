@@ -1,49 +1,92 @@
-# .gitattributes -- merge strategy and diff behaviour
-#
-# Policy: documentation is merged additively (union) so two branches appending
-# to the same note never produce a conflict. Code is merged strictly, with
-# conflict markers left intact for a human to resolve.
-#
-# NOTE: merge=union is only safe for files where line order does not carry
-# meaning. It must NEVER be applied to code, config, or lock files.
+# ==============================================
+# ZyntroAI — Git Attributes & Merge Strategy
+# ==============================================
+# Policy:
+#   • Documentation → additive merge (union) — ปลอดภัยสำหรับเนื้อหา
+#   • Code → strict merge only — ต้องแก้ conflict ด้วยตัวเอง
+#   • Lock/Binary → no merge — ป้องกันความเสียหายของไฟล์อ้างอิง
+# ==============================================
 
-# --- Documentation: additive merge -----------------------------------------
-*.md      merge=union
-*.mdx     merge=union
-knowledge/**/*.md  merge=union
+# ──────────────────────────────────────────────
+# 📝 Documentation: Additive Merge (Union)
+# ──────────────────────────────────────────────
+# ใช้ union เฉพาะไฟล์ที่ลำดับบรรทัดไม่มีความสำคัญ
+*.md              merge=union
+*.mdx             merge=union
+knowledge/**/*.md merge=union
+docs/**/*.md      merge=union
+README*.md        merge=union
+CHANGELOG*.md     merge=union
 
-# --- Code: strict merge, never union ---------------------------------------
-*.py      merge=text diff=python
-*.js      merge=text diff=javascript
-*.ts      merge=text diff=javascript
-*.tsx     merge=text diff=javascript
-*.yml     merge=text
-*.yaml    merge=text
-*.json    merge=text
-*.toml    merge=text
+# ──────────────────────────────────────────────
+# 💻 Source Code: Strict Merge Only
+# ──────────────────────────────────────────────
+# ไม่เคยใช้ union กับโค้ด — ต้องแก้ conflict ด้วยตัวเองเสมอ
+*.py              merge=text  diff=python
+*.pyw             merge=text  diff=python
+*.js              merge=text  diff=javascript
+*.jsx             merge=text  diff=javascript
+*.ts              merge=text  diff=javascript
+*.tsx             merge=text  diff=javascript
+*.mjs             merge=text  diff=javascript
+*.cjs             merge=text  diff=javascript
+*.json            merge=text
+*.yml             merge=text
+*.yaml            merge=text
+*.toml            merge=text
+*.xml             merge=text
+*.html            merge=text
+*.css             merge=text
+*.scss            merge=text
+*.sql             merge=text
 
-# --- Generated / lock files: do not attempt a content merge ----------------
-*.lock      merge=binary -diff
-poetry.lock merge=binary -diff
-package-lock.json  merge=binary -diff
-uv.lock     merge=binary -diff
+# ──────────────────────────────────────────────
+# 🔒 Lock Files: NEVER Merge Content
+# ──────────────────────────────────────────────
+# สำคัญมาก — ห้าม merge ไฟล์ล็อกโดยเด็ดขาด
+*.lock            merge=binary -diff
+pnpm-lock.yaml    merge=binary -diff  # ✅ เพิ่มสำหรับ pnpm
+poetry.lock       merge=binary -diff
+package-lock.json merge=binary -diff
+uv.lock           merge=binary -diff
+yarn.lock         merge=binary -diff
+Pipfile.lock      merge=binary -diff
 
-# --- Never show these in diffs or language stats ---------------------------
-*.pyc       -diff linguist-generated
-__pycache__/  export-ignore
-*.min.js    -diff linguist-generated
-*.min.css   -diff linguist-generated
+# ──────────────────────────────────────────────
+# 🚫 Generated / Build Artifacts: Hide from Stats
+# ──────────────────────────────────────────────
+*.pyc             -diff linguist-generated
+__pycache__/      export-ignore
+node_modules/     export-ignore
+dist/             export-ignore
+build/            export-ignore
+*.min.js          -diff linguist-generated
+*.min.css         -diff linguist-generated
+*.map             -diff linguist-generated
+.DS_Store         export-ignore
+Thumbs.db         export-ignore
 
-# --- Line endings -----------------------------------------------------------
-* text=auto eol=lf
-*.ps1   text eol=crlf
-*.bat   text eol=crlf
+# ──────────────────────────────────────────────
+# 🔤 Line Endings (Cross-Platform Consistency)
+# ──────────────────────────────────────────────
+*                 text=auto eol=lf
+*.ps1             text eol=crlf
+*.bat             text eol=crlf
+*.cmd             text eol=crlf
 
-# --- Binary assets ----------------------------------------------------------
-*.png   binary
-*.jpg   binary
-*.jpeg  binary
-*.gif   binary
-*.ico   binary
-*.pdf   binary
-*.zip   binary
+# ──────────────────────────────────────────────
+# 🖼️ Binary Files: Never Modify
+# ──────────────────────────────────────────────
+*.png             binary
+*.jpg             binary
+*.jpeg            binary
+*.gif             binary
+*.ico             binary
+*.svg             binary
+*.webp            binary
+*.pdf             binary
+*.zip             binary
+*.tar             binary
+*.gz              binary
+*.tgz             binary
+*.woff2           binary
