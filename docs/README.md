@@ -1,19 +1,18 @@
-```  
-# ⚡ FastAPI Python Boilerplate
-
-> Production-ready FastAPI starter template — secure, structured, and batteries-included
-
-[![Python Version](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg)](https://fastapi.tiangolo.com)
-[![Code Style](https://img.shields.io/badge/code%20style-ruff-FF0000.svg)](https://docs.astral.sh/ruff/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![CI Status](https://github.com/ZyntroAI/fastapi-python-boilerplate/actions/workflows/ci.yml/badge.svg)](https://github.com/ZyntroAI/fastapi-python-boilerplate/actions)
-
----
-
-## 🚀 Quick Start
-
-```bash
+⚡ FastAPI Python Boilerplate
+ 
+Production-ready FastAPI starter template — secure, structured, and batteries-included
+ 
+Python Version
+FastAPI
+Code Style
+License
+CI Status
+ 
+ 
+ 
+🚀 Quick Start
+ 
+bash  
 # 1️⃣ Create & activate virtual environment
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
@@ -89,7 +88,7 @@ fastapi-python-boilerplate/
 │   │   │   ├── __init__.py
 │   │   │   ├── auth.py
 │   │   │   └── users.py
-│   │   └── dependencies.py # 🔐 Reusable dependencies
+│   │   └── dependencies.py  # 🔐 Reusable dependencies
 │   ├── core/                # Business logic
 │   │   ├── __init__.py
 │   │   ├── security.py      # JWT, password hashing
@@ -116,20 +115,7 @@ fastapi-python-boilerplate/
 ├── CONTRIBUTING.md
 ├── LICENSE
 └── README.md
- src/
-├── app/api/
-│   └── prompt/route.ts
-└── lib/
-    ├── api/
-    │   ├── http-error.ts
-    │   └── response.ts
-    ├── validation/
-    │   └── prompt.schema.ts
-    ├── security/
-    │   ├── rate-limit.ts
-    │   └── auth.ts
-    └── observability/
-        └── logger.ts
+ 
  
  
  
@@ -200,24 +186,24 @@ docker-compose up -d
 Health
  
 Method Endpoint Description 
-GET  /  Service info 
-GET  /health  Health check 
-GET  /ready  Readiness check 
+ GET   /  Service info 
+ GET   /health  Health check 
+ GET   /ready  Readiness check 
  
 Auth
  
 Method Endpoint Description Auth 
-POST  /api/v1/auth/register  Register new user — 
-POST  /api/v1/auth/login  Login → get tokens — 
-POST  /api/v1/auth/refresh  Refresh access token Refresh 🔑 
-POST  /api/v1/auth/logout  Logout — 
+ POST   /api/v1/auth/register  Register new user — 
+ POST   /api/v1/auth/login  Login → get tokens — 
+ POST   /api/v1/auth/refresh  Refresh access token Refresh 🔑 
+ POST   /api/v1/auth/logout  Logout — 
  
 Users
  
 Method Endpoint Description Auth 
-GET  /api/v1/users/me  Get current user info Access 🔑 
-PUT  /api/v1/users/me  Update profile Access 🔑 
-GET  /api/v1/users/{id}  Get user by ID Admin 🔑 
+ GET   /api/v1/users/me  Get current user info Access 🔑 
+ PUT   /api/v1/users/me  Update profile Access 🔑 
+ GET   /api/v1/users/{id}  Get user by ID Admin 🔑 
  
 📮 Full docs:  /docs  (Swagger UI) or  /redoc  (ReDoc)
  
@@ -243,9 +229,9 @@ docker-compose down -v
  
 🤝 Contributing
  
-See CONTRIBUTING.md for development guidelines, PR process, and code standards.
+See  CONTRIBUTING.md  for development guidelines, PR process, and code standards.
  
-Quick Contribution Flow
+Quick Contribution Flow:
  
 1. Fork → Create branch:  feat/your-feature 
 2. Make changes → Run tests → Lint
@@ -256,13 +242,13 @@ Quick Contribution Flow
  
 📋 Roadmap
  
-🔐 OAuth2 / Google & GitHub Login
-📧 Email verification & password reset
-📊 Admin Dashboard
-📤 File uploads
-🔍 Full-text search
-📡 WebSocket support
-📱 Admin CLI
+- 🔐 OAuth2 / Google & GitHub Login
+- 📧 Email verification & password reset
+- 📊 Admin Dashboard
+- 📤 File uploads
+- 🔍 Full-text search
+- 📡 WebSocket support
+- 📱 Admin CLI
  
  
  
@@ -279,10 +265,8 @@ Built with ❤️ by ZyntroAI · Production-ready starting point for your next F
 ⭐ Star the repo if you find it useful!
 🔗 https://github.com/ZyntroAI/fastapi-python-boilerplate
  
-plaintext  
-
----
-
-✅ คัดลอกทั้งบล็อก → บันทึกเป็น `README.md` ที่รูทโปรเจกต์ได้เลยครับ
-
+ 
+ 
+✅ คัดลอกทั้งบล็อก → บันทึกเป็น  README.md  ที่รูทโปรเจกต์ได้เลยครับ
+ 
 ต้องการปรับเปลี่ยนอะไรเพิ่มไหมครับ — เช่น เพิ่ม Badges, เปลี่ยนรายการ Features, หรือปรับ Deployment Instructions? 😊
