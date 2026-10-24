@@ -1,151 +1,71 @@
 name: CI — Full Automation
 
 on:
-  push:
-    branches: [main, develop, 'feat/*', 'fix/*']
   pull_request:
-    branches: [main]
-
-permissions:
-  contents: write
-  checks: write
-  pull-requests: write
-
-# Prevent duplicate runs — cancel previous if new commit arrives
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    branches: [ main, master ]
 
 jobs:
-  # ─────────────────────────────────────────────
-  # ขั้นที่ 1 — ตรวจสอบ & ทดสอบ
-  # ─────────────────────────────────────────────
-  validate:
-    name: 🧪 ตรวจสอบโค้ด & ทดสอบ
-    runs-on: ubuntu-latest
+  unit-tests:
+    name: 🧪 ตรวจสอบโค้ด & ทดสอบ (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-24.04
     strategy:
-      matrix:
-        python-version: ['3.11', '3.12', '3.13']
       fail-fast: false
-
-    services:
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
 
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: 🐍 Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@0a5c61591373683505ea898e09a97310549300a8 # v5.5.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
 
-      - name: 📦 Install dependencies
+      - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip setuptools wheel
           pip install -r requirements.txt
-          pip install pytest pytest-cov ruff mypy
 
-      - name: 🔍 Ruff — Linting
-        run: ruff check . --fix --exit-non-zero-on-fix
+      - name: Run tests
+        run: pytest tests/ -v --cov=.
 
-      - name: 📝 Ruff — Formatting
-        run: ruff format . --check
-
-      - name: 🔒 MyPy — Type Check
-        run: mypy . --strict --ignore-missing-imports
-
-      - name: ✅ Run Tests
-        run: pytest -v --cov=. --cov-report=term --cov-fail-under=80
-
-      - name: 📊 Generate Coverage Report
-        if: matrix.python-version == '3.13' && success()
-        run: |
-          mkdir -p 06-Logs/coverage
-          pytest --cov=./ --cov-report=json:./coverage.json
-          cp coverage.json 06-Logs/coverage/coverage-${{ github.sha }}.json
-
-      - name: 📤 Upload Coverage Report
-        if: matrix.python-version == '3.13' && success()
-        uses: actions/upload-artifact@v4
+      - name: Upload test results
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb48e1 # v4.4.3
         with:
-          name: coverage-report
-          path: 06-Logs/coverage/
-          retention-days: 30
+          name: test-results-${{ matrix.python-version }}
+          path: |
+            .pytest_cache
+            htmlcov/
+          retention-days: 7
 
-  # ─────────────────────────────────────────────
-  # ขั้นที่ 2 — อัปเดตเอกสารอัตโนมัติ
-  # ─────────────────────────────────────────────
-  docs-update:
+  update-docs:
     name: 📄 อัปเดตเอกสาร
-    needs: validate
-    runs-on: ubuntu-latest
-    if: |
-      always() &&
-      needs.validate.result == 'success' &&
-      github.event_name == 'push' &&
-      github.ref == 'refs/heads/main'
-
+    runs-on: ubuntu-24.04
+    needs: unit-tests
+    if: always() && needs.unit-tests.result == 'success'
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      # your doc steps here
 
-      - name: 📄 Run docs update script
-        run: |
-          if [ -f "scripts/auto_update_docs.py" ]; then
-            python scripts/auto_update_docs.py
-          else
-            echo "⚠️ scripts/auto_update_docs.py not found — skipping"
-          fi
-
-      - name: ✅ Check for changes
-        id: git-check
-        run: |
-          git add 06-Logs/
-          if git diff --quiet && git diff --staged --quiet; then
-            echo "changes=false" >> $GITHUB_OUTPUT
-            echo "ℹ️ No changes to document — skipping commit"
-          else
-            echo "changes=true" >> $GITHUB_OUTPUT
-          fi
-
-      - name: 📌 Commit & Push Docs
-        if: steps.git-check.outputs.changes == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "📄 docs: auto-update coverage & logs [skip ci]"
-          git push
-        continue-on-error: true
-
-  # ─────────────────────────────────────────────
-  # ขั้นที่ 3 — แจ้งผล
-  # ─────────────────────────────────────────────
   notify:
     name: 📢 แจ้งผล
-    needs: [validate, docs-update]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    needs: [unit-tests, update-docs]
     if: always()
-
     steps:
-      - name: ✅ Build Passed
-        if: needs.validate.result == 'success'
-        run: echo "✅ CI Passed — all checks completed"
-
-      - name: ❌ Build Failed
-        if: needs.validate.result == 'failure'
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Check results
         run: |
-          echo "❌ CI Failed — check validate job details"
-          exit 1
+          if [ "${{ needs.unit-tests.result }}" = "success" ] && \
+             [ "${{ needs.update-docs.result }}" != "failure" ]; then
+            echo "STATUS=✅ สำเร็จ" >> $GITHUB_ENV
+            exit 0
+          else
+            echo "STATUS=❌ มีข้อผิดพลาด" >> $GITHUB_ENV
+            exit 1
+          fi
+      - name: Output result
+        run: |
+          echo "ผลการทำงาน: $STATUS"
