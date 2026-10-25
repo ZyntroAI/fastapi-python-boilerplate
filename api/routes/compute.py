@@ -1,30 +1,55 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, Field
+from typing import List, Optional, Any
 
-from app.agents.executor import AgentExecutor
-from app.agents.planner import AgentPlanner
-from app.providers.byteplus.client import BytePlusClient
-from app.providers.byteplus.ecs import BytePlusECSProvider
-from app.services.compute_service import ComputeService
+router = APIRouter(prefix="/compute", tags=["Compute"])
 
-router = APIRouter(prefix="/compute", tags=["compute"])
 
-def get_service() -> ComputeService:
-client = BytePlusClient()
-provider = BytePlusECSProvider(client)
+# ─── Request/Response Models ───
+class CalculateRequest(BaseModel):
+    numbers: List[float] = Field(..., description="List of numbers to process")
 
-executor = AgentExecutor(provider)
-planner = AgentPlanner()
 
-return ComputeService(
-    planner=planner,
-    executor=executor,
-)
-@router.post("/instances/{instance_id}/start")
-async def start_instance(instance_id: str):
+class CalculateResponse(BaseModel):
+    sum: float
+    average: float
+    count: int
+    min: float
+    max: float
 
-service = get_service()
 
-return await service.execute(
-    action="start_instance",
-    instance_id=instance_id,
-)
+class EchoRequest(BaseModel):
+    message: str = Field(..., min_length=1, max_length=500)
+
+
+class EchoResponse(BaseModel):
+    received: str
+    processed: str
+    timestamp: str
+
+
+# ─── Endpoints ───
+@router.post("/sum", response_model=CalculateResponse)
+async def calculate_sum(request: CalculateRequest):
+    """Calculate sum, average, min, max from a list of numbers."""
+    if not request.numbers:
+        raise HTTPException(status_code=400, detail="Numbers list cannot be empty")
+    
+    return CalculateResponse(
+        sum=sum(request.numbers),
+        average=sum(request.numbers) / len(request.numbers),
+        count=len(request.numbers),
+        min=min(request.numbers),
+        max=max(request.numbers)
+    )
+
+
+@router.post("/echo", response_model=EchoResponse)
+async def echo_message(request: EchoRequest):
+    """Echo back a processed message."""
+    from datetime import datetime
+    return EchoResponse(
+        received=request.message,
+        processed=request.message.upper(),
+        timestamp=datetime.utcnow().isoformat()
+    )
