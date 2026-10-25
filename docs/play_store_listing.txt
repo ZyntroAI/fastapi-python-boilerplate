@@ -1,0 +1,86 @@
+APP NAME
+ZYNTROAI File Manager
+
+SHORT DESCRIPTION
+Browse, organize, search, share, and manage files on your device.
+
+FULL DESCRIPTION
+ZYNTROAI File Manager is a simple, fast, and offline file manager for Android.
+Browse your device storage, find files quickly, organize folders, open documents,
+and manage your files with an easy-to-use interface.
+
+KEY FEATURES
+
+• Browse files and folders on your device
+• Search for files by name
+• Open files with compatible apps installed on your device
+• View files by category, including images, videos, audio, documents, downloads, and APKs
+• Access recently opened files
+• Rename files and folders
+• Move files to the Recycle Bin
+• Restore files from the Recycle Bin
+• Share files with other apps
+• View basic file information, including size and modification date
+• Works offline for core file-management features
+
+EASY FILE BROWSING
+
+ZYNTROAI File Manager helps you navigate the files and folders stored on your
+Android device. Open the app to view your storage, browse folders, and locate the
+files you need.
+
+SEARCH FILES QUICKLY
+
+Use the search bar to find files by name. Search results update as you type,
+making it easier to locate documents, media, downloads, and other files.
+
+ORGANIZE WITH CATEGORIES
+
+Quickly explore common file types through category shortcuts:
+
+• Images
+• Videos
+• Audio
+• Documents
+• Downloads
+• APKs
+
+You can also view recently accessed files from the Recent section.
+
+RECYCLE BIN
+
+Moved a file by mistake? ZYNTROAI File Manager includes a Recycle Bin so you can
+review deleted items and restore them when needed. Files remain on your device
+until you permanently delete them.
+
+SHARE FILES
+
+Share individual files with apps installed on your device. ZYNTROAI File Manager
+uses the Android share system, allowing you to choose the app or service you want
+to use.
+
+OFFLINE-FIRST DESIGN
+
+ZYNTROAI File Manager is designed to work offline for its core file-management
+features. You can browse, search, organize, rename, move files to the Recycle Bin,
+and manage files without needing an internet connection.
+
+An internet connection may be used to load advertisements.
+
+PRIVACY AND FILE ACCESS
+
+ZYNTROAI File Manager processes files locally on your device. The app does not
+upload or store your files on ZYNTROAI servers.
+
+The app requests storage access so it can provide file-management features such as
+browsing, opening, organizing, renaming, sharing, deleting, and restoring files.
+
+For more information, please review our Privacy Policy.
+
+SIMPLE AND LIGHTWEIGHT
+
+ZYNTROAI File Manager is designed to be straightforward and easy to use. Whether
+you need to find a document, organize downloads, share a photo, or recover a file
+from the Recycle Bin, the app provides the essential tools in one place.
+
+Download ZYNTROAI File Manager and take control of the files on your device.
