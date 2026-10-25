@@ -11,7 +11,12 @@ CI Status
  
  
 🚀 Quick Start
- 
+รัน FastAPI 
+uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+ทดสอบ
+curl http://127.0.0.1:8000/docs
+MCP endpoint จะอยู่ที่:
+http://127.0.0.1:8000/mcp
 bash  
 # 1️⃣ Create & activate virtual environment
 python -m venv .venv
