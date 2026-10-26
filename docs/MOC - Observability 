@@ -1,0 +1,191 @@
+
+MOC - Observability
+MOC - Observability
+
+---
+title: "MOC - Observability"
+description: "Map of Content สำหรับ Observability: metrics, logs, traces, SLO/SLI, alerting, dashboards, incident response และ AI/LLM/Agent observability"
+type: moc
+tags:
+  - moc
+  - observability
+  - monitoring
+  - metrics
+  - logs
+  - tracing
+  - slo
+  - sli
+  - alerting
+  - incident-response
+  - llm-observability
+  - agent-observability
+category: "Engineering"
+language: "th"
+status: active
+version: "1.0.0"
+created: "2026-10-25"
+modified: "2026-10-25"
+related-moc:
+  - "[[MOC - AI & Machine Learning]]"
+  - "[[MOC - MLOps]]"
+  - "[[MOC - LLM Engineering]]"
+  - "[[MOC - Agents]]"
+  - "[[MOC - Data Engineering]]"
+  - "[[MOC - DevOps]]"
+related-notes:
+  - "[[Observability Overview]]"
+  - "[[Three Pillars of Observability]]"
+  - "[[SLO and SLI]]"
+  - "[[Alerting Strategy]]"
+  - "[[Incident Response]]"
+platform: "Cross-platform"
+---
+MOC - Observability
+MOC - Observability รวมแนวทางการทำให้ระบบ “เข้าใจได้จากภายนอก” ผ่าน metrics, logs, traces, SLO, alerting และ incident response รวมถึง observability สำหรับ ML, LLM และ AI Agents
+
+Knowledge Map
+MOC - Observability
+├── 01. Foundations
+│   ├── [[Observability Overview]]
+│   ├── [[Monitoring vs Observability]]
+│   ├── [[Three Pillars of Observability]]
+│   ├── [[Telemetry Data]]
+│   ├── [[OpenTelemetry]]
+│   └── [[Cardinality]]
+│
+├── 02. Metrics
+│   ├── [[Metrics Fundamentals]]
+│   ├── [[RED Method]]
+│   ├── [[USE Method]]
+│   ├── [[Golden Signals]]
+│   ├── [[Prometheus]]
+│   ├── [[PromQL]]
+│   └── [[Metrics Naming Conventions]]
+│
+├── 03. Logs
+│   ├── [[Structured Logging]]
+│   ├── [[Log Levels]]
+│   ├── [[Log Correlation]]
+│   ├── [[Log Sampling]]
+│   ├── [[Log Retention]]
+│   └── [[Loki]]
+│
+├── 04. Tracing
+│   ├── [[Distributed Tracing]]
+│   ├── [[Trace Context]]
+│   ├── [[Span Design]]
+│   ├── [[Trace Sampling]]
+│   ├── [[Jaeger]]
+│   ├── [[Tempo]]
+│   └── [[Trace-Based Debugging]]
+│
+├── 05. SLO & Reliability
+│   ├── [[SLO and SLI]]
+│   ├── [[SLA vs SLO vs SLI]]
+│   ├── [[Error Budget]]
+│   ├── [[Burn Rate Alerts]]
+│   ├── [[Reliability Targets]]
+│   └── [[Capacity Planning]]
+│
+├── 06. Dashboards
+│   ├── [[Dashboard Design]]
+│   ├── [[Service Dashboard]]
+│   ├── [[Business Dashboard]]
+│   ├── [[SLO Dashboard]]
+│   ├── [[Cost Dashboard]]
+│   └── [[Dashboard Anti-Patterns]]
+│
+├── 07. Alerting
+│   ├── [[Alerting Strategy]]
+│   ├── [[Alert Severity Levels]]
+│   ├── [[Actionable Alerts]]
+│   ├── [[Alert Fatigue]]
+│   ├── [[On-Call Rotation]]
+│   └── [[Escalation Policy]]
+│
+├── 08. Incident Response
+│   ├── [[Incident Response]]
+│   ├── [[Incident Severity Matrix]]
+│   ├── [[Incident Command]]
+│   ├── [[Runbooks]]
+│   ├── [[Postmortems]]
+│   └── [[Blameless Culture]]
+│
+├── 09. Platform Observability
+│   ├── [[Infrastructure Observability]]
+│   ├── [[Kubernetes Observability]]
+│   ├── [[Application Observability]]
+│   ├── [[Database Observability]]
+│   ├── [[Network Observability]]
+│   └── [[Cost Observability]]
+│
+├── 10. Data Observability
+│   ├── [[Data Observability]]
+│   ├── [[Freshness Monitoring]]
+│   ├── [[Volume Monitoring]]
+│   ├── [[Schema Monitoring]]
+│   ├── [[Distribution Monitoring]]
+│   └── [[Data Lineage Monitoring]]
+│
+├── 11. ML Observability
+│   ├── [[Model Monitoring]]
+│   ├── [[Data Drift]]
+│   ├── [[Concept Drift]]
+│   ├── [[Prediction Drift]]
+│   ├── [[Model Quality Monitoring]]
+│   └── [[ML Alerting]]
+│
+├── 12. LLM Observability
+│   ├── [[LLM Observability]]
+│   ├── [[LLM Tracing]]
+│   ├── [[Token and Cost Monitoring]]
+│   ├── [[LLM Latency Monitoring]]
+│   ├── [[LLM Quality Monitoring]]
+│   ├── [[LLM Safety Monitoring]]
+│   └── [[LLM Debugging Workflow]]
+│
+├── 13. Agent Observability
+│   ├── [[Agent Observability และ Monitoring]]
+│   ├── [[Agent Observability และ Monitoring - Implementation]]
+│   ├── [[Agent Trace Schema]]
+│   ├── [[Tool Invocation Tracing]]
+│   ├── [[Agent Cost Monitoring]]
+│   ├── [[Agent Quality Monitoring]]
+│   └── [[Agent Safety Monitoring]]
+│
+└── 14. Tooling
+    ├── [[Grafana]]
+    ├── [[Prometheus]]
+    ├── [[Loki]]
+    ├── [[Tempo]]
+    ├── [[Datadog]]
+    ├── [[New Relic]]
+    ├── [[OpenTelemetry Collector]]
+    └── [[Observability Stack Comparison]]
+Observability Model
+System / Application / AI Workload
+        │
+        ├── Metrics  → What is happening?
+        ├── Logs     → Why did it happen?
+        └── Traces   → Where did it happen?
+        │
+        ▼
+Telemetry Pipeline
+├── Collection
+├── Enrichment
+├── Sampling
+└── Storage
+        │
+        ▼
+Analysis Layer
+├── Dashboards
+├── SLOs
+├── Alerts
+└── Investigations
+        │
+        ▼
+Action
+├── Debug
+├── Mitigate
+├── Rollback
+└── Improve
