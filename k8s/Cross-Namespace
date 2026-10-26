@@ -1,0 +1,8 @@
+ingress:
+  - from:
+      - namespaceSelector:
+          matchLabels:
+            team: platform
+        podSelector:
+          matchLabels:
+            app: gateway
