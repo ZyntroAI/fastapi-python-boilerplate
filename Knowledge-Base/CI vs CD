@@ -1,0 +1,197 @@
+CI/CD
+
+# CI/CD
+
+**CI/CD** คือ automation ของ software delivery: **CI** รวมและทดสอบโค้ดบ่อย ๆ, **CD** ส่งต่อ artifact ไป staging/production โดยแบ่งเป็น **Continuous Delivery** (ต้องอนุมัติก่อน production) และ **Continuous Deployment** (deploy อัตโนมัติเมื่อผ่าน gate) [3466][3467][3476]
+
+## Pipeline Stages
+
+```text
+Source → Build → Test → Security → Package → Deploy → Verify → Monitor
+```
+
+| Stage | งานหลัก | Output |
+|---|---|---|
+| **Source** [3466][3470] | Commit / PR trigger [3466][3470] | Pipeline run [3466][3470] |
+| **Build** [3466][3468] | Compile / dependency / image [3466][3468] | Artifact [3466][3468] |
+| **Test** [3466][3470] | Unit / integration / E2E [3466][3470] | Test report [3466][3470] |
+| **Security** [3466][3476] | SAST / dependency scan [3466][3476] | Findings [3466][3476] |
+| **Package** [3466][3468] | Tag + push registry [3466][3468] | Versioned artifact [3466][3468] |
+| **Deploy** [3466][3470] | Staging / production [3466][3470] | Release [3466][3470] |
+| **Verify** [3466][3469] | Smoke / health check [3466][3469] | Pass/fail [3466][3469] |
+| **Monitor** [3466][3476] | Metric + alert [3466][3476] | Signal [3466][3476] |
+
+ใช้ pipeline นี้เพื่อคุม quality + speed [3466][3470][3476]
+
+## CI vs CD
+
+| ประเภท | ขอบเขต | Production |
+|---|---|---|
+| **CI** [3466][3470] | Build + test [3466][3470] | ไม่ deploy [3466][3470] |
+| **Continuous Delivery** [3466][3476] | ถึง production-ready [3466][3476] | Manual approval [3466][3476] |
+| **Continuous Deployment** [3466][3476] | ถึง production [3466][3476] | Automatic [3466][3476] |
+
+ใช้ CI ก่อน แล้วค่อยขยายเป็น CD [3466][3470][3476]
+
+## Pipeline Config
+
+```yaml
+pipeline:
+  trigger:
+    - "push"
+    - "pull_request"
+
+  stages:
+    - name: "build"
+      steps:
+        - "install_deps"
+        - "build_image"
+
+    - name: "test"
+      steps:
+        - "unit"
+        - "integration"
+
+    - name: "security"
+      steps:
+        - "sast"
+        - "dependency_scan"
+
+    - name: "deploy"
+      steps:
+        - "push_registry"
+        - "deploy_staging"
+        - "deploy_production"
+```
+
+ใช้ pipeline as code [3466][3470][3476]
+
+## Trunk-Based Development
+
+```text
+main ──●──●──●──●──►
+        \  /
+feature ─┘
+```
+
+| Practice | คำอธิบาย |
+|---|---|
+| **Short-lived branch** [3469][3476] | < 1 วัน [3469][3476] |
+| **Frequent merge** [3469][3476] | ทุกวัน [3469][3476] |
+| **Feature flag** [3469][3476] | ซ่อนงานค้าง [3469][3476] |
+| **Small PR** [3469][3476] | Review ง่าย [3469][3476] |
+
+ใช้ TBD เพื่อลด merge pain [3469][3476][3477]
+
+## Feature Flags
+
+```yaml
+feature_flag:
+  name: "new_checkout"
+  default: false
+  rollout:
+    - "internal"
+    - "5%"
+    - "50%"
+    - "100%"
+```
+
+ใช้ flag เพื่อแยก deploy กับ release [3469][3476][3477]
+
+## Deployment Strategies
+
+| Strategy | Rollback | Blast radius | เหมาะกับ |
+|---|---|---|---|
+| **Blue-green** [3469][3474] | สลับ traffic ทันที [3469][3474] | ใหญ่ [3469][3474] | Stateless [3469][3474] |
+| **Canary** [3469][3476] | คืน traffic เร็ว [3469][3476] | เล็ก [3469][3476] | Production [3469][3476] |
+| **Rolling** [3469][3476] | ค่อย ๆ กลับ [3469][3476] | กลาง [3469][3476] | K8s [3469][3476] |
+| **Feature flag** [3469][3476] | ปิด flag [3469][3476] | ควบคุมได้ [3469][3476] | ทุกงาน [3469][3476] |
+
+ใช้ canary + flag เพื่อลด risk [3469][3476][3477]
+
+## Canary Flow
+
+```text
+Deploy v2
+   │
+   ▼
+5% traffic
+   │
+   ▼
+Check metrics
+   │
+   ├── pass → 25% → 50% → 100%
+   └── fail → rollback
+```
+
+ใช้ canary เพื่อ progressive delivery [3469][3476][3474]
+
+## DORA Metrics
+
+| Metric | ความหมาย |
+|---|---|
+| **Deployment frequency** [3476] | Deploy บ่อยแค่ไหน [3476] |
+| **Lead time** [3476] | Commit → production [3476] |
+| **Change failure rate** [3476] | Deploy ล้มเหลวกี่ % [3476] |
+| **MTTR** [3476] | กู้คืนเร็วแค่ไหน [3476] |
+
+ใช้ DORA เพื่อวัด performance [3476][3477]
+
+## Best Practices
+
+1. **ใช้ pipeline as code** [3466][3470][3476]
+2. **ใช้ trunk-based** [3469][3476][3477]
+3. **ใช้ small PR** [3469][3476][3477]
+4. **ใช้ feature flag** [3469][3476][3477]
+5. **ใช้ automated test** [3466][3470][3476]
+6. **ใช้ security scan** [3466][3476][3477]
+7. **ใช้ canary** [3469][3476][3474]
+8. **ใช้ rollback plan** [3469][3476][3474]
+9. **ใช้ observability** [3466][3476][3477]
+10. **ใช้ DORA** [3476][3477]
+
+## Anti-Patterns
+
+| Anti-pattern | ปัญหา | ทางแก้ |
+|---|---|---|
+| Long-lived branch | Merge hell [3469][3476] | ใช้ TBD |
+| Manual deploy | ช้า / ผิดพลาด [3466][3476] | ใช้ automation |
+| ไม่มี test | Regression [3466][3470] | เพิ่ม test |
+| ไม่มี rollback | MTTR สูง [3469][3476] | เพิ่ม rollback |
+| Deploy ทีเดียวทั้งหมด | Blast radius ใหญ่ [3469][3476] | ใช้ canary |
+
+## Checklist
+
+- [ ] มี pipeline as code
+- [ ] มี build stage
+- [ ] มี test stage
+- [ ] มี security stage
+- [ ] มี artifact registry
+- [ ] มี deploy automation
+- [ ] มี feature flag
+- [ ] มี canary
+- [ ] มี rollback
+- [ ] มี DORA metrics
+
+## Related Notes
+
+- [[MOC - Platform Engineering]]
+- [[GitFlow]]
+- [[Feature Flags]]
+- [[Release Engineering]]
+- [[MOC - AI Engineering]]
+- [[MOC - Obsidian]]
+
+การอ้างอิง:
+[1] Getting Started: Ci/cd... https://www.microsoft.com/en-us/software-development-companies/resources/articles/ci-cd-pipeline-guide
+[2] www.cisco.com · computing · what-is-ci-cdWhat is CI/CD? - Continuous Integration and Continuous Delivery https://www.cisco.com/site/us/en/learn/topics/computing/what-is-ci-cd.html
+[3] 4. Build Once, Test Many... https://www.scaleway.com/en/blog/7-best-practices-to-set-up-your-first-ci-cd-pipeline/
+[4] CI/CD Strategy Patterns and Common Pitfalls - builder.aws.com https://builder.aws.com/content/3CRE0sUkv7aQTimJ695xwuSMzOZ/ci-cd-strategy-patterns-and-common-pitfalls
+[5] Practicing Continuous Integration and Continuous Delivery on AWS https://docs.aws.amazon.com/pdfs/whitepapers/latest/practicing-continuous-integration-continuous-delivery/practicing-continuous-integration-continuous-delivery.pdf
+[6] What Are CI/CD And The CI/CD Pipeline? https://www.ibm.com/think/topics/ci-cd-pipeline
+[7] CI/CD (Continuous Integration/Continuous Delivery) Best ... https://www.git-tower.com/blog/ci-cd-best-practices-and-trends
+[8] CI/CD Pipelines Explained: Everything You Need to Know https://www.techtarget.com/it-infrastructure/feature/CI-CD-pipelines-explained-Everything-you-need-to-know
+[9] What Is Blue-Green Deployment? The Complete Guide https://www.flagsmith.com/blog/blue-green-deployment
+[10] CI/CD Best Practices: Learn & Earn - JobCannon https://jobcannon.io/skills/ci-cd-best-practices
+[11] CI/CD Pipeline Design in 2026: Engineering Reference https://www.digitalapplied.com/blog/ci-cd-pipeline-design-2026-engineering-reference
+[12] Senior-Engineer-Interview-Course/Phase7-Production-DevOps/Module-20-CICD-DevOps.md at main · ctsintgit/Senior-Engineer-Interview-Course https://github.com/ctsintgit/Senior-Engineer-Interview-Course/blob/main/Phase7-Production-DevOps/Module-20-CICD-DevOps.md
