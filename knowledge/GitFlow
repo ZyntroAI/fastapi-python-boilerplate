@@ -1,0 +1,162 @@
+GitFlow
+
+# GitFlow
+
+**GitFlow** คือ branching model ที่แยกบทบาท branch ชัดเจน: `main` เก็บ production, `develop` เก็บ next release, และมี `feature/`, `release/`, `hotfix/` สำหรับงานชั่วคราว — เหมาะกับงานที่ release เป็นเวอร์ชันตามรอบ ไม่ใช่ deploy ต่อเนื่อง [3451][3455][3456]
+
+## Branch Model
+
+```text
+main ────────●───────●───────●──► production tags
+              \             /
+develop ──●───●───●───●───●────► next release
+           \       /
+feature/* ──●─────┘
+```
+
+| Branch | อายุ | ตัดจาก | Merge เข้า | ใช้ทำอะไร |
+|---|---|---|---|---|
+| **main** [3455][3456] | ถาวร | — | — | Production [3455][3456] |
+| **develop** [3455][3456] | ถาวร | `main` | — | Integration [3455][3456] |
+| **feature/** [3455][3456] | ชั่วคราว | `develop` | `develop` | Feature ใหม่ [3455][3456] |
+| **release/** [3455][3456] | ชั่วคราว | `develop` | `main` + `develop` | เตรียม release [3455][3456] |
+| **hotfix/** [3455][3456] | ชั่วคราว | `main` | `main` + `develop` | แก้ production [3455][3456] |
+
+ใช้ branch model นี้เพื่อคุม release [3455][3456][3459]
+
+## Feature Flow
+
+```bash
+git checkout develop
+git pull origin develop
+git checkout -b feature/login-page
+
+# work, commit, push
+
+git checkout develop
+git merge --no-ff feature/login-page
+git push origin develop
+```
+
+ใช้ feature branch สำหรับงานเดี่ยว [3455][3459][3460]
+
+## Release Flow
+
+```bash
+git checkout develop
+git checkout -b release/1.2.0
+
+# stabilize, bump version, fix bugs
+
+git checkout main
+git merge --no-ff release/1.2.0
+git tag -a v1.2.0
+
+git checkout develop
+git merge --no-ff release/1.2.0
+```
+
+ใช้ release branch เพื่อ stabilize [3455][3459][3462]
+
+## Hotfix Flow
+
+```bash
+git checkout main
+git checkout -b hotfix/1.2.1
+
+# fix critical bug
+
+git checkout main
+git merge --no-ff hotfix/1.2.1
+git tag -a v1.2.1
+
+git checkout develop
+git merge --no-ff hotfix/1.2.1
+```
+
+ใช้ hotfix เพื่อแก้ production [3451][3455][3459]
+
+## Merge Strategy
+
+| Branch | Strategy |
+|---|---|
+| **feature → develop** [3455][3459] | `--no-ff` [3455][3459] |
+| **release → main** [3455][3459] | `--no-ff` + tag [3455][3459] |
+| **hotfix → main** [3451][3459] | `--no-ff` + tag [3451][3459] |
+| **release/hotfix → develop** [3455][3459] | `--no-ff` [3455][3459] |
+
+ใช้ `--no-ff` เพื่อเก็บ history [3455][3459][3460]
+
+## GitFlow vs Trunk-Based
+
+| Dimension | **GitFlow** [3454][3461] | **Trunk-Based** [3454][3461] |
+|---|---|---|
+| **Branches** [3454][3461] | หลาย branch [3454][3461] | main เดียว [3454][3461] |
+| **Release** [3454][3461] | Versioned [3454][3461] | Continuous [3454][3461] |
+| **Complexity** [3454][3461] | สูง [3454][3461] | ต่ำ [3454][3461] |
+| **CI/CD** [3454][3461] | ต้อง automate เยอะ [3454][3461] | ต้องแข็งแรง [3454][3461] |
+| **เหมาะกับ** [3454][3461] | Enterprise / mobile [3454][3461] | SaaS / microservices [3454][3461] |
+
+ใช้ GitFlow เมื่อต้องการ versioned release [3454][3461][3465]
+
+## Best Practices
+
+1. **ใช้ naming convention** [3455][3459][3460]
+2. **ใช้ `--no-ff`** [3455][3459][3460]
+3. **ใช้ tag ทุก release** [3455][3459][3462]
+4. **ใช้ PR + review** [3455][3459][3460]
+5. **ใช้ CI ทุก branch** [3455][3459][3460]
+6. **ใช้ automated back-merge** [3463][3459][3462]
+7. **ใช้ release branch สั้น ๆ** [3455][3459][3463]
+8. **ใช้ hotfix เฉพาะ critical** [3451][3455][3459]
+9. **ใช้ protected branch** [3455][3459][3460]
+10. **ทบทวน workflow เป็นรอบ** [3455][3461][3465]
+
+## Anti-Patterns
+
+| Anti-pattern | ปัญหา | ทางแก้ |
+|---|---|---|
+| Feature ยาวเกิน | Merge conflict [3455][3463] | ใช้ branch สั้น |
+| ไม่ back-merge | Regression [3455][3459] | ใช้ automation |
+| ใช้ GitFlow กับ microservices | Overhead [3461][3465] | ใช้ trunk-based |
+| ไม่มี tag | Trace ยาก [3455][3459] | เพิ่ม tag |
+| ไม่มี CI | Merge ช้า [3455][3459] | เพิ่ม CI |
+
+## Checklist
+
+- [ ] มี main
+- [ ] มี develop
+- [ ] มี feature branch
+- [ ] มี release branch
+- [ ] มี hotfix branch
+- [ ] ใช้ `--no-ff`
+- [ ] ใช้ tag
+- [ ] ใช้ PR + review
+- [ ] ใช้ CI
+- [ ] ใช้ automated back-merge
+
+## Related Notes
+
+- [[MOC - Platform Engineering]]
+- [[CI/CD]]
+- [[Feature Flags]]
+- [[Release Engineering]]
+- [[MOC - AI Engineering]]
+- [[MOC - Obsidian]]
+
+การอ้างอิง:
+[1] Git-Flow - Syntevo Documentation https://docs.syntevo.com/SmartGit/Latest/Manual/DevelopmentProcesses/Git-Flow
+[2] [PDF] Git Centralized Workflow https://www.cs.put.poznan.pl/mszelag/Teaching/OPWO/wyklady/Git_02/02_Git-white_background_6_print.pdf
+[3] GIT Workflows Workflows https://www.cs.put.poznan.pl/mszelag/Teaching/OPWO/wyklady/Git_02/02_Git.pdf
+[4] Trunk-Based Development vs Gitflow https://mergify.com/learn/trunk-based-development/vs-gitflow
+[5] learn.programmingline.com › learn › gitGitflow Workflow: Git Branching Model Explained https://learn.programmingline.com/learn/git/git-gitflow
+[6] Gitflow in 2026: still useful, or time to move on? https://www.gitflow.dev/blog/gitflow-in-2026-still-useful
+[7] effective-engineering/practices/git-worflows.md at main · eduardomioto/effective-engineering https://github.com/eduardomioto/effective-engineering/blob/main/practices/git-worflows.md
+[8] Git Branching Strategies: Trunk-Based vs GitFlow vs GitHub Flow https://dev.to/instadevops/git-branching-strategies-trunk-based-vs-gitflow-vs-github-flow-4ejb
+[9] github.com › CristianSifuentes › GitflowGitHub - CristianSifuentes/Gitflow: Gitflow is a branching model... https://github.com/CristianSifuentes/Gitflow
+[10] chanhle.dev › en › blogGitflow Explained: The Branching Model Every Dev Should Know https://chanhle.dev/en/blog/gitflow-branching-model-guide
+[11] gitflow-best-practices.md - GitHub https://github.com/sempervent/sempervent.github.io/blob/main/docs/best-practices/git/gitflow-best-practices.md
+[12] Gitflow Workflow - Branches, Releases, Hotfixes - W3docs https://www.w3docs.com/learn-git/gitflow-workflow
+[13] GitFlow vs Trunk-Based Development for Dev Teams - Pixel Seed https://www.pixelseed.net/git-branching-strategy-best-practices-gitflow-vs-trunk-based-development-for-dev-teams/
+[14] Git Workflows That Actually Work at Scale https://dev.to/sri2614/git-workflows-that-actually-work-at-scale-4hpn
+[15] Fundamental Questions · community · Discussion #180215 - GitHub https://github.com/orgs/community/discussions/180215
