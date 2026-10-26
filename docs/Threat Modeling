@@ -1,0 +1,184 @@
+Threat Modeling
+
+# Threat Modeling
+
+**Threat Modeling** คือกระบวนการมองระบบจากมุมผู้โจมตี เพื่อหาว่า **“อะไรอาจผิดพลาด แล้วเราจะทำอะไรกับมัน”** ก่อน build/deploy โดยใช้ **Four Question Framework** เป็นแกนหลัก [3436][3438][3439]
+
+## Four Questions
+
+```text
+1. What are we working on?
+2. What can go wrong?
+3. What are we going to do about it?
+4. Did we do a good job?
+```
+
+| คำถาม | ผลลัพธ์ |
+|---|---|
+| **What are we working on?** [3436][3438] | DFD + trust boundary [3436][3438] |
+| **What can go wrong?** [3436][3438] | Threat list [3436][3438] |
+| **What are we going to do about it?** [3436][3438] | Mitigation plan [3436][3438] |
+| **Did we do a good job?** [3436][3438] | Validation + residual risk [3436][3438] |
+
+ใช้ 4 คำถามนี้เป็น backbone [3438][3439][3444]
+
+## Data Flow Diagram
+
+```text
+User
+ │
+ ▼
+API Gateway
+ │
+ ├── Auth Service
+ ├── LLM Service
+ └── Vector DB
+ │
+ ▼
+Postgres
+```
+
+| Element | ใช้ทำอะไร |
+|---|---|
+| **External entity** [3436][3440] | User / third party [3436][3440] |
+| **Process** [3436][3440] | Service / function [3436][3440] |
+| **Data store** [3436][3440] | DB / cache / file [3436][3440] |
+| **Data flow** [3436][3440] | การเคลื่อนที่ของข้อมูล [3436][3440] |
+| **Trust boundary** [3436][3440] | จุดที่ trust เปลี่ยน [3436][3440] |
+
+ใช้ DFD เพื่อหา attack surface [3436][3440][3449]
+
+## STRIDE
+
+| Letter | Threat | คำถาม |
+|---|---|---|
+| **S** [3436][3440] | Spoofing | ปลอมตัวได้ไหม [3436][3440] |
+| **T** [3436][3440] | Tampering | แก้ข้อมูลได้ไหม [3436][3440] |
+| **R** [3436][3440] | Repudiation | ปฏิเสธได้ไหม [3436][3440] |
+| **I** [3436][3440] | Information Disclosure | รั่วไหม [3436][3440] |
+| **D** [3436][3440] | Denial of Service | ล่มได้ไหม [3436][3440] |
+| **E** [3436][3440] | Elevation of Privilege | ยกระดับสิทธิ์ได้ไหม [3436][3440] |
+
+ใช้ STRIDE กับทุก element ใน DFD [3436][3440][3449]
+
+## DREAD Scoring
+
+```text
+Risk = (D + R + E + A + D) / 5
+```
+
+| Dimension | ความหมาย |
+|---|---|
+| **Damage** [3437][3449] | ความเสียหาย [3437][3449] |
+| **Reproducibility** [3437][3449] | ทำซ้ำง่ายไหม [3437][3449] |
+| **Exploitability** [3437][3449] | Exploit ง่ายไหม [3437][3449] |
+| **Affected users** [3437][3449] | กระทบใคร [3437][3449] |
+| **Discoverability** [3437][3449] | หาเจอง่ายไหม [3437][3449] |
+
+ใช้ DREAD เพื่อ prioritize [3437][3448][3449]
+
+## Response Options
+
+| Option | ใช้เมื่อ |
+|---|---|
+| **Mitigate** [3436][3445] | ลดความเสี่ยง [3436][3445] |
+| **Eliminate** [3436][3445] | ลบ feature [3436][3445] |
+| **Transfer** [3436][3445] | ย้ายความรับผิด [3436][3445] |
+| **Accept** [3436][3445] | รับความเสี่ยง [3436][3445] |
+
+ใช้ 4 ทางเลือกนี้เพื่อจัดการ threat [3436][3445][3440]
+
+## Attack Tree
+
+```text
+Goal: Unauthorized admin access
+ ├── OR
+ │   ├── Steal token
+ │   ├── Exploit IDOR
+ │   └── Social engineer
+```
+
+ใช้ attack tree เพื่อวิเคราะห์ path [3437][3450][3449]
+
+## AI Threat Model
+
+```yaml
+system: "AI Support Agent"
+
+trust_boundaries:
+  - "user ↔ api"
+  - "api ↔ llm"
+  - "llm ↔ tools"
+  - "llm ↔ vector_db"
+
+threats:
+  - "prompt_injection"
+  - "pii_leak"
+  - "tool_abuse"
+  - "data_exfiltration"
+  - "model_dos"
+```
+
+ใช้ AI-specific threat เพื่อคุม LLM [3436][3440][3449]
+
+## Best Practices
+
+1. **ใช้ Four Question Framework** [3436][3438][3444]
+2. **ใช้ DFD + trust boundary** [3436][3440][3449]
+3. **ใช้ STRIDE** [3436][3440][3449]
+4. **ใช้ DREAD** [3437][3448][3449]
+5. **ใช้ attack tree** [3437][3450][3449]
+6. **ใช้ cross-functional** [3436][3439][3444]
+7. **ใช้ living document** [3436][3439][3449]
+8. **ใช้ risk acceptance** [3436][3445][3440]
+9. **ใช้ validation** [3436][3438][3449]
+10. **ทบทวน model เมื่อ architecture เปลี่ยน** [3436][3449][3440]
+
+## Anti-Patterns
+
+| Anti-pattern | ปัญหา | ทางแก้ |
+|---|---|---|
+| ไม่มี DFD | มองไม่เห็น [3436][3440] | วาด DFD |
+| ไม่มี trust boundary | Miss attack surface [3436][3440] | ระบุ boundary |
+| ไม่มี STRIDE | หา threat ไม่ครบ [3436][3440] | ใช้ STRIDE |
+| ไม่มี prioritization | แก้ไม่ทัน [3437][3449] | ใช้ DREAD |
+| ไม่มี review | ล้าสมัย [3436][3449] | ใช้ living doc |
+
+## Checklist
+
+- [ ] มี scope
+- [ ] มี DFD
+- [ ] มี trust boundary
+- [ ] มี STRIDE analysis
+- [ ] มี DREAD scoring
+- [ ] มี mitigation plan
+- [ ] มี attack tree
+- [ ] มี risk acceptance
+- [ ] มี validation
+- [ ] ทบทวน model เป็นรอบ
+
+## Related Notes
+
+- [[MOC - Security]]
+- [[Zero Trust Networking]]
+- [[Prompt Injection]]
+- [[Firewall]]
+- [[Data Protection]]
+- [[MOC - AI Engineering]]
+
+การอ้างอิง:
+[1] Threat Modeling Cheat Sheet¶ https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html
+[2] mindforge-cc - UNPKG https://app.unpkg.com/mindforge-cc@11.6.0/files/.mindforge/skills/threat-modeling/SKILL.md
+[3] The Four-Question Framework - shostack.org https://shostack.org/files/papers/The_Four_Question_Framework.pdf
+[4] The Ultimate Beginner's Guide to Threat Modeling - Shostack https://shostack.org/resources/threat-modeling
+[5] Threat Modeling: What, Why, and How? https://shostack.org/resources/whitepapers/threat-modeling-what-why-how
+[6] Rolling Out a Threat Modeling Program https://shostack.org/resources/whitepapers/rolling-out-threat-modeling-program
+[7] Threat Modeling Quick Start Guide from Shostack + Associates https://shostack.org/resources/threat-modeling-quick-start
+[8] Who Are “We”? https://shostack.org/files/papers/rossfest/shostack-rossfest.pdf
+[9] Shostack + Friends Blog > LeanAppSec Announcement https://shostack.org/blog/lean-app-sec-announcement/
+[10] Shostack + Friends Blog > How To Choose a Threat Modeling Training https://shostack.org/blog/how-to-choose-threat-modeling-training/
+[11] Shostack's 4 Question Frame for Threat Modeling · GitHub https://github.com/adamshostack/4QuestionFrame
+[12] 4QuestionFrame/README.md at main - GitHub https://github.com/adamshostack/4QuestionFrame/blob/main/README.md
+[13] [PDF] Introducing Systems Thinking as a Framework for Teaching ... - arXiv https://arxiv.org/pdf/2404.16632.pdf
+[14] cc-skills-golang/skills/golang-security/references/threat-modeling.md at 246b6c4c1ab3077dee114beb9ade3bb0527dfebc · samber/cc-skills-golang https://github.com/samber/cc-skills-golang/blob/HEAD/skills/golang-security/references/threat-modeling.md
+[15] VulnTech Threat Modeling Basics https://www.vulntech.com/tutorials/devsecops/threat-modeling-basics/
