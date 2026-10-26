@@ -1,0 +1,40 @@
+
+MOC - Obsidian
+MOC - Obsidian
+
+MOC - Obsidian
+นี่คือ Map of Content (MOC) สำหรับจัดระเบียบโน้ตที่เกี่ยวกับ AI Engineering, Product, Platform และ Security ใน Obsidian
+
+Core Maps
+MOC - AI Engineering
+MOC - Product Design
+MOC - Platform Engineering
+MOC - Security
+MOC - Data & ML
+AI Engineering
+AI Product Development
+RAG vs Fine-tuning
+วิธีผสาน RAG และ Fine tuning ร่วมกัน
+Agent Trace Schema
+How to calculate token costs from trace spans
+Agent Sandboxing
+MLOps Overview
+Data Drift
+Product & Discovery
+AI Product Development
+AI Product Discovery
+AI Use Case Prioritization
+AI Product Risks
+Evaluation & Guardrails
+Data & Platform
+Data Platform Architecture
+MLOps Overview
+Data Drift
+Data Contracts
+Data Quality
+Reliability & Operations
+Automation & Toil
+Blameless Culture
+Agent Observability
+Incident Management
+SRE Practices
