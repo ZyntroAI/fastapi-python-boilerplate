@@ -1,174 +1,104 @@
 {
-  // ─── Semantic Code Understanding ───
-  "copilot-labs-semantic.enabled": true,
-  "copilot-labs-semantic.indexLanguages": ["python", "typescript", "javascript"],
-  "copilot-labs-semantic.autoIndex": true,
-  "copilot-labs-semantic.showSymbolOutline": true,
+  // ─── CORE: Editor & Files ───
+  "editor.tabSize": 2,
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit",
+    "source.organizeImports.ruff": "explicit"
+  },
+  "editor.rulers": [88, 100],
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  "files.autoSave": "onFocusChange",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.exclude": {
+    "**/vendor": true,
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/.git": true,
+    "**/storage/logs": false,
+    "**/.venv": true,
+    "**/__pycache__": true
+  },
+  "search.exclude": {
+    "**/vendor": true,
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/storage/framework": true
+  },
 
-  // ─── GitLens ───
+  // ─── PHP / Laravel ───
+  "[php]": {
+    "editor.defaultFormatter": "bmewburn.vscode-intelephense-client",
+    "editor.tabSize": 4,
+    "editor.formatOnSave": true
+  },
+  "intelephense.format.enable": true,
+  "intelephense.format.braces": "psr12",
+  "intelephense.environment.phpVersion": "8.3",
+  "php.validate.executablePath": "/usr/bin/php",
+  "php.suggest.basic": false,
+  "phpcs.standard": "PSR12",
+
+  // ─── Python ───
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.rulers": [88],
+    "editor.tabSize": 4
+  },
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.analysis.typeCheckingMode": "strict",
+  "python.analysis.autoImportCompletions": true,
+
+  // ─── JS / TS / Next.js ───
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "eslint.run": "onType",
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  "prettier.tabWidth": 2,
+  "prettier.printWidth": 100,
+  "prettier.singleQuote": true,
+  "typescript.preferences.importModuleSpecifier": "relative",
+
+  // ─── Docker & Dev Containers ───
+  "docker.showInActivityBar": true,
+  "docker.groupImages": "ImageName",
+  "dev.containers.dockerComposePath": "docker-compose.yml",
+  "remote.SSH.showLoginTerminal": true,
+
+  // ─── Git & AI Tools ───
   "gitlens.defaultDateFormat": "YYYY-MM-DD",
   "gitlens.blame.compact": true,
-  "gitlens.blame.heatmap.enabled": true,
   "gitlens.codeLens.enabled": true,
   "gitlens.currentLine.enabled": true,
-  "gitlens.hovers.currentLine.over": "line",
-  "gitlens.statusBar.enabled": true,
-
-  // ─── Copilot ───
   "github.copilot.enable": {
     "*": true,
     "plaintext": false,
     "markdown": true
   },
   "github.copilot.advanced": {
-    "length": 50,
+    "length": 80,
     "temperature": 0.2
   },
-  "github.copilot-chat.defaultContext": "embeddings",
+  "copilot-labs-semantic.enabled": true,
+  "copilot-labs-semantic.indexLanguages": ["python", "typescript", "javascript", "php"],
+  "copilot-labs-semantic.autoIndex": true,
 
-  // ─── Python ───
-  "[python]": {
-    "editor.defaultFormatter": "ms-python.python",
-    "editor.formatOnSave": true,
-    "editor.rulers": [88],
-    "editor.codeActionsOnSave": {
-      "source.organizeImports.ruff": true
-    }
-  },
-  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
-  "python.linting.ruffEnabled": true,
-  "python.linting.mypyEnabled": true,
-  "python.analysis.typeCheckingMode": "strict",
-
-  // ─── TypeScript / JS ───
-  "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
-  },
-  "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
-  },
-  "eslint.run": "onType",
-  "prettier.tabWidth": 2,
-  "prettier.printWidth": 100,
-
-  // ─── CLI / Terminal ───
+  // ─── Terminal ───
   "terminal.integrated.defaultProfile.linux": "zsh",
-  "terminal.integrated.profiles.linux": {
-    "zsh": { "path": "/usr/bin/zsh" },
-    "bash": { "path": "/bin/bash" }
-  },
   "terminal.integrated.env.linux": {
     "PYTHONPATH": "${workspaceFolder}/src"
-  },
-  "files.autoSave": "onFocusChange",
-  "editor.tabSize": 2
-}
-
-ตัวอย่างไฟล์ **`.vscode/settings.json`** สำหรับการพัฒนา **PHP และ Laravel** [1]:
-
-```json
-{
-  "[php]": {
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "bmewburn.vscode-intelephense-client"
-  },
-  "intelephense.format.enable": true,
-  "php.validate.executablePath": "php",
-  "php.suggest.basic": true,
-  "files.exclude": {
-    "**/vendor": true,
-    "**/.git": true,
-    "**/node_modules": true
   }
 }
-```
-
-### คำอธิบายการตั้งค่าหลัก [1]:
-* **`[php]`**: กำหนดให้จัดรูปแบบโค้ดอัตโนมัติเมื่อบันทึกไฟล์ (`editor.formatOnSave`) โดยใช้ **Intelephense** (`bmewburn.vscode-intelephense-client`) เป็น Formatter หลัก [1]
-* **`intelephense.format.enable`**: เปิดใช้งานการจัดฟอร์แมตของ Intelephense [1]
-* **`php.validate.executablePath`**: กำหนด Path ของตัวรัน PHP สำหรับตรวจสอบความถูกต้องของไวยากรณ์ [1]
-* **`php.suggest.basic`**: เปิดใช้งานระบบเติมคำสั่งพื้นฐานของ PHP [1]
-* **`files.exclude`**: ซ่อนโฟลเดอร์ที่ไม่จำเป็น เช่น `**/vendor`, `**/.git` และ `**/node_modules` เพื่อไม่ให้บดบังโฟลเดอร์งานใน File Explorer [1]
-
-🐘 หากคุณต้องการการตั้งค่าสำหรับ **Docker / Dev Containers** หรือส่วนขยายเพิ่มเติมสำหรับการพัฒนา PHP/Laravel แจ้งได้เลยครับ!
-ตัวอย่างการตั้งค่า **`.vscode/settings.json`** สำหรับโปรเจกต์ **Next.js** (รองรับทั้ง JavaScript, TypeScript, React JSX/TSX, ESLint และ Prettier):
-
-```json
-{
-  // กำหนด Prettier เป็น Formatter หลักสำหรับการจัดรูปแบบโค้ด
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "[javascript]": {
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[typescript]": {
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[javascriptreact]": {
-    "editor.formatOnSave": true
-  },
-  "[typescriptreact]": {
-    "editor.formatOnSave": true
-  },
-
-  // แก้ไขไวยากรณ์ด้วย ESLint และจัดเรียง Import อัตโนมัติเมื่อบันทึก
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true,
-    "source.organizeImports": true
-  },
-  "eslint.validate": [
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact"
-  ],
-
-  // ซ่อนโฟลเดอร์บิลด์และไลบรารีเพื่อลดความสับสนและเพิ่มความเร็วในการค้นหา
-  "files.exclude": {
-    "**/.next": true,
-    "**/node_modules": true,
-    "**/.git": true
-  },
-  "search.exclude": {
-    "**/.next": true,
-    "**/node_modules": true
-  }
-}
-```
-
----
-
-### **คำอธิบายจุดสำคัญของการตั้งค่าสำหรับ Next.js:**
-* **การจัดฟอร์แมตอัตโนมัติ (Formatting)**: กำหนดให้ **Prettier** (`esbenp.prettier-vscode`) ทำหน้าที่จัดรูปแบบโค้ดให้อัตโนมัติเมื่อกดบันทึก ทั้งไฟล์ JavaScript, TypeScript, JSX และ TSX [1, 2]
-* **การตรวจสอบและเคลียร์ Import (ESLint & Organize Imports)**: เปิดใช้งาน `editor.codeActionsOnSave` เพื่อสั่งแก้ไขข้อผิดพลาดตามกฎของ ESLint (`source.fixAll.eslint`) และจัดเรียงคำสั่ง `import` (`source.organizeImports`) ให้อัตโนมัติทันทีเมื่อบันทึก [1, 2]
-* **การซ่อนโฟลเดอร์ส่วนเกิน (Exclusions)**: กำหนดให้ซ่อนโฟลเดอร์ `**/.next`, `**/node_modules` และ `**/.git` ออกจากการแสดงผลใน File Explorer รวมถึงปิดการค้นหาในโฟลเดอร์บิลด์ชั่วคราว เพื่อให้ทำงานได้สะอาดตาและรวดเร็วยิ่งขึ้น [3, 4]
-
----
-
-💡 คุณต้องการให้ฉันช่วยเตรียมไฟล์ **`.vscode/extensions.json`** สำหรับแนะนำ Extension ของ Next.js หรือชุดตั้งค่าตัวอื่นเพิ่มเติมไหมครับ?
-ตัวอย่างการตั้งค่า VSCode ในไฟล์ `settings.json` สำหรับ **Docker** และ **Dev Containers** เพื่อผสานการทำงานร่วมกับ Container [1]:
-
-```json
-{
-  "docker.showInActivityBar": true,
-  "docker.groupImages": "ImageName",
-  "dev.containers.dockerComposePath": "docker-compose.yml",
-  "remote.SSH.showLoginTerminal": true
-}
-```
-
-### รายละเอียดการตั้งค่า:
-* **`"docker.showInActivityBar": true`**: เปิดการแสดงผลแถบเครื่องมือ Docker บน Activity Bar ด้านข้าง [1]
-* **`"docker.groupImages": "ImageName"`**: จัดกลุ่มรายการ Docker Images ตามชื่อของ Image [1]
-* **`"dev.containers.dockerComposePath": "docker-compose.yml"`**: กำหนดตำแหน่งไฟล์ `docker-compose.yml` หลักสำหรับการใช้งาน Dev Containers [1]
-* **`"remote.SSH.showLoginTerminal": true`**: แสดงหน้าต่าง Terminal เมื่อเชื่อมต่อผ่าน Remote SSH [1]
-
----
-
-**วิธีการเปิดใช้งาน:**
-กด **Ctrl + Shift + P** (บน Mac: **Cmd + Shift + P**) แล้วเลือก **Preferences: Open Settings (JSON)** หรือแก้ไขไฟล์ `.vscode/settings.json` ในโฟลเดอร์โปรเจกต์โดยตรง [2]
-
-🐳 คุณสนใจให้ฉันช่วยรวบรวมไฟล์ตั้งค่าทั้งหมดสำหรับโปรเจกต์ของคุณออกเป็นรายงานคู่มือประจำทีมไว้ใน Studio Panel ไหมครับ?
