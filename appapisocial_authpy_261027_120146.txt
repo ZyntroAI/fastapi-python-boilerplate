@@ -1,0 +1,43 @@
+from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy.orm import Session
+from datetime import datetime, UTC
+
+from app.core.database import get_db
+from app.core.config import settings
+from app.core.security import create_access_token, create_refresh_token
+from app.core.oauth_service import GoogleOAuth, GitHubOAuth, UserInfo
+from app.models.user import User, SocialAccount
+from app.schemas.user import TokenResponse
+
+router = APIRouter(prefix="/auth", tags=["Social Auth"])
+
+─── Google ───
+@router.get("/google/login")
+def google_login():
+"""Redirect to Google login page"""
+return {"auth_url": GoogleOAuth.get_auth_url()}
+
+@router.get("/google/callback")
+async def google_callback(code: str, db: Session = Depends(get_db)):
+"""Handle Google OAuth callback"""
+if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
+raise HTTPException(501, "Google OAuth not configured")
+
+user_info = await GoogleOAuth.get_user_info(code)
+
+# Find or create user
+user = db.query(User).filter(User.google_id == user_info.id).first()
+if not user:
+# Check if email exists
+user = db.query(User).filter(User.email == user_info.email).first()
+if user:
+# Link existing account
+user.google_id = user_info.id
+if not user.avatar_url:
+user.avatar_url = user_info.avatar
+else:
+# Create new user
+username = user_info.email.split("@")[0]
+base_username = username
+counter = 1
+while

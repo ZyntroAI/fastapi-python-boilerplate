@@ -1,0 +1,13 @@
+Existing
+python-jose[cryptography]3.3.0
+passlib[bcrypt]1.7.4
+bcrypt4.0.1
+sqlalchemy2.0.23
+pydantic2.10
+pydantic-settings2.6
+python-multipart0.0.12
+python-dotenv1.0.1
+New
+httpx0.27.0
+slowapi0.1.9
+limits==3.10.1

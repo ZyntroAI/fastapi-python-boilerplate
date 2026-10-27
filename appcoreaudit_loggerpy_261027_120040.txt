@@ -1,0 +1,71 @@
+from fastapi import Request
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.status import HTTP_200_OK
+import json
+from datetime import datetime, UTC
+from app.core.database import SessionLocal
+from app.models.audit_log import AuditLog
+from app.core.dependencies import decode_token
+
+class AuditLoggingMiddleware(BaseHTTPMiddleware):
+async def dispatch(self, request: Request, call_next):
+start_time = datetime.now(UTC)
+
+# Capture request info
+ip = request.client.host
+user_agent = request.headers.get("user-agent", "")
+path = request.url.path
+method = request.method
+
+user_id = None
+# Try to extract user from auth header
+auth_header = request.headers.get("authorization", "")
+if auth_header.startswith("Bearer "):
+token = auth_header[7:]
+payload = decode_token(token)
+if payload:
+user_id = payload.get("user_id")
+
+# Request body preview (don't log passwords!)
+request_preview = None
+if request.method in ["POST", "PUT", "PATCH"]:
+try:
+body = await request.body()
+if body and len(body) < 10000:
+preview = json.loads(body.decode())
+# Remove sensitive fields
+for field in ["password", "token", "access_token", "refresh_token"]:
+if field in preview:
+preview[field] = "[REDACTED]"
+request_preview = preview
+except:
+request_preview = "[unparseable]"
+
+# Process request
+response = await call_next(request)
+
+# Don't log health checks or static routes
+if path.startswith("/static") or path == "/":
+return response
+
+# Log to DB
+db = SessionLocal()
+try:
+log = AuditLog(
+user_id=user_id,
+action=f"{method} {path}",
+resource_type=path.split("/")[2] if len(path.split("/")) > 2 else None,
+ip_address=ip,
+user_agent=user_agent[:500],
+request_data=request_preview,
+response_status=response.status_code,
+created_at=datetime.now(UTC)
+)
+db.add(log)
+db.commit()
+except Exception as e:
+print(f"Failed to write audit log: {e}")
+finally:
+db.close()
+
+return response

@@ -1,0 +1,43 @@
+from fastapi import Request, HTTPException
+from fastapi.dependencies.utils import get_dependant
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from app.core.config import settings
+
+limiter = Limiter(key_func=get_remote_address, default_limits=[settings.RATE_LIMIT_DEFAULT])
+
+def rate_limit(limit: str = None):
+"""Decorator: @rate_limit("30/minute")"""
+def decorator(func):
+setattr(func, "_rate_limit", limit or settings.RATE_LIMIT_DEFAULT)
+return func
+return decorator
+
+async def check_rate_limit(request: Request):
+"""Dependency to apply rate limiting per route"""
+if not settings.RATE_LIMIT_ENABLED:
+return
+
+# Stricter limits on auth endpoints
+if "/auth/" in request.url.path:
+limit_str = settings.RATE_LIMIT_AUTH
+else:
+limit_str = settings.RATE_LIMIT_DEFAULT
+
+try:
+# Basic in-memory rate limiting — use Redis in production!
+from limits import Limiter as LimitsLimiter, strategies
+from limits.util import parse
+limiter_impl = LimitsLimiter(storage="memory", strategy=strategies.MovingWindowRateLimiter())
+key = f"rate:{request.client.host}:{request.url.path}"
+parsed = parse(limit_str)
+if not limiter_impl.check(parsed, key):
+raise HTTPException(
+status_code=429,
+detail=f"Too many requests. Please try again later. Limit: {limit_str}"
+)
+except HTTPException:
+raise
+except Exception as e:
+print(f"Rate limiter error: {e}")
