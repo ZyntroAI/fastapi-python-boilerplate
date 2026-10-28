@@ -456,3 +456,222 @@ Scale: "Autoscaling always-on, like Render"
 This keeps your freemium acquisition flywheel (free previews forever) while creating those natural upgrade moments exactly where HTTP scale-to-zero stops working.
 
 Want me to generate the actual React component for that cost projection calculator (`always-on vs Active CPU`)?
+
+Here's a production-ready React component. Tailwind + TypeScript, no dependencies. Drop it into `components/CostProjection.tsx`.
+
+It does exactly what you asked: *"If this traffic ran always-on vs Active CPU"* + shows zstd savings.
+// components/CostProjection.tsx
+'use client';
+
+import { useState, useMemo } from 'react';
+
+type Props = {
+  // Pre-fill from actual metrics
+  initialRequests?: number;
+  initialAvgDurationMs?: number;
+  initialImageSizeGbGzip?: number;
+  initialImageSizeGbZstd?: number;
+};
+
+export default function CostProjection({
+  initialRequests = 1_200_000,
+  initialAvgDurationMs = 180,
+  initialImageSizeGbGzip = 1.2,
+  initialImageSizeGbZstd = 0.78,
+}: Props) {
+  const [requests, setRequests] = useState(initialRequests);
+  const [avgDuration, setAvgDuration] = useState(initialAvgDurationMs);
+  const [concurrency, setConcurrency] = useState(5);
+  const [alwaysOnInstances, setAlwaysOnInstances] = useState(1);
+  const [zstdEnabled, setZstdEnabled] = useState(true);
+
+  // Pricing assumptions — adjust to your actual pricing
+  // Vercel-style: $0.000024 per GB-s Active CPU (example)
+  // Render-style: $7 / month per 0.5 CPU / 512MB always-on
+  const PRICING = {
+    activeCpuPerGbSecond: 0.000024, // $0.000024 / GB-s
+    memoryGb: 0.5,
+    coldStartPenaltyGzip: 1.4, // seconds
+    coldStartPenaltyZstd: 0.35,
+    alwaysOnMonthly: 7, // per instance
+    freeActiveCpuGbSec: 100000, // free quota
+    freeRequests: 1_000_000,
+  };
+
+  const calc = useMemo(() => {
+    const activeGbSeconds = (requests * (avgDuration / 1000) * PRICING.memoryGb);
+    const billableGbSeconds = Math.max(0, activeGbSeconds - PRICING.freeActiveCpuGbSec);
+    const activeCpuCost = billableGbSeconds * PRICING.activeCpuPerGbSecond;
+
+    // Cold start cost approximation
+    const imageSize = zstdEnabled ? initialImageSizeGbZstd : initialImageSizeGbGzip;
+    const coldStartPerBoot = zstdEnabled ? PRICING.coldStartPenaltyZstd : PRICING.coldStartPenaltyGzip;
+    // Assume 1 cold start per 100 requests with concurrency factor
+    const coldStarts = Math.ceil(requests / (100 * concurrency));
+    const coldStartGbSeconds = coldStarts * coldStartPerBoot * PRICING.memoryGb;
+
+    const totalActiveCost = activeCpuCost + (coldStartGbSeconds * PRICING.activeCpuPerGbSecond);
+
+    // Always-on cost: flat + still pay for overage? Simplified to flat
+    const alwaysOnCost = alwaysOnInstances * PRICING.alwaysOnMonthly;
+    const alwaysOnP95 = 120; // ms, always warm
+    const scaleToZeroP95 = 180;
+    const scaleToZeroP99 = zstdEnabled ? 420 : 1400;
+
+    const saving = totalActiveCost - alwaysOnCost;
+    const winner = totalActiveCost < alwaysOnCost ? 'active' : 'alwaysOn';
+
+    // zstd benefit
+    const sizeSaving = ((initialImageSizeGbGzip - initialImageSizeGbZstd) / initialImageSizeGbGzip) * 100;
+    const timeSaving = ((PRICING.coldStartPenaltyGzip - PRICING.coldStartPenaltyZstd) / PRICING.coldStartPenaltyGzip) * 100;
+
+    return {
+      activeGbSeconds,
+      billableGbSeconds,
+      totalActiveCost,
+      alwaysOnCost,
+      winner,
+      saving: Math.abs(saving),
+      coldStarts,
+      imageSize,
+      alwaysOnP95,
+      scaleToZeroP95,
+      scaleToZeroP99,
+      sizeSaving,
+      timeSaving,
+      requestsInFree: Math.min(requests, PRICING.freeRequests),
+    };
+  }, [requests, avgDuration, concurrency, alwaysOnInstances, zstdEnabled, initialImageSizeGbGzip, initialImageSizeGbZstd]);
+
+  return (
+    <div className="w-full max-w-4xl mx-auto bg-[#0a0a0a] border border-zinc-800 rounded-2xl p-6 text-zinc-100 font-sans">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="text-lg font-semibold">Cost Projection: Active CPU vs Always-On</h3>
+          <p className="text-sm text-zinc-400">Based on your last 30 days • Streaming snapshot model (VCR + Fluid)</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 text-xs bg-zinc-900 border border-zinc-800 rounded-full px-3 py-1.5 cursor-pointer">
+            <input type="checkbox" checked={zstdEnabled} onChange={e => setZstdEnabled(e.target.checked)} className="accent-violet-500" />
+            zstd build
+          </label>
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <Control label={`Requests: ${requests.toLocaleString()}`} min={10000} max={10000000} step={10000} value={requests} onChange={setRequests} />
+        <Control label={`Avg Duration: ${avgDuration}ms`} min={20} max={2000} step={10} value={avgDuration} onChange={setAvgDuration} />
+        <Control label={`Concurrency: ${concurrency}`} min={1} max={50} step={1} value={concurrency} onChange={setConcurrency} />
+      </div>
+
+      {/* Main Comparison */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        {/* Active CPU Card */}
+        <div className={`rounded-xl p-4 border ${calc.winner === 'active' ? 'bg-violet-500/10 border-violet-500/40' : 'bg-zinc-900 border-zinc-800'}`}>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium flex items-center gap-2">
+              <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" /> Scale-to-Zero (Vercel-style)
+            </span>
+            {calc.winner === 'active' && <span className="text-[10px] bg-violet-500 text-white px-2 py-0.5 rounded-full">CHEAPER</span>}
+          </div>
+          <div className="text-2xl font-bold">${calc.totalActiveCost.toFixed(2)}<span className="text-sm font-normal text-zinc-400">/mo</span></div>
+          <div className="mt-3 space-y-1 text-xs text-zinc-400">
+            <div className="flex justify-between"><span>Active GB-s</span><span>{calc.activeGbSeconds.toLocaleString()}s</span></div>
+            <div className="flex justify-between"><span>Billable (after free)</span><span>{calc.billableGbSeconds.toLocaleString()}s</span></div>
+            <div className="flex justify-between"><span>Cold starts (est.)</span><span>{calc.coldStarts} × {zstdEnabled ? '0.35s' : '1.4s'}</span></div>
+            <div className="flex justify-between"><span>p95 / p99</span><span>{calc.scaleToZeroP95}ms / {calc.scaleToZeroP99}ms</span></div>
+          </div>
+          <div className="mt-3 text-[11px] text-zinc-500">
+            {requests <= PRICING.freeRequests ? `✓ ${calc.requestsInFree.toLocaleString()} requests in free tier` : `Free tier: ${PRICING.freeRequests.toLocaleString()} req + 100k GB-s`}
+          </div>
+        </div>
+
+        {/* Always-On Card */}
+        <div className={`rounded-xl p-4 border ${calc.winner === 'alwaysOn' ? 'bg-emerald-500/10 border-emerald-500/40' : 'bg-zinc-900 border-zinc-800'}`}>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium flex items-center gap-2">
+              <span className="w-2 h-2 bg-zinc-400 rounded-full" /> Always-On (Render-style)
+            </span>
+            {calc.winner === 'alwaysOn' && <span className="text-[10px] bg-emerald-500 text-black px-2 py-0.5 rounded-full">CHEAPER</span>}
+          </div>
+          <div className="text-2xl font-bold">${calc.alwaysOnCost.toFixed(2)}<span className="text-sm font-normal text-zinc-400">/mo flat</span></div>
+          <div className="mt-3 space-y-1 text-xs text-zinc-400">
+            <div className="flex justify-between"><span>Instances</span><span>{alwaysOnInstances} × Starter ($7)</span></div>
+            <div className="flex justify-between"><span>Supports</span><span>Workers, Cron, Disks, WS</span></div>
+            <div className="flex justify-between"><span>p95 / p99</span><span>{calc.alwaysOnP95}ms / {calc.alwaysOnP95 + 20}ms</span></div>
+            <div className="flex justify-between"><span>Tradeoff</span><span>No scale-to-zero, disk = max 1 instance</span></div>
+          </div>
+          <div className="mt-3">
+            <input type="range" min={1} max={5} value={alwaysOnInstances} onChange={e => setAlwaysOnInstances(parseInt(e.target.value))} className="w-full accent-zinc-500" />
+          </div>
+        </div>
+      </div>
+
+      {/* zstd insight */}
+      <div className="rounded-xl bg-[#111] border border-zinc-800 p-4 mb-6 flex items-start gap-3">
+        <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-sm">⚡</div>
+        <div className="flex-1">
+          <div className="text-sm font-medium">VCR Snapshot + zstd = {calc.timeSaving.toFixed(0)}% faster cold start</div>
+          <div className="text-xs text-zinc-400 mt-1">
+            Your image: <span className="text-zinc-200">{initialImageSizeGbGzip.toFixed(2)}GB gzip</span> → <span className="text-emerald-400">{initialImageSizeGbZstd.toFixed(2)}GB zstd</span> ({calc.sizeSaving.toFixed(0)}% smaller).
+            On Fluid, this cuts VHS snapshot creation time and streaming decompress time. Recommended build: <code className="bg-zinc-900 px-1.5 py-0.5 rounded text-[11px]">compression=zstd,compression-level=3,force-compression=true</code>
+          </div>
+        </div>
+        <button onClick={() => setZstdEnabled(!zstdEnabled)} className="text-xs bg-white text-black px-3 py-1.5 rounded-full font-medium hover:bg-zinc-200">
+          {zstdEnabled ? 'Disable' : 'Enable'} zstd
+        </button>
+      </div>
+
+      {/* Recommendation */}
+      <div className="flex items-center justify-between rounded-full bg-zinc-900 border border-zinc-800 px-4 py-3">
+        <div className="text-sm">
+          {calc.winner === 'active' ? (
+            <>💡 <span className="font-medium">Stay on scale-to-zero</span> — you save ${calc.saving.toFixed(2)}/mo at current traffic. Upgrade when you need workers/disks.</>
+          ) : (
+            <>💡 <span className="font-medium">Switch to always-on</span> — you save ${calc.saving.toFixed(2)}/mo + get stable p99. Keep API on free, move worker to paid.</>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <button className="text-xs bg-zinc-800 border border-zinc-700 px-3 py-1.5 rounded-full">Keep Free Tier</button>
+          <button className="text-xs bg-white text-black px-3 py-1.5 rounded-full font-semibold">Upgrade to Starter</button>
+        </div>
+      </div>
+
+      <div className="mt-4 text-[11px] text-zinc-500 text-center">
+        Pricing uses Vercel Active CPU $0.000024/GB-s and Render Starter $7/instance as reference. Replace PRICING const with your actual.
+      </div>
+    </div>
+  );
+}
+
+function Control({ label, min, max, step, value, onChange }: { label: string; min: number; max: number; step: number; value: number; onChange: (v: number) => void }) {
+  return (
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
+      <div className="text-xs text-zinc-400 mb-2">{label}</div>
+      <input type="range" min={min} max={max} step={step} value={value} onChange={e => onChange(Number(e.target.value))} className="w-full accent-violet-500" />
+    </div>
+  );
+}
+*How to wire to your dashboard:*
+// In your service metrics page
+import CostProjection from '@/components/CostProjection';
+
+// Fetch from your observability DB
+const metrics = await getMetrics(serviceId); // { requests, avgDuration, imageSizeGzip, imageSizeZstd }
+
+<CostProjection
+  initialRequests={metrics.requests30d}
+  initialAvgDurationMs={metrics.p95Duration}
+  initialImageSizeGbGzip={metrics.imageSizeGzip}
+  initialImageSizeGbZstd={metrics.imageSizeZstd}
+/>
+*Key UX details baked in:*
+
+1. *Free quota visible* — users see when they're still free, reduces anxiety
+2. *zstd toggle* — instantly shows `$ + latency` benefit, drives adoption of Buildx pipeline
+3. *Cold start math* — uses your `coldStartPenaltyGzip vs Zstd` from Depot benchmarks
+4. *Hybrid CTA* — "Keep API on free, move worker to paid" is the exact conversion path from your flow
+
+Want the same component in *Vue/Svelte* or want me to add the actual `blueprint.yaml` migrator button logic (`POST /v1/services/:id/migrate`)?
