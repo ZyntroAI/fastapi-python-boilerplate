@@ -211,3 +211,80 @@ Related Vercel / Registry Context
 When pushing to Vercel Container Registry the zstd layers feed directly into the background “precompiled snapshot” optimization used by Fluid compute and Sandbox. Smaller, faster-to-decompress layers translate into quicker scale-from-zero boots.
 
 For further deep dives load references/ files if present.
+That flow you sketched is sharp — and the Grok share link you dropped nails the core tradeoff. Here's the full breakdown tying your freemium idea + VCR optimization + zstd into one playbook:
+
+1. Your Freemium Flow — Validated & Tightened
+
+Your positioning is exactly right:
+
+- *Free = Vercel model:* HTTP-only, scale-to-zero, Active CPU billing, preview URL per PR. This is developer delight and viral acquisition.
+- *Paid = Render model:* Always-on, background workers, cron, disks, predictable instance pricing. This is where real production pain lives.
+
+Where you can make the conversion feel _non-punitive_:
+
+*Add 3 conversion micro-copy moments:*
+- On first cold start >1.5s: "Want <300ms always-warm? Move this service to Starter always-on."
+- When user `docker run` with `-v`: "Free tier has no persistent disks. Add a disk on Pro — note: disks = no horizontal scale + 10-30s deploy downtime."
+- When logs show WebSocket disconnect: "Free tier kills idle HTTP after X sec. Upgrade for long-lived sessions."
+
+Your hybrid suggestion is key: *Keep frontend/API on scale-to-zero free, move worker/disk to paid always-on.* That mirrors how most Render customers already architect. Provide a Blueprint that does that in one click.
+
+2. Vercel Container Registry (VCR) — Why It Boots Fast
+
+This is not a normal registry pull. What you pasted is correct:
+
+1. Push OCI image to `vcr.vercel.com`
+2. VCR converts it to *VHS — Vercel Hive Snapshot* (precompiled snapshot)
+3. On boot, Fluid compute *streams + decompresses on demand* — request handling starts before full image is downloaded.
+
+Result: Large images (2-5GB ML images) don't pay full pull cost on cold start. That's why Vercel feels like always-on while still being serverless.
+
+*Limits you noted:*
+- Compressed layer ≤ 500 MB, total image ≤ 15 GB, manifest ≤ 4 MB
+- Storage $0.10/GB
+- Only gzip or zstd accepted
+
+3. zstd Deep Dive — Why It's Non-Negotiable in 2026
+
+You called out `zstd-compression` skill — here's the investigation:
+
+*Meta's Zstandard vs gzip for containers:*
+Metric	gzip	zstd lvl 3	zstd lvl 9
+Compression ratio	baseline	20-30% smaller	35-50% smaller
+Decompression	1x	2-3x faster	2-3x faster (still)
+Compression speed	1x	3-5x faster (mt)	~1x
+Multi-thread	No (unless pigz)	Yes native	Yes native
+*Real numbers:*
+- AWS Fargate: 27% faster task startup with zstd
+- Depot Labs: ∼60% faster decompress than pigz
+- Immich/Home Assistant images: 18-49% size reduction
+- For VCR specifically: Smaller zstd layers = faster VHS snapshot creation + faster streaming boot on Fluid
+
+*Why decompression speed matters more than size:*
+Cold start = `download + decompress + runtime init`. On Fluid, download is streamed, so decompress is the bottleneck. zstd decompress is constant-time fast regardless of compression level — you can push lvl 9 for size without hurting boot.
+
+*Recommended pipeline — the Vercel-endorsed form:*
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  --output "type=image,name=vcr.vercel.com/$TEAM/$PROJECT/$REPO:$SHA,push=true,oci-mediatypes=true,compression=zstd,compression-level=3,force-compression=true" \
+  .
+- `compression=zstd` — essential
+- `compression-level=3` — default, perfect for previews. Use `9` for production images where build time is okay
+- `force-compression=true` — recompress all layers, even base
+- `oci-mediatypes=true` — required for proper OCI zstd media types
+
+*Compatibility in 2026:*
+- Supported: Docker 23+, containerd, BuildKit, ECR, GHCR, VCR, most K8s
+- VCR rejects uncompressed
+- If you need legacy support, publish dual manifest: zstd first, gzip fallback second
+
+4. How to Apply to YOUR Freemium Product
+
+If you're building a Vercel vs Render competitor:
+
+1. *Enforce zstd on free tier:* Make your build pipeline auto-use Buildx + zstd. Free users get fastest cold starts = better DX = better retention.
+2. *Show cost projection dashboard:* "This image: gzip 1.2GB / 4.1s cold start vs zstd 0.78GB / 1.9s cold start. You saved $X in Active CPU."
+3. *Conversion trigger tied to image size:* If user pushes >1GB gzip image, banner: "Switch to zstd build — 35% faster deploys on free tier. One-click fix."
+4. *For paid always-on:* Offer choice: "Keep scale-to-zero with zstd for API, use always-on with disk for worker" — that's your Blueprint from section 1.
+
+Want me to draft the exact Blueprint YAML / http://Dockerfile.vercel best practices and the dashboard copy for those 5 conversion triggers?
