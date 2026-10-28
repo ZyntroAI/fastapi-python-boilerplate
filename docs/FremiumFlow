@@ -288,3 +288,171 @@ If you're building a Vercel vs Render competitor:
 4. *For paid always-on:* Offer choice: "Keep scale-to-zero with zstd for API, use always-on with disk for worker" — that's your Blueprint from section 1.
 
 Want me to draft the exact Blueprint YAML / http://Dockerfile.vercel best practices and the dashboard copy for those 5 conversion triggers?
+
+
+Perfect — here's the full implementation kit for that hybrid freemium model. Copy-paste ready.
+
+1. http://Dockerfile.vercel Best Practices (zstd-optimized)
+
+This is the file Vercel looks for. Make it cache-efficient + zstd-friendly.
+
+*Dockerfile.vercel*
+---- Base: keep layers <500MB compressed ----
+FROM node:20-slim AS base
+WORKDIR /app
+Use --mount=type=cache to keep build layers small (critical for VCR snapshot)
+RUN apt-get update && apt-get install -y --no-install-recommends python3 && rm -rf /var/lib/apt/lists/*
+
+---- Deps: separate layer for max cache hit ----
+FROM base AS deps
+COPY package.json package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm npm ci --frozen-lockfile
+
+---- Build ----
+FROM deps AS build
+COPY . .
+RUN npm run build
+
+---- Runtime: distroless/slim for smallest zstd ----
+FROM gcr.io/distroless/nodejs20-debian12 AS runtime
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package.json ./
+
+Vercel Fluid requires EXPOSE for HTTP detection
+EXPOSE 3000
+Use exec form for faster boot
+CMD ["dist/server.js"]
+
+Labels for your dashboard cost projector
+LABEL com.vercel.fluid.concurrency="10"
+LABEL com.vercel.fluid.max-duration="30s"
+*Build command — enforce in CI for free tier:*
+.github/workflows/deploy.yml
+- name: Build & Push to VCR
+  run: |
+    docker buildx build \
+      --platform linux/amd64,linux/arm64 \
+      --output "type=image,name=vcr.vercel.com/${{ secrets.VERCEL_TEAM }}/${{ secrets.VERCEL_PROJECT }}/${{ vars.SERVICE }}:${{ github.sha }},push=true,oci-mediatypes=true,compression=zstd,compression-level=${{ github.ref == 'refs/heads/main' && '9' || '3' }},force-compression=true" \
+      -f Dockerfile.vercel .
+Logic: PRs use `lvl 3` (fast), main uses `lvl 9` (smallest for prod).
+
+2. Blueprints / IaC — The Hybrid Freemium Killer
+
+This is the one-click migration helper you mentioned.
+
+*blueprint.yaml — HTTP free + worker paid*
+blueprint.yaml — Vercel/Render style hybrid
+version: 1
+
+services:
+  # FREE TIER: Scales to zero, Active CPU
+  api:
+    name: api-frontend
+    type: web
+    runtime: vercel-container
+    dockerfile: Dockerfile.vercel
+    plan: free
+    scaling:
+      min: 0
+      max: 10
+      metric: active-cpu
+    env:
+      DATABASE_URL: ${db.url}
+      REDIS_URL: ${queue.url}
+    preview: true # Preview URL per commit — keep forever (your retention loop)
+    cdn: true
+    limits:
+      maxDuration: 30s
+      concurrency: 10
+
+  # PAID CONVERSION: Always-on worker when they need it
+  worker:
+    name: background-worker
+    type: worker
+    runtime: vercel-container
+    dockerfile: Dockerfile.worker
+    plan: starter # $7/mo always-on — first upgrade trigger
+    scaling:
+      min: 1 # always-on
+      max: 1
+    env:
+      DATABASE_URL: ${db.url}
+      REDIS_URL: ${queue.url}
+    triggers:
+      - type: cron
+        schedule: "*/5 * * * *"
+        # If user tries to add this on free, show upgrade modal
+        requiresPlan: starter
+
+  # PAID CONVERSION: Disk = no horizontal scale
+  uploads:
+    name: uploads-disk
+    type: web
+    plan: pro # Requires pro due to disk
+    disk:
+      path: /data
+      size: 10GB
+      # Your warning copy: "Disks can't scale horizontally + brief deploy downtime"
+    scaling:
+      min: 1
+      max: 1
+    zeroDowntime: false
+
+addons:
+  db:
+    type: postgres
+    plan: free # Keep free so they don't need local state
+  queue:
+    type: redis
+    plan: free
+*Dashboard logic for one-click migration:*
+- Button: `[ Move worker to always-on ]` → changes `api.worker.plan` from `free` to `starter`
+- Button: `[ Add persistent disk ]` → auto-sets `max:1` and shows warning modal
+
+3. Dashboard Copy — 5 Conversion Triggers
+
+These are non-intrusive, high-intent. Place as inline banners, not popups.
+
+*Trigger 1: Traffic exceeds free Active-CPU quota*
+> *Location:* Metrics page, when 80% of free quota hit
+> *Headline:* `You're about to exceed free Active CPU`
+> *Body:* `This month: 1.2M requests / 42 CPU-hrs (85% of free). At current traffic, always-on Starter ($7) would be ∼$5.20 vs $12 on Active CPU. [See projection] [Keep scale-to-zero] [Switch to always-on]`
+> *Psychology:* Vercel vs Render cost calculator — you promised it.
+
+*Trigger 2: User tries to add background worker / cron / private service*
+> *Location:* Service create modal
+> *Headline:* `Background workers need always-on`
+> *Body:* `Free tier is HTTP-only and scales to zero — workers would be killed while idle. Upgrade to Starter to get 1 always-on worker + cron jobs. Keep your API on free, move only worker to paid? [Create hybrid blueprint]`
+> *CTA:* `Upgrade to Starter`
+
+*Trigger 3: User attaches persistent disk*
+> *Location:* Disk attach flow
+> *Headline:* `Disks can't scale + brief downtime on deploy`
+> *Body:* `Pro tip from Render: Disks are tied to 1 instance (no horizontal scale) and deploys have ∼10-30s downtime. For uploads, consider S3-compatible storage (free) to stay serverless. Need a real disk? Pro gives you 10GB with that tradeoff. [Use Object Storage] [Add Disk on Pro]`
+> *Psychology:* You're honest about tradeoff — builds trust.
+
+*Trigger 4: Cold-start sensitivity*
+> *Location:* Observability > Request latency chart
+> *Headline:* `3 cold starts >1.2s this week`
+> *Body:* `Your p95 is 180ms, but p99 is 1.4s due to scale-from-zero. Your image: 1.1GB gzip → 0.74GB zstd (33% smaller). Want <300ms always? [Enable zstd build] [Make always-on: Starter]`
+> *Action:* Auto-fix button that rewrites build command to zstd lvl 9.
+
+*Trigger 5: Long-lived WebSocket / SSE*
+> *Location:* Logs, when WebSocket upgrade detected
+> *Headline:* `WebSocket needs long-lived session`
+> *Body:* `Free tier kills idle HTTP after 30s. Your WebSocket at /realtime was disconnected 12 times today. Two options: (1) Handle reconnects on client + stay on free, (2) Move to always-on for stable connections. [See reconnect snippet] [Upgrade to always-on]`
+> *Provide code:* Show `reconnecting-websocket` snippet.
+
+---
+
+*Bonus — Pricing page alignment:*
+Free: "Like Vercel — pay $0 when idle, preview per PR, zstd-fast cold starts"
+Starter $7: "First always-on instance, background workers"
+Pro $25: "Disks, private networking, zero-downtime (no disk)"
+Scale: "Autoscaling always-on, like Render"
+This keeps your freemium acquisition flywheel (free previews forever) while creating those natural upgrade moments exactly where HTTP scale-to-zero stops working.
+
+Want me to generate the actual React component for that cost projection calculator (`always-on vs Active CPU`)?
