@@ -1,0 +1,134 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: zyntroai-alerts
+  namespace: monitoring
+  labels:
+    release: kube-prometheus
+spec:
+  groups:
+    - name: zyntroai.core
+      rules:
+        # 🔴 High CPU Worker
+        - alert: ZyntroAIWorkerHighCPU
+          expr: |
+            avg(rate(container_cpu_usage_seconds_total{namespace="zyntroai",pod=~"zyntroai-worker-.*"}[5m])) by (pod) * 100 > 80
+          for: 5m
+          labels:
+            severity: warning
+            service: zyntroai-worker
+          annotations:
+            summary: "Worker {{ $labels.pod }} CPU > 80% มากกว่า 5 นาที"
+            description: "CPU Usage = {{ $value | round 2 }}% | Namespace: {{ $labels.namespace }}"
+            runbook: "ตรวจ Queue Depth / เพิ่ม Concurrency Limit / Scale Worker"
+
+        # 🔴 High Memory Worker
+        - alert: ZyntroAIWorkerHighMemory
+          expr: |
+            avg(container_memory_working_set_bytes{namespace="zyntroai",pod=~"zyntroai-worker-.*"}) by (pod)
+            /
+            avg(container_spec_memory_limit_bytes{namespace="zyntroai",pod=~"zyntroai-worker-.*"}) by (pod)
+            *100 > 85
+          for: 3m
+          labels:
+            severity: warning
+            service: zyntroai-worker
+          annotations:
+            summary: "Worker {{ $labels.pod }} Memory > 85%"
+            description: "Memory Usage = {{ $value | round 2 }}% | อาจเกิด OOM ได้"
+            runbook: "ตรวจ CodeQL Scan / เพิ่ม Memory Limit / ลด Concurrency"
+
+        # 🔴 OOM Killed
+        - alert: ZyntroAIPodOOMKilled
+          expr: |
+            kube_pod_container_status_terminated_reason{namespace="zyntroai",reason="OOMKilled"} == 1
+          for: 1m
+          labels:
+            severity: critical
+            service: zyntroai
+          annotations:
+            summary: "Pod {{ $labels.pod }} ถูกฆ่าเนื่องจาก OOM"
+            description: "Container: {{ $labels.container }} | Reason: {{ $labels.reason }}"
+            runbook: "ตรวจ Log / เพิ่ม Memory Request/Limit / ลด Batch Concurrency"
+
+        # 🔴 Pod Pending Long Time
+        - alert: ZyntroAIPodPending
+          expr: |
+            kube_pod_status_phase{namespace="zyntroai",phase="Pending"} == 1
+            AND
+            time() - kube_pod_start_time{namespace="zyntroai",phase="Pending"} > 300
+          for: 1m
+          labels:
+            severity: warning
+            service: zyntroai
+          annotations:
+            summary: "Pod {{ $labels.pod }} Pending > 5 นาที"
+            description: "อาจขาด CPU/RAM / PVC / Node Resource"
+            runbook: "kubectl describe pod {{ $labels.pod }} -n zyntroai"
+
+        # 🔴 Batch Queue Lag (ต้องมี Metric จาก ZyntroAI / BullMQ / Redis)
+        - alert: ZyntroAIQueueLagHigh
+          expr: |
+            zyntroai_queue_depth{queue="batch-scan"} > 50
+          for: 10m
+          labels:
+            severity: warning
+            service: zyntroai-queue
+          annotations:
+            summary: "Batch Queue Depth > 50 งาน"
+            description: "Queue Depth = {{ $value | round 0 }}"
+            runbook: "ตรวจ Worker Down / เพิ่ม Scale / ลด Priority Queue"
+
+        # 🔴 Scan Failure Rate High (ต้อง Export Metric)
+        - alert: ZyntroAIScanFailureHigh
+          expr: |
+            rate(zyntroai_batch_job_failed_total[10m])
+            /
+            rate(zyntroai_batch_job_total[10m]) > 0.2
+          for: 5m
+          labels:
+            severity: critical
+            service: zyntroai-batch
+          annotations:
+            summary: "Scan Failure Rate > 20%"
+            description: "Failure Ratio = {{ $value | round 2 }}"
+            runbook: "ตรวจ Claude API Key / Git / CodeQL / Vault Logs"
+
+        # 🔴 API Latency High
+        - alert: ZyntroAIAPILatencyHigh
+          expr: |
+            histogram_quantile(0.95, rate(zyntroai_http_request_duration_seconds_bucket{namespace="zyntroai"}[5m])) > 10
+          for: 5m
+          labels:
+            severity: warning
+            service: zyntroai-api
+          annotations:
+            summary: "API 95th Percentile Latency > 10 วินาที"
+            description: "Latency P95 = {{ $value | round 2 }}s"
+            runbook: "ตรวจ Redis Cache / Database / Worker Load"
+
+        # 🔴 Node Disk Pressure
+        - alert: ZyntroAINodeDiskPressure
+          expr: |
+            kube_node_status_condition{condition="DiskPressure",status="true"} == 1
+          for: 2m
+          labels:
+            severity: critical
+            service: k8s-node
+          annotations:
+            summary: "Node {{ $labels.node }} มี Disk Pressure"
+            description: "Disk Pressure เป็น true"
+            runbook: "ลบ Logs / Clean PVC / เพิ่ม Storage"
+
+        # 🔴 Persistent Volume Full (ต้อง Node Exporter / CSI Metrics)
+        - alert: ZyntroAIVaultDiskFull
+          expr: |
+            100 - (node_filesystem_avail_bytes{mountpoint=~".*vault|.*reports"} / node_filesystem_size_bytes{mountpoint=~".*vault|.*reports"} *100) > 85
+          for: 5m
+          labels:
+            severity: warning
+            service: storage
+          annotations:
+            summary: "Filesystem {{ $labels.mountpoint }} Usage > 85%"
+            description: "Usage = {{ $value | round 2 }}%"
+            runbook: "สำรองข้อมูล / ขยาย PVC / ลบ Reports เก่า"
