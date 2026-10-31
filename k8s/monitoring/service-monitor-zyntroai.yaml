@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: zyntroai-metrics
+  namespace: monitoring
+  labels:
+    release: kube-prometheus
+spec:
+  selector:
+    matchLabels:
+      app: zyntroai-core
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
+  namespaceSelector:
+    matchNames:
+      - zyntroai
