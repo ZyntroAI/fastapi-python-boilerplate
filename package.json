@@ -14,7 +14,19 @@
     "test:coverage": "vitest run --coverage",
     "prepare": "husky install",
     "release": "semantic-release",
-    "vite": "vite"
+    "vite": "vite",
+    "sync-tokens": "node ./scripts/     sync-tokens.js",
+     "check-stories": "node ./scripts/check-component-stories.js",
+     "lint": "eslint src --ext .ts,.tsx",
+     "typecheck": "tsc --noEmit",
+     "storybook": "storybook dev -p 6006",
+     "build-storybook": "storybook build",
+     "chromatic": "chromatic --exit-zero-on-changes",
+     "percy:storybook": "percy storybook:build",
+     "cypress:open": "cypress open",
+     "cypress:run": "percy exec -- cypress run",
+     "playwright:ui": "playwright test --ui",
+     "playwright:run": "percy exec -- playwright test"
   },
   "dependencies": {
     "vercel": "^59.17.0",
