@@ -1,0 +1,26 @@
+name: PR Quality Checks
+on: [pull_request]
+
+jobs:
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: 'npm' }
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run tsc --noEmit
+
+  component-coverage:
+    name: Component Test Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check all components have stories
+        run: node ./scripts/check-component-stories.js
+
+  preview:
+    name: Deploy Preview
+    uses: ./.github/workflows/deploy-preview.yml
