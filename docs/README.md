@@ -25,7 +25,11 @@ cp .env.example .env
 
 5️⃣ Run server
 uvicorn app.main:app --reload --port 8000
-
+Then visit:
+ 
+- API Docs: http://localhost:8000/docs
+​
+- Health Check: http://localhost:8000/health
 รัน FastAPI 
 uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ทดสอบ
