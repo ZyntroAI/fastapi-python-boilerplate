@@ -1,4 +1,11 @@
 from fastapi import FastAPI
+from app.hooks.events import HookEvent
+ from app.hooks.registry import registry
+ from app.hooks.task_hooks import TaskCreatedHook
+from app.hooks.chat_hooks import ChatSummaryHook
+from app.hooks.backend_hooks import BackendGenerateHook
+from app.hooks.security_hooks import SecurityAlertHook
+from app.middleware.hook_middleware import HookMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from core.config import settings
@@ -7,6 +14,51 @@ from core.limiter import limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from api.v1.auth import router as auth_router
 from api.v1.upload import router as upload_router
+# Configure logging
+ logging.basicConfig(level=logging.INFO)
+ app = FastAPI(title="ZyntroAI Hook Engine", version="1.0.0")
+ # ─── Register Hooks ───
+ registry.register(HookEvent.TASK_CREATED, TaskCreatedHook())
+ registry.register(HookEvent.CHAT_SUMMARIZED, ChatSummaryHook())
+ registry.register(HookEvent.API_CREATED, BackendGenerateHook())
+ registry.register(HookEvent.SECURITY_ALERT, SecurityAlertHook())
+ # ─── Middleware ───
+ app.middleware("http")(HookMiddleware())
+ # ─── Routes ───
+ @app.get("/health")
+ async def health_check():
+     return {"status": "ok", "service": "ZyntroAI Hook Engine"}
+ @app.post("/tasks")
+ async def create_task():
+     payload = {
+         "id": "TASK-001",
+         "title": "Build FastAPI Hook Engine",
+         "status": "created",
+     }
+     await HookService.emit(HookEvent.TASK_CREATED, payload)
+     return payload
+ @app.post("/chat/summarize")
+ async def summarize_chat():
+     payload = {
+         "session_id": "CHAT-001",
+         "summary": "Hook architecture reviewed and enhanced",
+         "model": "zyntro-ai",
+     }
+     await HookService.emit(HookEvent.CHAT_SUMMARIZED, payload)
+     return payload
+ @app.post("/security/alert")
+ async def security_alert():
+     payload = {
+         "level": "warning",
+         "message": "Suspicious activity detected",
+         "source_ip": "192.168.1.xxx",
+     }
+     await HookService.emit_parallel(HookEvent.SECURITY_ALERT, payload)
+     return {"alert": True, "payload": payload}
+ if __name__ == "__main__":
+     import uvicorn
+     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+
 
 try:
     from api.v1.c2 import router as c2_router
