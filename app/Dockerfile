@@ -1,20 +1,22 @@
-FROM python:3.11-slim
+# Use official Python image
+FROM python:3.12-slim
 
+# Set working directory
 WORKDIR /app
+
+# Set env variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # Install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy app
-COPY app/ ./app/
-
-# Non-root user for security
-RUN useradd -m appuser && chown -R appuser:appuser /app
-USER appuser
+# Copy project files
+COPY ./app /app/app
 
 # Expose port
 EXPOSE 8000
 
-# Run with uvicorn (single process for Vercel compatibility)
+# Run the app
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
