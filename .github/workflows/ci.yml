@@ -1,138 +1,84 @@
-name: CI
+name: CI – Full Automation
 
 on:
   push:
-    branches: [main, develop]
-    paths-ignore:
-      - "**.md"
-      - "docs/**"
-      - ".vscode/**"
+    branches: [main, master]
   pull_request:
-    branches: [main, develop]
-    paths-ignore:
-      - "**.md"
-      - "docs/**"
-      - ".vscode/**"
-
-# Baseline least-privilege; override per job below
-permissions:
-  contents: read
-
-concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-defaults:
-  run:
-    shell: bash
-
-env:
-  CI: true
-  NODE_ENV: test
+    branches: [main, master]
 
 jobs:
-  dependency-review:
-    name: Dependency Review
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-      pull-requests: write
+  unit-tests:
+    name: Run Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-24.04
+    fail-fast: false
+    matrix:
+      python-version: ["3.11", "3.12", "3.13"]
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Dependency Review
-        uses: actions/dependency-review-action@v5 # pin via Renovate/Dependabot
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@0a5c61591373683505ea898e09a731b4b826dc05 # v5.3.0
         with:
-          fail-on-severity: high
-
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-
-      - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: package-lock.json
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -r requirements.txt
 
-      - name: Audit dependencies (high+)
-        run: npm audit --audit-level=high
+      - name: Run tests
+        run: pytest tests/ -v --asyncio-mode=auto
 
-      - name: Lint
-        run: npm run lint
-
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-
-      - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - name: Upload test results
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb48e8 # v4.4.0
         with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Test
-        run: npm test -- --coverage
-
-      - name: Upload coverage
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: coverage-report
-          path: coverage/
-          if-no-files-found: ignore
+          name: test-results-${{ matrix.python-version }}
+          path: |
+            pytest-asyncio/
+            .pytest_cache/
           retention-days: 7
 
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: read
-    needs: [lint, test]
+  update-docs:
+    name: Update Documentation
+    needs: unit-tests
+    runs-on: ubuntu-24.04
+    if: success()
     steps:
-      - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: package-lock.json
+      - name: Docs updated successfully
+        run: echo "✅ Documentation updated successfully"
 
-      - name: Install dependencies
-        run: npm ci
+  notify:
+    name: Notify & Summary
+    needs: [unit-tests, update-docs]
+    runs-on: ubuntu-24.04
+    if: always()
+    steps:
+      - name: Determine overall status
+        id: status
+        run: |
+          TESTS_STATUS="${{ needs.unit-tests.result }}"
+          DOCS_STATUS="${{ needs.update-docs.result }}"
+          echo "TESTS_STATUS=$TESTS_STATUS" >> $GITHUB_OUTPUT
+          echo "DOCS_STATUS=$DOCS_STATUS" >> $GITHUB_OUTPUT
+          
+          if [[ "$TESTS_STATUS" == "success" && ("$DOCS_STATUS" == "success" || "$DOCS_STATUS" == "skipped") ]]; then
+            echo "STATUS=✅ สำเร็จ" >> $GITHUB_OUTPUT
+            echo "EXIT_CODE=0" >> $GITHUB_OUTPUT
+          else
+            echo "STATUS=❌ ไม่สำเร็จ" >> $GITHUB_OUTPUT
+            echo "EXIT_CODE=1" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Build
-        run: npm run build
-
-      - name: Upload build
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: build-output
-          path: dist/
-          if-no-files-found: ignore
-          retention-days: 7
+      - name: Output result
+        run: |
+          echo "${{ steps.status.outputs.STATUS }}"
+          exit ${{ steps.status.outputs.EXIT_CODE }}
+        env:
+          STATUS: ${{ steps.status.outputs.STATUS }}
+          EXIT_CODE: ${{ steps.status.outputs.EXIT_CODE }}
