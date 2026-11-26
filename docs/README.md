@@ -7,17 +7,33 @@ FastAPI
 Code Style
 License
 CI Status
- 
- 
- 
-🚀 Quick Start
+
+✅ Quick Start Guide
+
+1️⃣ Create virtual environment
+python -m venv venv
+
+2️⃣ Activate
+Windows: venv\Scripts\activate
+Mac/Linux: source venv/bin/activate
+
+3️⃣ Install dependencies
+pip install -r requirements.txt
+
+4️⃣ Setup environment
+cp .env.example .env
+
+5️⃣ Run server
+uvicorn app.main:app --reload --port 8000
+
 รัน FastAPI 
 uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ทดสอบ
 curl http://127.0.0.1:8000/docs
 MCP endpoint จะอยู่ที่:
 http://127.0.0.1:8000/mcp
-bash  
+bash
+  
 # 1️⃣ Create & activate virtual environment
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
@@ -73,7 +89,8 @@ uvicorn app.main:app --reload
  
 📁 Project Structure
  
-plaintext  
+plaintext
+  
 fastapi-python-boilerplate/
 ├── app/
 │   ├── __init__.py
@@ -128,7 +145,8 @@ fastapi-python-boilerplate/
  
 Copy  .env.example  →  .env :
  
-env  
+env
+  
 # ── Application ─────────────────────────────
 APP_NAME=FastAPI Boilerplate
 APP_ENV=development          # development | staging | production
@@ -157,7 +175,8 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
  
 🧪 Development Commands
  
-bash  
+bash
+  
 # Run dev server (auto-reload)
 uvicorn app.main:app --reload --port 8000
 
@@ -216,7 +235,8 @@ Method Endpoint Description Auth
  
 🐳 Docker Deployment
  
-bash  
+bash
+  
 # Build & run
 docker-compose up -d --build
 
