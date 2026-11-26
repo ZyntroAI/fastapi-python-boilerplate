@@ -1,13 +1,7 @@
-"""
-Service layer initialization.
-
-Submodules are resolved lazily (PEP 562) rather than imported eagerly. Eager
-imports here pulled in ``items`` -> ``app.db.repositories`` for *every* import
-under ``app.services``, so a single broken module downstream made the whole
-package — and anything that touches a service — unimportable.
-"""
-
 from typing import TYPE_CHECKING, Any
+from .hook_service import HookService
+
+__all__ = ["HookService"]
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
     from .items import ItemService
