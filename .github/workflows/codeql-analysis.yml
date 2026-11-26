@@ -1,0 +1,50 @@
+name: CodeQL Analysis
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '30 1 * * 0'  # ทุกอาทิตย์ 08:30 น.
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript, python]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ภาษา Python
+      - name: Initialize CodeQL (Python)
+        if: matrix.language == 'python'
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python
+          config-file: .github/codeql/python-custom-config.yml
+
+      # ภาษา JavaScript/TypeScript
+      - name: Initialize CodeQL (JS)
+        if: matrix.language == 'javascript'
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          config-file: .github/codeql/javascript-custom-config.yml
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
