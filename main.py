@@ -4,7 +4,16 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi_mcp import AuthConfig, FastApiMCP
+from flask import Flask
 
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Hello from Replit!"
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=3000)
 from auth import create_access_token, verify_access_token
 from schemas import (
     FeedbackRequest,
