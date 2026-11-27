@@ -4,10 +4,10 @@ import time
 import uuid
 from contextlib import asynccontextmanager
 from typing import Callable
-
 from fastapi import FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.openapi.utils import get_openapi
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
@@ -17,8 +17,23 @@ from app.db.session import close_db, init_db
 from app.routes import items_router, users_router
 from core.origin_middleware import OriginValidationMiddleware
 from core.config import settings
+from .core.exceptions import AppException
 
+# Initialize App
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version="1.0.0",
+    docs_url="/docs" if settings.DEBUG else None,
+    redoc_url="/redoc" if settings.DEBUG else None
 
+ # CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # ============================================================
 # Configuration
 # ============================================================
@@ -559,7 +574,7 @@ async def readyz(
     return {
         "ready": True,
     }
-    
+
 # ============================================================
 # ✅ เพิ่มส่วนนี้หลังสร้าง app
 # ============================================================
