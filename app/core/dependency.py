@@ -1,4 +1,4 @@
-from fastapi import Request, HTTPException, status
+from fastapi import Request
 from fastapi.security import APIKeyHeader
 from .config import settings
 from .core.exceptions import AuthorizationError
