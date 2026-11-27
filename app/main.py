@@ -19,6 +19,7 @@ ALLOWED_ORIGINS = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,        # Explicit origins — safer than "*"
+#allow_credentials=True,  # ⚠️ BROWSER ERROR + SECURITY RISK!
     allow_credentials=True,               # Allow cookies/auth headers
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=["*"],                  # Allow all common headers
@@ -28,3 +29,8 @@ app.add_middleware(
 
 # 👇 Your routes go below
 # @app.get("/") ...
+
+# ❌ UNSAFE — NEVER use in production
+# allow_origins=["*"],
+# allow_credentials=True,  # ⚠️ BROWSER ERROR + SECURITY RISK!
+
