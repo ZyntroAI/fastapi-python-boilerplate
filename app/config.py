@@ -1,43 +1,35 @@
-"""App settings — thin config used by several modules.
-
-Note: this file lives alongside app/core/config.py (the fuller settings
-source). It is imported directly by env.py, core/security.py, core/performance.py
-and tests. It must import BaseSettings (was missing) and expose the fields those
-consumers reference plus a `settings` singleton.
-"""
-from functools import lru_cache
-
-from pydantic_settings import BaseSettings, SettingsConfigDict
+# app/core/config.py
+from pydantic_settings import BaseSettings
+from typing import List
 
 
 class Settings(BaseSettings):
-    ENV: str = "production"
+    APP_ENV: str = "development"
 
-    # Database
-    DATABASE_URL: str = "sqlite+aiosqlite:///./dev.db"
+    # Origins loaded from env var or defaults per environment
+    @property
+    def allowed_origins(self) -> List[str]:
+        if self.APP_ENV == "production":
+            return [
+                "https://your-production-domain.com",
+                "https://fastapi-python-boilerplate-kappa-brown.vercel.app",
+            ]
+        elif self.APP_ENV == "staging":
+            return [
+                "https://staging.your-domain.com",
+                "http://localhost:3000",
+            ]
+        else:
+            # Development — allow localhost variants
+            return [
+                "http://localhost:3000",
+                "http://localhost:5173",
+                "http://127.0.0.1:3000",
+                "http://127.0.0.1:5173",
+            ]
 
-    # JWT
-    JWT_SECRET_KEY: str = "super-secret-change-in-production"
-    JWT_ALGORITHM: str = "HS256"
-
-    # Redis (optional)
-    REDIS_URL: str = "redis://localhost:6379/0"
-
-    # Sentry / cache / misc
-    SENTRY_DSN: str | None = None
-    CACHE_ENABLED: bool = True
-    CACHE_TTL: int = 300
-
-    # Central Credential Broker (metadata-only)
-    CREDENTIAL_BROKER_URL: str | None = None
-    BROKER_TOKEN: str | None = None
-
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    class Config:
+        env_file = ".env"
 
 
-@lru_cache()
-def get_settings() -> "Settings":
-    return Settings()
-
-
-settings = get_settings()
+settings = Settings()
