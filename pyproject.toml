@@ -1,0 +1,4 @@
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "standard" # หรือเปลี่ยนเป็น "strict" หากต้องการความเข้มงวดสูงสุด
+exclude = ["**/__pycache__", ".venv"]
