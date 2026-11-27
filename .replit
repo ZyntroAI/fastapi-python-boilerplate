@@ -1,0 +1,5 @@
+entrypoint = "main.py"
+
+[deployment]
+run = ["npm", "start"]
+deploymentTarget = "cloudrun"
