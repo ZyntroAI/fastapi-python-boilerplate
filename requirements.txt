@@ -1,91 +1,43 @@
-# FastAPI core + standard extras (includes Uvicorn server)
-fastapi[standard]==0.136.1
-
-# Env file support
-python-dotenv==1.0.1
-
-# Core
+# ==========================================
+# 🧠 FastAPI Python Boilerplate — Production
+# ==========================================
+# Framework & Server
 fastapi[standard]==0.136.1
 uvicorn[standard]==0.34.0
 
-# Config & validation
-pydantic==2.10.4
-pydantic-settings==2.7.1
-python-dotenv==1.0.1
+# Data Validation & Config
+pydantic==2.10.5
+pydantic-settings==2.6.1
+email-validator==2.3.0
 
-# File uploads / form data
-python-multipart==0.0.20
+# Database — PostgreSQL + SQLAlchemy
+sqlalchemy==2.0.36
+psycopg[binary,pool]==3.2.6
+alembic==1.14.0
 
-# HTTP client (call external APIs)
-httpx==0.28.1
+# AI / LangGraph Stack
+langgraph==0.3.34
+langgraph-checkpoint-postgres==2.0.21
+langchain-core==0.3.63
+langchain-openai==0.3.13
 
-# Auth / JWT
+# Authentication & Security
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 
-# Database (SQLAlchemy 2.0 style)
-sqlalchemy==2.0.36
-# asyncpg==0.30.0      # Uncomment for PostgreSQL async
-# psycopg2-binary==2.9.10  # Uncomment for PostgreSQL sync
+# HTTP Client & Files
+httpx==0.28.1
+python-multipart==0.0.19
 
-# Migrations
-alembic==1.14.1
+# Payments
+stripe==11.5.0
 
-# Production process manager
-gunicorn==23.0.0
+# Caching
+redis==5.2.0
 
-# Dev / Test
-pytest==8.3.4
-pytest-asyncio==0.25.0
+# Logging & Monitoring
+loguru==0.7.3
+sentry-sdk[fastapi]==2.18.0
 
-# Create venv
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# Install
-pip install -r requirements.txt
-
-# Quick check
-python -c "import fastapi; print('FastAPI OK:', fastapi.__version__)"
-
-
-
-
-fastapi>=0.141.1
-uvicorn>=0.53.0
-tiktoken>=0.20.0            # ← Updated
-python-dotenv>=2.1.0        # ← CRITICAL FIX — was 1.2.3
-pydantic>=2.13.5
-openai>=3.14.0              # ← Major ver update (3.x → 1.x is actually older; pinned correctly below)
-langgraph>=1.3.3            # ← Minor update
-langchain>=1.6.4            # ← Minor update
-langchain-openai>=1.10.3    # ← Minor update
-openai>=3.9.0
-langgraph>=1.2.11          # ✅ LangGraph
-langchain>=1.4.0          # ✅ LangChain Base
-langchain-openai>=1.6.1   # ✅ OpenAI Integration
-pytest==9.1.1          # เพิ่ม
-pytest-cov==7.1.0      # เพิ่ม
-flake8==7.3.0          # เพิ่ม
-
-fastapi>=0.115.0
-uvicorn>=0.32.0
-python-dotenv>=1.0.0
-
-# Core v1.6.0 — Redis Rate Limiting MOC
-slowapi>=0.2.3
-limits>=3.13.0
-sqlalchemy>=2.0
-python-jose[cryptography]>=3.3.0
-passlib[bcrypt]>=1.7.4
-python-multipart>=0.0.9
-httpx>=0.27.0
-redis>=5.0.0
-
-# Optional
-boto3>=1.35.0
-apscheduler>=3.10.0
-supabase>=2.9.0
-
-
-flask
+# Environment
+python-dotenv==1.0.1
